@@ -21,7 +21,14 @@ async function setLanguage(page: Page, option: RegExp): Promise<void> {
     await page.goto('/settings/language');
     await page.getByRole('combobox').click();
     await page.getByRole('option', { name: option }).click();
+    // Wait for the save itself: the select shows the new value at once.
+    const saved = page.waitForResponse(
+        (response) =>
+            response.url().endsWith('/settings/language') &&
+            response.request().method() === 'PUT',
+    );
     await page.getByRole('button', { name: /^(Save|Kaydet)$/ }).click();
+    await saved;
     await expect(page.getByRole('combobox')).toHaveText(option);
 }
 
