@@ -43,6 +43,11 @@ final class FakeIdentityProvider implements RedirectIdentityProvider
         return $this->key;
     }
 
+    public function label(): string
+    {
+        return 'Fake IdP';
+    }
+
     public function isEnabled(): bool
     {
         return true;

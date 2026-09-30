@@ -13,7 +13,7 @@
   shadcn `Sidebar`-based app shell, settings pages layout, Wayfinder typed
   route helpers, lint/format configuration.
 - Remove what Ada does not need: password auth pages, registration, e-mail
-  verification, password reset (authentication is Google-only).
+  verification, password reset (sign-in goes through the institution's identity provider).
 - **No separate SPA / Next.js app.** One Laravel deployment serves pages via
   Inertia; the only non-Inertia endpoint used by the UI is the chat SSE stream.
 

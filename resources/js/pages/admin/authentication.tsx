@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/admin/form-field';
+import CopyField from '@/components/admin/copy-field';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -15,10 +16,19 @@ type Props = {
         allowed_domains: string[];
         auto_provision: boolean;
     };
-    providers: string[];
+    saml: {
+        acs_url: string;
+        entity_id: string;
+        metadata_url: string;
+        name_id_format: string;
+        configured: boolean;
+        idp_entity_id: string | null;
+        idp_sso_url: string | null;
+        certificate: { fingerprint: string; expires_at: string | null } | null;
+    };
 };
 
-export default function Authentication({ settings, providers }: Props) {
+export default function Authentication({ settings, saml }: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
 
@@ -91,29 +101,85 @@ export default function Authentication({ settings, providers }: Props) {
                     </p>
                 </div>
 
-                <section className="space-y-2">
-                    <h3 className="text-sm font-medium">
-                        {t('authentication.providers')}
-                    </h3>
-                    {providers.length === 0 ? (
+                <section className="space-y-4">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-medium">
+                            {t('authentication.saml.title')}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                            {t('authentication.noProviders')}
+                            {t('authentication.saml.description')}
                         </p>
-                    ) : (
-                        <ul className="flex gap-2">
-                            {providers.map((provider) => (
-                                <li key={provider}>
-                                    <Badge variant="secondary">
-                                        {provider} ·{' '}
-                                        {t('authentication.providerConfigured')}
-                                    </Badge>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    </div>
+
+                    <CopyField
+                        id="saml-acs"
+                        label={t('authentication.saml.acsUrl')}
+                        value={saml.acs_url}
+                    />
+                    <CopyField
+                        id="saml-entity"
+                        label={t('authentication.saml.entityId')}
+                        value={saml.entity_id}
+                    />
                     <p className="text-xs text-muted-foreground">
-                        {t('authentication.secretsNote')}
+                        {t('authentication.saml.nameIdHelp', {
+                            format: saml.name_id_format,
+                        })}
                     </p>
+
+                    <div className="space-y-2 rounded-lg border p-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                                {t('authentication.saml.idp')}
+                            </span>
+                            <Badge
+                                variant={
+                                    saml.configured ? 'secondary' : 'outline'
+                                }
+                            >
+                                {saml.configured
+                                    ? t('authentication.providerConfigured')
+                                    : t('authentication.saml.notConfigured')}
+                            </Badge>
+                        </div>
+                        {saml.configured ? (
+                            <dl className="grid gap-1 text-xs">
+                                <dt className="text-muted-foreground">
+                                    {t('authentication.saml.idpEntityId')}
+                                </dt>
+                                <dd className="font-mono break-all">
+                                    {saml.idp_entity_id}
+                                </dd>
+                                <dt className="text-muted-foreground">
+                                    {t('authentication.saml.idpSsoUrl')}
+                                </dt>
+                                <dd className="font-mono break-all">
+                                    {saml.idp_sso_url}
+                                </dd>
+                                {saml.certificate && (
+                                    <>
+                                        <dt className="text-muted-foreground">
+                                            {t(
+                                                'authentication.saml.certificate',
+                                            )}
+                                        </dt>
+                                        <dd className="font-mono break-all">
+                                            {saml.certificate.fingerprint}
+                                            {saml.certificate.expires_at &&
+                                                ` · ${t('authentication.saml.expires', { date: saml.certificate.expires_at })}`}
+                                        </dd>
+                                    </>
+                                )}
+                            </dl>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                {t('authentication.noProviders')}
+                            </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                            {t('authentication.secretsNote')}
+                        </p>
+                    </div>
                 </section>
 
                 <Button type="submit" disabled={form.processing}>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Audit\AuditLogger;
-use App\Domain\Identity\Services\IdentityProviderRegistry;
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAuthSettingsRequest;
@@ -13,15 +13,15 @@ use Inertia\Response;
 
 class AuthSettingsController extends Controller
 {
-    public function edit(AuthSettings $settings, IdentityProviderRegistry $providers): Response
+    public function edit(AuthSettings $settings, SamlIdentityProvider $saml): Response
     {
         return Inertia::render('admin/authentication', [
             'settings' => [
                 'allowed_domains' => $settings->allowed_domains,
                 'auto_provision' => $settings->auto_provision,
             ],
-            // Secrets stay in .env; the UI only shows whether a provider is configured.
-            'providers' => $providers->enabledKeys(),
+            // Values to enter in the IdP, plus the (public) IdP values read from .env.
+            'saml' => $saml->setupDetails(),
         ]);
     }
 

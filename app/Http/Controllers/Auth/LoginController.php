@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Domain\Identity\Contracts\RedirectIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -19,7 +20,10 @@ class LoginController extends Controller
     public function show(IdentityProviderRegistry $providers): Response
     {
         return Inertia::render('auth/login', [
-            'providers' => $providers->enabledKeys(),
+            'providers' => array_map(
+                fn (RedirectIdentityProvider $provider): array => ['key' => $provider->key(), 'label' => $provider->label()],
+                $providers->enabled(),
+            ),
             'devLoginUsers' => DevLoginController::isEnabled()
                 ? User::query()
                     ->orderBy('name')

@@ -85,7 +85,7 @@ Nginx ──► PHP-FPM ──► Laravel application
 | Cache / sessions / rate limiting / queue | Redis in production; `database` drivers in development | Budget correctness never depends on Redis. |
 | Frontend | React 19, TypeScript, Inertia.js v3, Tailwind CSS v4, shadcn/ui, Vite+ | Based on the official Laravel React starter kit. |
 | AI SDK | Direct HTTP adapters (Laravel HTTP client + SSE parser) behind Ada's own interface | See [provider-architecture.md](provider-architecture.md). |
-| Auth | Laravel Socialite (Google) behind Ada's own interface | See [authentication.md](authentication.md). |
+| Auth | SAML 2.0 (onelogin/php-saml) against a Google Workspace SAML app, behind Ada's own interface | See [authentication.md](authentication.md). |
 | Tests | Pest (PHP), Vitest (TS), Playwright (E2E) | PHP tests run against MySQL, never SQLite. |
 
 ### Why MySQL is the single supported database
@@ -315,7 +315,7 @@ Streaming does **not** use the queue.
 
 | Kind | Where | Examples |
 |---|---|---|
-| Secrets needed before anyone can log in | `.env` only | `APP_KEY`, DB credentials, `GOOGLE_CLIENT_ID/SECRET` |
+| Secrets needed before anyone can log in | `.env` only | `APP_KEY`, DB credentials, SAML IdP settings |
 | Institution & product settings | Database (typed settings), seeded from `.env` by `ada:install` | name, logo, colours, allowed domains, default locale, timezone |
 | Provider API keys | Database (encrypted) with `.env` fallback | OpenAI, Anthropic, Gemini keys |
 | Operational tuning | `config/ada.php` backed by `.env` | stream max duration, reservation TTL, per-provider token-count safety margins, counter failure policy |

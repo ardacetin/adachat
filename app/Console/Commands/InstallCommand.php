@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Models\Group;
@@ -18,7 +19,7 @@ use Illuminate\Console\Command;
 #[Description('Prepare a new Ada installation and check its configuration')]
 class InstallCommand extends Command
 {
-    public function handle(IdentityProviderRegistry $providers, AuthSettings $authSettings): int
+    public function handle(IdentityProviderRegistry $providers, AuthSettings $authSettings, SamlIdentityProvider $saml): int
     {
         $this->components->info('Installing Ada Chat.');
 
@@ -47,8 +48,16 @@ class InstallCommand extends Command
         }
 
         if ($providers->enabledKeys() === []) {
-            $problems[] = 'No identity provider is configured: set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.';
+            $problems[] = 'No identity provider is configured: set SAML_IDP_ENTITY_ID, SAML_IDP_SSO_URL and SAML_IDP_CERT (see docs/authentication.md).';
         }
+
+        if (config('cache.default') === 'array') {
+            $problems[] = 'CACHE_STORE=array does not persist between requests: SAML sign-in (and the Stop button) need a shared cache such as database or redis.';
+        }
+
+        $this->components->info('SAML service provider — enter these in the IdP (Google Admin / Apps / Web and mobile apps / custom SAML app):');
+        $this->components->twoColumnDetail('ACS URL', $saml->acsUrl());
+        $this->components->twoColumnDetail('Entity ID', $saml->entityId());
 
         if ($problems !== []) {
             $this->components->warn('Configuration needs attention:');

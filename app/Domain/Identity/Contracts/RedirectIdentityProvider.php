@@ -19,6 +19,11 @@ interface RedirectIdentityProvider
     public function key(): string;
 
     /**
+     * Name on the sign-in button, e.g. "Google".
+     */
+    public function label(): string;
+
+    /**
      * Whether the provider is configured and may be offered on the login page.
      */
     public function isEnabled(): bool;

@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // The IdP posts the SAML response cross-site; the response itself is
+        // authenticated (signature, audience, single-use request ID).
+        $middleware->validateCsrfTokens(except: ['auth/*/acs']);
+
         $middleware->web(append: [
             EnsureUserIsActive::class,
             SetLocale::class,

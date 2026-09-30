@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Sign-in uses **SAML 2.0** with a custom SAML app in Google Workspace
+  instead of Google OAuth: SP-initiated flow (`/auth/saml/redirect`, ACS
+  `/auth/saml/acs`, SP metadata and entity ID `/auth/saml/metadata`),
+  strict response validation with onelogin/php-saml, single-use request IDs
+  against replay, IdP-initiated responses restarted as SP-initiated. IdP
+  settings come from `.env` (`SAML_IDP_*`); the admin Sign-in page and
+  `ada:install` show the ACS URL and Entity ID to enter in Google Admin.
+  `laravel/socialite` and the `GOOGLE_CLIENT_*` settings were removed.
+
 ### Added
 
 - Architecture documents (M0): architecture, database design, budget engine,

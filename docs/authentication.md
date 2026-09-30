@@ -1,101 +1,142 @@
 # Authentication
 
-> Status: **Implemented (M2)**; allowed domains are admin-managed since M3.
+> Status: **Implemented** — M2 (Google OAuth), replaced by SAML 2.0 with a
+> Google Workspace SAML app; allowed domains are admin-managed since M3.
 > Location: `app/Domain/Identity`.
 
-V1 supports **Google Workspace sign-in (OAuth 2.0 / OpenID Connect)** only,
-restricted to configured domains. There is **no password login**. The
-design keeps Google behind an interface so that generic OIDC, Microsoft Entra
-ID, SAML and LDAP can be added as adapters.
+V1 signs users in with **SAML 2.0** against the institution's identity
+provider — a **custom SAML app in the Google Workspace admin console** —
+restricted to configured e-mail domains. There is **no password login**. The
+protocol sits behind `RedirectIdentityProvider`, so generic OIDC, Microsoft
+Entra ID and LDAP can be added as adapters.
 
-## 1. V1 flow (Google Workspace)
+> Changed after M5: the first design used Google OAuth (Socialite, client ID
+> and secret). The institution chose a Google Workspace SAML app instead; the
+> OAuth adapter and `laravel/socialite` were removed.
+
+## 1. V1 flow (SP-initiated SAML, Google Workspace)
 
 ```
-Browser                    Ada                                   Google
-   │  GET /auth/google        │                                     │
-   │─────────────────────────►│ generate state (session),           │
-   │                          │ build URL: scope=openid email profile,
-   │                          │ hd=<first allowed domain> (UX hint), │
-   │                          │ prompt=select_account               │
-   │◄──── 302 ────────────────│                                     │
-   │──────────────────────────────── consent / account chooser ────►│
-   │◄──────────────────────────────── 302 /auth/google/callback?code&state
-   │  GET callback            │                                     │
-   │─────────────────────────►│ 1. validate state (Socialite)       │
-   │                          │ 2. exchange code (server-to-server) ├──► token endpoint
-   │                          │ 3. read verified claims             │
+Browser                    Ada (SP)                              Google (IdP)
+   │ GET /auth/saml/redirect  │                                     │
+   │─────────────────────────►│ build AuthnRequest (ID stored in    │
+   │                          │ the cache for 10 min, single use)   │
+   │◄──── 302 SSO URL?SAMLRequest (HTTP-Redirect binding) ──────────│
+   │──────────────────────────────── sign-in / existing session ───►│
+   │◄──────────────────────── auto-submitted form (HTTP-POST binding)
+   │ POST /auth/saml/acs      │                                     │
+   │─────────────────────────►│ 1. InResponseTo = a request Ada made│
+   │                          │    (pulled from the cache: no replay)
+   │                          │ 2. validate signature, issuer,      │
+   │                          │    audience, destination, recipient,│
+   │                          │    validity window (onelogin/php-saml)
+   │                          │ 3. NameID (e-mail) + name attributes│
    │                          │ 4. enforce domain policy            │
    │                          │ 5. find/provision user              │
    │                          │ 6. reject disabled users            │
    │                          │ 7. session regenerate + login       │
-   │◄──── 302 / (chat) ───────│ 8. audit/login timestamp            │
+   │◄──── 302 / (chat) ───────│                                     │
 ```
 
-### Server-side validation (never trust the e-mail string alone)
+IdP-initiated sign-in (opening Ada from the Google apps menu) sends a
+response Ada never asked for. It is **not** trusted: Ada answers with a
+redirect to `/auth/saml/redirect`, and the SP-initiated round trip completes
+without user interaction while the Google session exists.
 
-After the code exchange over TLS, the claims come from Google's ID token /
-userinfo response, not from the browser. Ada requires **all** of:
+### Server-side validation
 
-1. `state` matches the session value (Socialite; stateless mode is **not**
-   used).
-2. `email_verified === true`.
-3. `hd` claim is present and is in `AuthSettings.allowed_domains`
-   (case-insensitive). `hd` is only set for Google Workspace accounts, so
-   personal `@gmail.com` accounts are rejected even if an allowed domain
-   were misconfigured.
-4. The domain part of `email` is also in `allowed_domains`.
-5. A stable `sub` is present.
+Implemented in `Providers\SamlIdentityProvider` with
+[onelogin/php-saml](https://github.com/SAML-Toolkits/php-saml) in strict mode:
 
-The `hd` request parameter only pre-selects the account chooser; it is a UX
-hint, not a security control.
+1. `InResponseTo` names an AuthnRequest this Ada instance issued in the last
+   10 minutes; the ID is removed on first use, so a captured response cannot
+   be replayed. (The request ID is kept in the **cache**, not the session:
+   browsers do not send the `SameSite=Lax` session cookie with the IdP's
+   cross-site POST. `CACHE_STORE` must therefore be shared — database or
+   redis, not `array`; `ada:install` warns.)
+2. The response **or** the assertion is signed with the configured IdP
+   certificate (unsigned responses are always rejected); XML is schema-
+   validated and DOCTYPEs are refused (no XXE).
+3. Issuer = IdP entity ID; Audience = Ada's entity ID; Destination and
+   Recipient = Ada's ACS URL (derived from `APP_URL`, so it also works behind
+   a TLS-terminating proxy); `NotBefore`/`NotOnOrAfter` with 3 minutes of
+   clock drift.
+4. The NameID is a valid e-mail address; its domain is in
+   `AuthSettings.allowed_domains`. SAML has no `hd` claim — the IdP only
+   asserts accounts of its own organisation, and the app can be limited to
+   organisational units in Google Admin.
+
+The ACS route is exempt from CSRF tokens (the IdP posts cross-site); the
+checks above authenticate the request instead.
 
 Failures raise `IdentityRejected` with a `RejectionReason` and redirect to
 the login page with a translated, non-revealing message
-(`auth.errors.<reason>`): `invalid_state`, `provider_error`,
-`email_not_verified`, `domain_not_allowed`, `not_provisioned`,
-`account_disabled`, `account_conflict`. Rejections are logged with provider,
-reason and e-mail **domain** only (never tokens or full addresses).
+(`auth.errors.<reason>`): `invalid_state` (unknown/expired/replayed request),
+`provider_error` (invalid response; the exact reason is logged),
+`domain_not_allowed`, `not_provisioned`, `account_disabled`,
+`account_conflict`. Rejections are logged with provider, reason and e-mail
+**domain** only.
 
 ### Account linking and provisioning
 
-- Lookup by `user_identities (provider='google', subject=sub)`.
+- Lookup by `user_identities (provider='saml', subject=<NameID e-mail>)`.
+  Google's NameID is the primary e-mail; if a user's address is renamed in
+  Workspace, the new address is a new subject and links by e-mail as below.
 - If no identity exists and `AuthSettings.auto_provision` is true: create the
   user (role `user`, default group) and the identity in one transaction.
-- Linking an existing user row by e-mail (e.g. pre-created by an admin or by
-  `ada:user:promote`) happens only when the e-mail matches exactly **and**
-  the checks above passed.
-- Name and avatar are refreshed on each login; e-mail changes at the IdP
-  update `user_identities.email` and `users.email`.
-- If the verified e-mail already belongs to a user linked to a *different*
-  subject at the same provider (e.g. a deleted and recreated Google account),
-  sign-in is refused with `account_conflict`; an admin resolves it. Ada never
-  merges accounts automatically.
+- Linking an existing user row by e-mail (pre-created by an admin or by
+  `ada:user:promote`, or signed in earlier with the removed OAuth adapter)
+  happens when no SAML identity is attached yet and the e-mail matches
+  exactly.
+- The name comes from the `first_name` / `last_name` attributes (names
+  configurable), otherwise the e-mail's local part; it is refreshed on each
+  login.
+- Same e-mail already linked to a different subject: `account_conflict`; an
+  admin resolves it. Ada never merges accounts automatically.
 
 ### Configuration
 
 | Setting | Where | Why |
 |---|---|---|
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, redirect URL | `.env` | Needed before anyone can log in; a secret must not depend on an admin UI that requires login. |
-| `allowed_domains` | `AuthSettings` (DB), initial value from `AUTH_ALLOWED_DOMAINS` in `.env` | Admin-manageable, multiple domains supported. |
+| `SAML_IDP_ENTITY_ID`, `SAML_IDP_SSO_URL`, `SAML_IDP_CERT` (or `SAML_IDP_CERT_PATH`) | `.env` | Needed before anyone can log in; values from the IdP metadata. |
+| `SAML_ATTRIBUTE_FIRST_NAME`, `SAML_ATTRIBUTE_LAST_NAME`, `SAML_LOGIN_LABEL` | `.env` (optional) | Attribute names mapped in the SAML app; button label (default "Google"). |
+| `allowed_domains` | `AuthSettings` (DB), initial value from `AUTH_ALLOWED_DOMAINS` | Admin-manageable, multiple domains supported. |
 | `auto_provision` | `AuthSettings`, initial value from `AUTH_AUTO_PROVISION` | Allows pre-registration-only deployments. |
 
-Changes to auth settings are audit-logged. Removing all domains is rejected.
+Ada's own SP values are derived from `APP_URL` (which must be the public
+`https://` address):
 
-### Setting up Google sign-in
+| Value | URL |
+|---|---|
+| ACS URL | `https://<your-ada-host>/auth/saml/acs` |
+| Entity ID (also the SP metadata URL) | `https://<your-ada-host>/auth/saml/metadata` |
 
-1. In Google Cloud Console, create (or pick) a project owned by the
-   institution's Google Workspace organisation.
-2. Configure the OAuth consent screen with user type **Internal**. This makes
-   Google itself refuse accounts outside the organisation — a second layer on
-   top of Ada's own domain checks.
-3. Create an OAuth client ID of type *Web application* with the authorised
-   redirect URI `https://<your-ada-host>/auth/google/callback`.
-4. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `AUTH_ALLOWED_DOMAINS`
-   in `.env`, then run `php artisan ada:install` to check the configuration.
+**Administration → Sign-in** shows both with copy buttons, together with the
+IdP values in use and the certificate's SHA-256 fingerprint and expiry date;
+`php artisan ada:install` prints them too.
 
-Since M3 both values live in `AuthSettings` (database) and are edited under
-**Administration → Sign-in** by super admins; `.env` only seeds them on the
-first migration.
+### Setting up the Google Workspace SAML app
+
+1. Google Admin → **Apps → Web and mobile apps → Add app → Add custom SAML
+   app**; name it (e.g. "Ada Chat").
+2. On *Google Identity Provider details*, **download the metadata** (or copy
+   the SSO URL, Entity ID and certificate) and set in Ada's `.env`:
+   `SAML_IDP_SSO_URL`, `SAML_IDP_ENTITY_ID`, and the certificate in
+   `SAML_IDP_CERT` (PEM, one line or with `\n`) or as a file in
+   `SAML_IDP_CERT_PATH`.
+3. *Service provider details*: **ACS URL** and **Entity ID** as above;
+   *Start URL* empty; **Signed response** optional (Ada accepts a signed
+   response or a signed assertion); **Name ID format `EMAIL`**, **Name ID
+   *Basic Information → Primary email***.
+4. *Attribute mapping* (optional, for display names): *First name →
+   `first_name`*, *Last name → `last_name`*.
+5. Turn the app **ON** for the organisational units / groups that may use
+   Ada (User access). Google rejects everyone else before Ada sees them.
+6. Set `AUTH_ALLOWED_DOMAINS`, run `php artisan config:clear` (or
+   `optimize`) and `php artisan ada:install` to check the configuration.
+
+Google's SAML certificate is valid for five years; renew it in Google Admin
+before the expiry date shown in the admin panel and update `.env`.
 
 ## 2. Bootstrapping and recovery
 
@@ -104,19 +145,20 @@ first migration.
   M3 on it also seeds settings; the default budget policy follows in M5.
   The default group itself is created by its migration, so it always exists.
 - `php artisan ada:user:promote someone@example.edu --role=super_admin`
-  creates or updates a user record so that their first Google login gets the
+  creates or updates a user record so that their first sign-in gets the
   role. This is also the **break-glass** path: there is no password login to
   fall back to, and server access is the recovery mechanism.
 - Development only: a `POST /dev/login` route to sign in as any existing
-  user without Google. It is registered only when `APP_ENV` is `local` or
+  user without the IdP. It is registered only when `APP_ENV` is `local` or
   `testing` **and** `ADA_DEV_LOGIN=true`; the controller re-checks both.
   `ada:doctor` (M10) fails if it is reachable in production.
 
 ## 3. Sessions
 
 - Driver: Redis in production, database in development.
-- Cookies: `Secure`, `HttpOnly`, `SameSite=Lax` (Lax is required so the
-  OAuth callback carries the session cookie).
+- Cookies: `Secure`, `HttpOnly`, `SameSite=Lax`. The SAML ACS POST is
+  cross-site, so it does not carry the session cookie; SAML request state
+  lives in the cache and the login creates a fresh session.
 - `session()->regenerate()` on login; full invalidation on logout.
 - Lifetime configurable (default 8 h idle, 7 d absolute with "remember").
 - `EnsureUserIsActive` middleware on all authenticated routes: disabled users
@@ -147,9 +189,10 @@ namespace App\Domain\Identity\Contracts;
 /** Redirect-based protocols: OAuth2/OIDC, SAML */
 interface RedirectIdentityProvider
 {
-    public function key(): string;                          // 'google', 'oidc-entra', 'saml-university'
+    public function key(): string;                          // 'saml' (V1), later e.g. 'oidc-entra'
+    public function label(): string;                        // sign-in button, e.g. "Google"
     public function isEnabled(): bool;                      // configured → offered on the login page
-    public function requiresHostedDomain(): bool;           // Google Workspace "hd" check
+    public function requiresHostedDomain(): bool;           // Google OAuth "hd" check (false for SAML)
     public function redirect(Request $request): RedirectResponse;
     public function resolveCallback(Request $request): ExternalIdentity;  // throws IdentityRejected
 }
@@ -186,7 +229,7 @@ applies: domain policy → identity lookup/linking → provisioning → active c
 |---|---|
 | Generic OIDC | Discovery document, ID token signature validation (JWKS), `nonce`, configurable claim mapping |
 | Microsoft Entra ID | OIDC adapter preset; tenant restriction via `tid` claim in addition to domain |
-| SAML 2.0 | SAML package adapter (signed assertions required, audience/recipient checks) |
+| Other SAML IdPs | `SamlIdentityProvider` already works with any SAML 2.0 IdP; several IdPs would need per-IdP keys and settings |
 | LDAP / AD | `CredentialIdentityProvider` using LdapRecord; password form shown only when enabled; login throttling |
 
 `AuthSettings` would then hold a list of enabled providers; the login page
@@ -194,12 +237,15 @@ renders one button per redirect provider.
 
 ## 6. Tests
 
-- Allowed domain accepted; other domain rejected; `@gmail.com` (no `hd`)
-  rejected; `hd` present but e-mail domain mismatched rejected.
-- `email_verified = false` rejected.
-- Invalid/missing `state` rejected.
-- First login provisions user with default group and role; second login
-  reuses identity by `sub` even after e-mail change.
-- Disabled user cannot log in and is logged out on next request.
-- Role matrix for every admin route; last super admin protection.
-- `/dev/login` absent outside `local`/`testing` or when `ADA_DEV_LOGIN` is off.
+- `tests/Feature/Auth/SamlSignInTest.php` plays the IdP: it generates a key
+  pair, answers Ada's real AuthnRequest with a signed response and posts it
+  to the ACS. Covered: sign-in with a signed response and with a signed
+  assertion only; replay refused; responses to unknown requests refused;
+  unsolicited responses restart an SP-initiated sign-in; unsigned, tampered,
+  wrong key, wrong audience, destination or issuer, and expired responses
+  refused; domain policy applied; SP metadata; admin page values.
+- `ExternalLoginTest` (protocol-independent, with a fake provider):
+  provisioning, linking, domain policy, disabled users, `account_conflict`,
+  `not_provisioned`, session regeneration.
+- `RolesTest`: gates per role; `DevLoginTest`: `/dev/login` only in
+  `local`/`testing` with `ADA_DEV_LOGIN` on.

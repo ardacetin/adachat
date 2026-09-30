@@ -32,7 +32,7 @@ offer controlled access to everyone:
 
 ## Planned V1 features
 
-- Google Workspace sign-in restricted to allowed domains
+- Google Workspace sign-in (SAML 2.0) restricted to allowed domains
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
 - OpenAI, Anthropic and Google Gemini through a provider abstraction
@@ -67,8 +67,11 @@ php artisan storage:link        # serves uploaded logos
 composer dev                    # app on http://localhost:8000
 ```
 
-For Google sign-in, set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and
-`AUTH_ALLOWED_DOMAINS` (see [authentication](docs/authentication.md#setting-up-google-sign-in));
+Sign-in uses SAML 2.0 with a custom SAML app in Google Workspace: set
+`SAML_IDP_ENTITY_ID`, `SAML_IDP_SSO_URL`, `SAML_IDP_CERT` and
+`AUTH_ALLOWED_DOMAINS`, and enter Ada's ACS URL (`<APP_URL>/auth/saml/acs`)
+and Entity ID (`<APP_URL>/auth/saml/metadata`) in Google Admin (see
+[authentication](docs/authentication.md#setting-up-the-google-workspace-saml-app));
 locally you can also use the development login. Run all checks with
 `composer ci:check`.
 
@@ -85,7 +88,7 @@ installation.
 | [Architecture](docs/architecture.md) | Overall design, domain boundaries, request and streaming flow, deployment |
 | [Database design](docs/database-design.md) | Tables, relations, indexes, money precision, MySQL conventions |
 | [Budget engine](docs/budget-engine.md) | Budget periods, token counting, reservations, settlement, concurrency |
-| [Authentication](docs/authentication.md) | Google Workspace flow, roles, future OIDC/SAML/LDAP |
+| [Authentication](docs/authentication.md) | SAML sign-in with Google Workspace, roles, future OIDC/LDAP |
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |
 | [Frontend architecture](docs/frontend-architecture.md) | React/Inertia structure, streaming state, i18n, theming |
 | [Security](docs/security.md) | Threats and controls |

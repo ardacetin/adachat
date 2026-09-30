@@ -35,7 +35,9 @@ LICENSE (AGPL-3.0-or-later).
 - **Done when:** app boots, CI green, TR/EN switch works on a sample page.
 
 ### M2 — Identity ✅
-- Google sign-in with `state`, `email_verified`, `hd` and domain checks.
+- Google sign-in with `state`, `email_verified`, `hd` and domain checks
+  (replaced after M5 by SAML 2.0 with a Google Workspace SAML app — see
+  [authentication.md](authentication.md)).
 - `user_identities`, JIT provisioning, default group, roles, `EnsureUserIsActive`.
 - `ada:install`, `ada:user:promote`, local-only dev login.
 - **Done when:** all auth tests in [authentication.md §6](authentication.md#6-tests) pass.

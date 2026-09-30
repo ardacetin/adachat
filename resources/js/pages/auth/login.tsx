@@ -13,7 +13,7 @@ type DevLoginUser = {
 };
 
 type Props = {
-    providers: string[];
+    providers: { key: string; label: string }[];
     devLoginUsers: DevLoginUser[] | null;
 };
 
@@ -45,13 +45,21 @@ export default function Login({ providers, devLoginUsers }: Props) {
                 <InputError message={errors.auth} className="text-center" />
 
                 <div className="grid gap-2">
-                    {providers.includes('google') ? (
-                        // A full page navigation: the OAuth redirect must not be an Inertia visit.
-                        <Button asChild className="w-full">
-                            <a href={redirect.url('google')}>
-                                {t('login.google')}
-                            </a>
-                        </Button>
+                    {providers.length > 0 ? (
+                        providers.map((provider) => (
+                            // A full page navigation: the IdP redirect must not be an Inertia visit.
+                            <Button
+                                key={provider.key}
+                                asChild
+                                className="w-full"
+                            >
+                                <a href={redirect.url(provider.key)}>
+                                    {t('login.withProvider', {
+                                        provider: provider.label,
+                                    })}
+                                </a>
+                            </Button>
+                        ))
                     ) : (
                         <p className="text-center text-sm text-muted-foreground">
                             {t('login.notConfigured')}

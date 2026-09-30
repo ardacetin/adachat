@@ -53,6 +53,6 @@ test('sign-in follows the saved domains', function () {
         ->put(route('admin.authentication.update'), ['allowed_domains' => 'other.edu', 'auto_provision' => true]);
     auth()->logout();
 
-    $this->get(route('auth.callback', 'google'))->assertSessionHasErrors('auth');
+    $this->post(route('auth.acs', 'google'))->assertSessionHasErrors('auth');
     $this->assertGuest();
 });

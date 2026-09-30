@@ -45,13 +45,25 @@
         "title": "Giriş",
         "description": "Ada'ya kimlerin giriş yapabileceği.",
         "allowedDomains": "İzin verilen alan adları",
-        "allowedDomainsHelp": "Her satıra bir alan adı. Yalnızca bu alan adlarındaki doğrulanmış hesaplar giriş yapabilir (Google'da Workspace alan adı da eşleşmelidir).",
+        "allowedDomainsHelp": "Her satıra bir alan adı. Yalnızca bu alan adlarındaki hesaplar giriş yapabilir.",
         "autoProvision": "İlk girişte hesap oluştur",
         "autoProvisionHelp": "Kapalıysa yalnızca yöneticinin oluşturduğu kullanıcılar giriş yapabilir.",
-        "providers": "Kimlik sağlayıcılar",
         "providerConfigured": "Yapılandırıldı",
-        "noProviders": "Yapılandırılmış kimlik sağlayıcı yok. Sunucuda GOOGLE_CLIENT_ID ve GOOGLE_CLIENT_SECRET değerlerini ayarlayın.",
-        "secretsNote": "Sağlayıcı gizli anahtarları burada değil, sunucuda (.env) yönetilir."
+        "noProviders": "Kimlik sağlayıcı henüz yapılandırılmadı. Sunucuda SAML_IDP_ENTITY_ID, SAML_IDP_SSO_URL ve SAML_IDP_CERT değerlerini ayarlayın (IdP meta verisinden).",
+        "secretsNote": "Kimlik sağlayıcı ayarları burada değil, sunucuda (.env) yönetilir.",
+        "saml": {
+            "title": "SAML ile tek oturum açma",
+            "description": "Bu değerleri kimlik sağlayıcınızdaki özel SAML uygulamasına girin (Google Admin → Uygulamalar → Web ve mobil uygulamalar).",
+            "acsUrl": "ACS URL'si",
+            "entityId": "Varlık kimliği (Entity ID; aynı zamanda SP meta veri adresi)",
+            "nameIdHelp": "Ad kimliği biçimi: {{format}}, ad kimliği: kullanıcının birincil e-postası. İsteğe bağlı özellikler: first_name, last_name.",
+            "idp": "Kimlik sağlayıcı",
+            "notConfigured": "Yapılandırılmadı",
+            "idpEntityId": "IdP varlık kimliği",
+            "idpSsoUrl": "SSO URL'si",
+            "certificate": "İmza sertifikası (SHA-256)",
+            "expires": "geçerlilik sonu {{date}}"
+        }
     },
     "common": {
         "yes": "Evet",
@@ -62,7 +74,9 @@
         "edit": "Düzenle",
         "add": "Ekle",
         "back": "Geri",
-        "empty": "Henüz kayıt yok."
+        "empty": "Henüz kayıt yok.",
+        "copy": "Kopyala",
+        "copied": "Kopyalandı"
     },
     "providers": {
         "title": "Sağlayıcılar",

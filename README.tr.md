@@ -31,7 +31,7 @@ herkese kontrollü erişim sağlar:
 
 ## Planlanan V1 özellikleri
 
-- İzin verilen domainlerle sınırlı Google Workspace girişi
+- İzin verilen domainlerle sınırlı Google Workspace girişi (SAML 2.0)
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
 - Roller (super admin, admin, user) ve gruplar
 - Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini
@@ -66,8 +66,11 @@ php artisan storage:link        # yüklenen logoları yayınlar
 composer dev                    # uygulama: http://localhost:8000
 ```
 
-Google ile giriş için `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` ve
-`AUTH_ALLOWED_DOMAINS` değerlerini ayarlayın (bkz. [kimlik doğrulama](docs/authentication.md#setting-up-google-sign-in));
+Giriş, Google Workspace'teki özel bir SAML uygulamasıyla SAML 2.0 üzerinden
+yapılır: `SAML_IDP_ENTITY_ID`, `SAML_IDP_SSO_URL`, `SAML_IDP_CERT` ve
+`AUTH_ALLOWED_DOMAINS` değerlerini ayarlayın; Google Admin'e Ada'nın ACS
+URL'sini (`<APP_URL>/auth/saml/acs`) ve varlık kimliğini
+(`<APP_URL>/auth/saml/metadata`) girin (bkz. [kimlik doğrulama](docs/authentication.md#setting-up-the-google-workspace-saml-app));
 yerelde geliştirme girişini de kullanabilirsiniz. Tüm kontroller:
 `composer ci:check`.
 
