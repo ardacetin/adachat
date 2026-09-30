@@ -5,6 +5,11 @@ use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
+// Public: the IdP administrator (or the IdP) reads it; also the SP entity ID.
+Route::get('auth/saml/metadata', [ExternalLoginController::class, 'samlMetadata'])
+    ->middleware('throttle:60,1')
+    ->name('auth.saml.metadata');
+
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'show'])->name('login');
 
@@ -13,10 +18,11 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:20,1')
         ->name('auth.redirect');
 
-    Route::get('auth/{provider}/callback', [ExternalLoginController::class, 'callback'])
+    // Assertion consumer service: the IdP posts the SAML response here.
+    Route::post('auth/{provider}/acs', [ExternalLoginController::class, 'callback'])
         ->where('provider', '[a-z0-9-]+')
         ->middleware('throttle:20,1')
-        ->name('auth.callback');
+        ->name('auth.acs');
 
     if (DevLoginController::isEnabled()) {
         Route::post('dev/login', [DevLoginController::class, 'store'])

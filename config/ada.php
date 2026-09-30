@@ -33,7 +33,7 @@ return [
     ],
 
     'auth' => [
-        // Comma-separated list of Google Workspace domains allowed to sign in.
+        // Comma-separated list of e-mail domains allowed to sign in.
         'allowed_domains' => array_values(array_filter(array_map(
             static fn (string $domain): string => strtolower(trim($domain)),
             explode(',', (string) env('AUTH_ALLOWED_DOMAINS', '')),
@@ -43,6 +43,27 @@ return [
         // false, only users pre-created by an admin (or ada:user:promote) can
         // sign in.
         'auto_provision' => (bool) env('AUTH_AUTO_PROVISION', true),
+
+        // SAML 2.0 sign-in through the institution's identity provider — in
+        // V1 a custom SAML app in the Google Workspace admin console. Values
+        // come from the IdP metadata ("Download metadata" in Google Admin).
+        'saml' => [
+            // IdP entity ID, e.g. https://accounts.google.com/o/saml2?idpid=C0123abcd
+            'idp_entity_id' => env('SAML_IDP_ENTITY_ID'),
+            // IdP SSO URL, e.g. https://accounts.google.com/o/saml2/idp?idpid=C0123abcd
+            'idp_sso_url' => env('SAML_IDP_SSO_URL'),
+            // IdP signing certificate: PEM text (with or without the BEGIN/END
+            // lines) in SAML_IDP_CERT, or a file path in SAML_IDP_CERT_PATH.
+            'idp_x509_cert' => env('SAML_IDP_CERT'),
+            'idp_x509_cert_path' => env('SAML_IDP_CERT_PATH'),
+            // Attribute names mapped in the SAML app ("Attribute mapping").
+            'attributes' => [
+                'first_name' => env('SAML_ATTRIBUTE_FIRST_NAME', 'first_name'),
+                'last_name' => env('SAML_ATTRIBUTE_LAST_NAME', 'last_name'),
+            ],
+            // Label of the sign-in button.
+            'label' => env('SAML_LOGIN_LABEL', 'Google'),
+        ],
 
         // Password-less development login. Only ever active in the local and
         // testing environments, regardless of this flag.

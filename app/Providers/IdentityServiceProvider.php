@@ -3,15 +3,15 @@
 namespace App\Providers;
 
 use App\Domain\Identity\Actions\LoginUser;
-use App\Domain\Identity\Providers\GoogleIdentityProvider;
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\AllowedDomainPolicy;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Models\User;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Socialite\Contracts\Factory as Socialite;
 
 /**
  * Wires the identity domain. Sign-in policy comes from AuthSettings (admin
@@ -25,13 +25,14 @@ class IdentityServiceProvider extends ServiceProvider
             $app->make(AuthSettings::class)->allowed_domains,
         ));
 
-        $this->app->bind(GoogleIdentityProvider::class, fn (Application $app): GoogleIdentityProvider => new GoogleIdentityProvider(
-            $app->make(Socialite::class),
-            $app->make(AuthSettings::class)->allowed_domains,
+        $this->app->bind(SamlIdentityProvider::class, fn (Application $app): SamlIdentityProvider => new SamlIdentityProvider(
+            (array) config('ada.auth.saml'),
+            $app->make(Cache::class),
+            (string) config('app.url'),
         ));
 
         $this->app->bind(IdentityProviderRegistry::class, fn (Application $app): IdentityProviderRegistry => new IdentityProviderRegistry([
-            $app->make(GoogleIdentityProvider::class),
+            $app->make(SamlIdentityProvider::class),
         ]));
 
         $this->app->bind(LoginUser::class, fn (Application $app): LoginUser => new LoginUser(

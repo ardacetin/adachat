@@ -17,9 +17,9 @@
         "brick/math": "^1.0",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
-        "laravel/socialite": "^5.31",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
+        "onelogin/php-saml": "^4.2",
         "spatie/laravel-settings": "^3.9"
     },
     "require-dev": {

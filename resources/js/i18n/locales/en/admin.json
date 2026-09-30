@@ -45,13 +45,25 @@
         "title": "Sign-in",
         "description": "Who may sign in to Ada.",
         "allowedDomains": "Allowed domains",
-        "allowedDomainsHelp": "One domain per line. Only verified accounts from these domains can sign in (for Google, the Workspace domain must match too).",
+        "allowedDomainsHelp": "One domain per line. Only accounts from these domains can sign in.",
         "autoProvision": "Create accounts on first sign-in",
         "autoProvisionHelp": "If turned off, only users created by an administrator can sign in.",
-        "providers": "Identity providers",
         "providerConfigured": "Configured",
-        "noProviders": "No identity provider is configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET on the server.",
-        "secretsNote": "Provider secrets are managed on the server (.env), not here."
+        "noProviders": "The identity provider is not configured yet. Set SAML_IDP_ENTITY_ID, SAML_IDP_SSO_URL and SAML_IDP_CERT on the server (values from the IdP metadata).",
+        "secretsNote": "Identity provider settings are managed on the server (.env), not here.",
+        "saml": {
+            "title": "SAML single sign-on",
+            "description": "Enter these values in the custom SAML app of your identity provider (Google Admin → Apps → Web and mobile apps).",
+            "acsUrl": "ACS URL",
+            "entityId": "Entity ID (also the SP metadata URL)",
+            "nameIdHelp": "Name ID format: {{format}}, Name ID: the user's primary e-mail. Optional attributes: first_name, last_name.",
+            "idp": "Identity provider",
+            "notConfigured": "Not configured",
+            "idpEntityId": "IdP entity ID",
+            "idpSsoUrl": "SSO URL",
+            "certificate": "Signing certificate (SHA-256)",
+            "expires": "expires {{date}}"
+        }
     },
     "common": {
         "yes": "Yes",
@@ -62,7 +74,9 @@
         "edit": "Edit",
         "add": "Add",
         "back": "Back",
-        "empty": "Nothing here yet."
+        "empty": "Nothing here yet.",
+        "copy": "Copy",
+        "copied": "Copied"
     },
     "providers": {
         "title": "Providers",

@@ -45,7 +45,7 @@ test('install warns when no domain is allowed', function () {
 
 test('install warns when no identity provider is configured', function () {
     updateSettings(AuthSettings::class, ['allowed_domains' => ['example.edu']]);
-    config(['services.google.client_id' => null]);
+    config(['ada.auth.saml.idp_entity_id' => null]);
 
     $this->artisan('ada:install')
         ->expectsOutputToContain('No identity provider is configured')

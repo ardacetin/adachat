@@ -30,6 +30,17 @@ final class IdentityProviderRegistry
     }
 
     /**
+     * @return list<RedirectIdentityProvider>
+     */
+    public function enabled(): array
+    {
+        return array_values(array_filter(
+            $this->providers,
+            static fn (RedirectIdentityProvider $provider): bool => $provider->isEnabled(),
+        ));
+    }
+
+    /**
      * @return list<string>
      */
     public function enabledKeys(): array

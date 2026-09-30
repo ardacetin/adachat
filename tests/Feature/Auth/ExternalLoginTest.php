@@ -20,12 +20,12 @@ beforeEach(function () {
 
 function signInCallback(): TestResponse
 {
-    return test()->get(route('auth.callback', 'google'));
+    return test()->post(route('auth.acs', 'google'));
 }
 
 test('unknown providers are not found', function () {
     $this->get(route('auth.redirect', 'saml-unknown'))->assertNotFound();
-    $this->get(route('auth.callback', 'saml-unknown'))->assertNotFound();
+    $this->post(route('auth.acs', 'unknown'))->assertNotFound();
 });
 
 test('the redirect is delegated to the provider', function () {
@@ -34,7 +34,7 @@ test('the redirect is delegated to the provider', function () {
 
 test('the login page lists enabled providers', function () {
     $this->get(route('login'))
-        ->assertInertia(fn ($page) => $page->where('providers', ['google']));
+        ->assertInertia(fn ($page) => $page->where('providers', [['key' => 'google', 'label' => 'Fake IdP']]));
 });
 
 test('a first sign-in provisions the user in the default group', function () {

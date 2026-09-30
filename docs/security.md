@@ -18,11 +18,16 @@ Actors: anonymous internet users; authenticated staff (curious or abusive);
 admins (trusted for accounting, **not** for content); super admins;
 operators with server access (ultimately trusted); compromised dependencies.
 
-## 2. Authentication and OAuth
+## 2. Authentication (SAML 2.0)
 
-- Socialite with session-bound `state`; no stateless mode.
-- Server-side checks: `email_verified`, `hd` ∈ allowed domains, e-mail domain
-  ∈ allowed domains, stable `sub` (see [authentication.md](authentication.md)).
+- SP-initiated SAML with onelogin/php-saml in strict mode: signed response or
+  assertion from the configured IdP certificate, issuer, audience,
+  destination/recipient and validity window checked; schema validation, no
+  DOCTYPE (XXE).
+- Every AuthnRequest ID is single-use and expires after 10 minutes (cache),
+  so responses cannot be replayed or injected; unsolicited (IdP-initiated)
+  responses are not trusted and restart an SP-initiated sign-in.
+- E-mail domain ∈ allowed domains (see [authentication.md](authentication.md)).
 - No password login → no credential stuffing surface. Break-glass via CLI only.
 - Login route throttled per IP.
 - Future OIDC: ID token signature (JWKS), `iss`, `aud`, `exp`, `nonce`.
@@ -40,7 +45,9 @@ operators with server access (ultimately trusted); compromised dependencies.
 - Laravel CSRF middleware for all state-changing routes. Inertia sends
   `X-XSRF-TOKEN` automatically; the SSE `fetch` sends it explicitly.
 - The chat stream is `POST` (never a state-changing `GET`).
-- OAuth callback protected by `state`.
+- The SAML ACS (`POST /auth/saml/acs`) is exempt from CSRF tokens because
+  the IdP posts cross-site; it is authenticated by the response signature and
+  the single-use request ID.
 
 ## 5. XSS
 
@@ -171,7 +178,7 @@ operators with server access (ultimately trusted); compromised dependencies.
 ## 15. Security testing
 
 - Feature tests for every policy (role matrix, owner-only content).
-- OAuth domain restriction tests.
+- SAML response validation and domain restriction tests.
 - Markdown XSS tests (raw HTML, `javascript:` links).
 - Budget concurrency and abuse tests.
 - Header/CSP assertions.

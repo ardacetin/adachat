@@ -5,16 +5,20 @@ namespace App\Http\Controllers\Auth;
 use App\Domain\Identity\Actions\LoginUser;
 use App\Domain\Identity\Contracts\RedirectIdentityProvider;
 use App\Domain\Identity\Exceptions\IdentityRejected;
+use App\Domain\Identity\Exceptions\SignInMustRestart;
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 /**
- * Sign-in through redirect-based identity providers (Google in V1).
+ * Sign-in through redirect-based identity providers (SAML 2.0 against the
+ * institution's Google Workspace in V1).
  */
 class ExternalLoginController extends Controller
 {
@@ -25,6 +29,9 @@ class ExternalLoginController extends Controller
         return $this->provider($provider)->redirect($request);
     }
 
+    /**
+     * The IdP's answer (SAML assertion consumer service, HTTP-POST binding).
+     */
     public function callback(Request $request, string $provider, LoginUser $loginUser): RedirectResponse
     {
         $identityProvider = $this->provider($provider);
@@ -32,6 +39,8 @@ class ExternalLoginController extends Controller
         try {
             $identity = $identityProvider->resolveCallback($request);
             $user = $loginUser->handle($identity, $identityProvider->requiresHostedDomain());
+        } catch (SignInMustRestart) {
+            return redirect()->route('auth.redirect', $provider);
         } catch (IdentityRejected $rejection) {
             // Never log tokens or full e-mail addresses.
             Log::warning('Sign-in rejected.', [
@@ -49,6 +58,14 @@ class ExternalLoginController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended(route('home'));
+    }
+
+    /**
+     * SAML service provider metadata; its URL is also Ada's SP entity ID.
+     */
+    public function samlMetadata(SamlIdentityProvider $saml): Response
+    {
+        return response($saml->metadata(), 200, ['Content-Type' => 'application/samlmetadata+xml']);
     }
 
     private function provider(string $key): RedirectIdentityProvider
