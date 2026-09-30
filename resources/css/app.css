@@ -3,6 +3,8 @@
 
 @import 'tw-animate-css';
 
+@plugin '@tailwindcss/typography';
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -141,4 +143,15 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Shiki dual themes (code blocks in chat answers): colours follow the app theme. */
+.shiki-block .shiki,
+.shiki-block .shiki span {
+    color: var(--shiki-light);
+}
+
+.dark .shiki-block .shiki,
+.dark .shiki-block .shiki span {
+    color: var(--shiki-dark);
 }

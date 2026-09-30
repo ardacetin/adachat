@@ -87,6 +87,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Conversation, $this>
+     */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    /**
      * @return HasMany<BudgetPeriod, $this>
      */
     public function budgetPeriods(): HasMany

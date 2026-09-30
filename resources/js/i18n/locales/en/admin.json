@@ -133,6 +133,8 @@
         "showModelDetails": "Show the underlying model to users",
         "sortOrder": "Order",
         "enabled": "Enabled",
+        "groups": "Available to groups",
+        "groupsHelp": "Only members of the selected groups can choose this alias.",
         "noModels": "Add a model first."
     }
 }

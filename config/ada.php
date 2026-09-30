@@ -49,6 +49,11 @@ return [
         'dev_login' => (bool) env('ADA_DEV_LOGIN', false),
     ],
 
+    'chat' => [
+        // Longest message a user can send, in characters.
+        'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),
+    ],
+
     'providers' => [
         // Maximum duration of one generation request (streaming), seconds.
         'timeout' => (int) env('ADA_PROVIDER_TIMEOUT', 300),
