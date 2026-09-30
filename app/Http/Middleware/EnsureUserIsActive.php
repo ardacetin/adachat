@@ -26,7 +26,7 @@ class EnsureUserIsActive
             $request->session()->regenerateToken();
 
             return redirect()->route('login')->withErrors([
-                'auth' => __('auth.account_disabled'),
+                'auth' => __('auth.errors.account_disabled'),
             ]);
         }
 

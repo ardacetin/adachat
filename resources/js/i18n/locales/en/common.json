@@ -4,7 +4,8 @@
         "settings": "Settings",
         "logOut": "Log out",
         "menu": "Menu",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "admin": "Administration"
     },
     "home": {
         "title": "Home",

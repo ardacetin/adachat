@@ -7,8 +7,11 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: erken geliştirme (M1 — temel altyapı).** Mimari [`docs/`](docs/)
-> klasöründe (İngilizce) belgelenmiştir; bkz. [yol haritası](docs/v1-roadmap.md).
+> **Durum: erken geliştirme.** M0–M5 kilometre taşları tamamlandı: temel
+> altyapı, Google Workspace ile giriş, kurum ayarları ve marka, AI
+> sağlayıcıları ve model takma adları, bütçe motoru. Sıradaki: akışlı sohbet
+> (M6). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
+> [yol haritası](docs/v1-roadmap.md).
 
 ## Neden Ada?
 
@@ -59,11 +62,20 @@ cp .env.example .env            # yerel giriş için ADA_DEV_LOGIN=true yapın
 composer install && npm install
 php artisan key:generate
 php artisan migrate --seed      # örnek kullanıcıları oluşturur
+php artisan storage:link        # yüklenen logoları yayınlar
 composer dev                    # uygulama: http://localhost:8000
 ```
 
-Google ile giriş M2'de gelecek; o zamana kadar giriş sayfasındaki geliştirme
-girişini kullanın. Tüm kontroller: `composer ci:check`.
+Google ile giriş için `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` ve
+`AUTH_ALLOWED_DOMAINS` değerlerini ayarlayın (bkz. [kimlik doğrulama](docs/authentication.md#setting-up-google-sign-in));
+yerelde geliştirme girişini de kullanabilirsiniz. Tüm kontroller:
+`composer ci:check`.
+
+Bütçe işleri (yarım kalan rezervasyonların süresinin dolması, günlük
+mutabakat) Laravel zamanlayıcısıyla çalışır: yerelde `php artisan
+schedule:work`, üretimde her dakika `php artisan schedule:run` çalıştıran bir
+cron girdisi. Varsayılan bütçe politikasının aylık limiti kurulumda
+`ADA_DEFAULT_MONTHLY_LIMIT_USD` değerinden alınır.
 
 ## Belgeler
 

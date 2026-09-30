@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { redirect } from '@/routes/auth';
 
 type DevLoginUser = {
     id: number;
@@ -12,16 +13,18 @@ type DevLoginUser = {
 };
 
 type Props = {
+    providers: string[];
     devLoginUsers: DevLoginUser[] | null;
 };
 
 // Not a Wayfinder import: this route only exists in local/testing.
 const DEV_LOGIN_URL = '/dev/login';
 
-export default function Login({ devLoginUsers }: Props) {
+export default function Login({ providers, devLoginUsers }: Props) {
     const { t } = useTranslation('auth');
-    const { name, errors } = usePage<{ errors: Record<string, string> }>()
-        .props;
+    const { name, institution, errors } = usePage<{
+        errors: Record<string, string>;
+    }>().props;
 
     return (
         <>
@@ -33,19 +36,27 @@ export default function Login({ devLoginUsers }: Props) {
                         {t('login.title', { name })}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        {t('login.description')}
+                        {t('login.description', {
+                            institution: institution.name,
+                        })}
                     </p>
                 </div>
 
                 <InputError message={errors.auth} className="text-center" />
 
                 <div className="grid gap-2">
-                    <Button disabled className="w-full">
-                        {t('login.google')}
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground">
-                        {t('login.googleComingSoon')}
-                    </p>
+                    {providers.includes('google') ? (
+                        // A full page navigation: the OAuth redirect must not be an Inertia visit.
+                        <Button asChild className="w-full">
+                            <a href={redirect.url('google')}>
+                                {t('login.google')}
+                            </a>
+                        </Button>
+                    ) : (
+                        <p className="text-center text-sm text-muted-foreground">
+                            {t('login.notConfigured')}
+                        </p>
+                    )}
                 </div>
 
                 {devLoginUsers !== null && (

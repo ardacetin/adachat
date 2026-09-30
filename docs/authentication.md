@@ -1,6 +1,7 @@
 # Authentication
 
-> Status: **Proposed (M0)**. Location: `app/Domain/Identity`.
+> Status: **Implemented (M2)**; allowed domains are admin-managed since M3.
+> Location: `app/Domain/Identity`.
 
 V1 supports **Google Workspace sign-in (OAuth 2.0 / OpenID Connect)** only,
 restricted to configured domains. There is **no password login**. The
@@ -48,9 +49,12 @@ userinfo response, not from the browser. Ada requires **all** of:
 The `hd` request parameter only pre-selects the account chooser; it is a UX
 hint, not a security control.
 
-Failures redirect to the login page with a translated, non-revealing message
-(`auth.errors.domain_not_allowed`, `auth.errors.email_not_verified`,
-`auth.errors.account_disabled`) and are logged (without tokens).
+Failures raise `IdentityRejected` with a `RejectionReason` and redirect to
+the login page with a translated, non-revealing message
+(`auth.errors.<reason>`): `invalid_state`, `provider_error`,
+`email_not_verified`, `domain_not_allowed`, `not_provisioned`,
+`account_disabled`, `account_conflict`. Rejections are logged with provider,
+reason and e-mail **domain** only (never tokens or full addresses).
 
 ### Account linking and provisioning
 
@@ -62,6 +66,10 @@ Failures redirect to the login page with a translated, non-revealing message
   the checks above passed.
 - Name and avatar are refreshed on each login; e-mail changes at the IdP
   update `user_identities.email` and `users.email`.
+- If the verified e-mail already belongs to a user linked to a *different*
+  subject at the same provider (e.g. a deleted and recreated Google account),
+  sign-in is refused with `account_conflict`; an admin resolves it. Ada never
+  merges accounts automatically.
 
 ### Configuration
 
@@ -69,13 +77,32 @@ Failures redirect to the login page with a translated, non-revealing message
 |---|---|---|
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, redirect URL | `.env` | Needed before anyone can log in; a secret must not depend on an admin UI that requires login. |
 | `allowed_domains` | `AuthSettings` (DB), initial value from `AUTH_ALLOWED_DOMAINS` in `.env` | Admin-manageable, multiple domains supported. |
-| `auto_provision` | `AuthSettings` | Allows pre-registration-only deployments. |
+| `auto_provision` | `AuthSettings`, initial value from `AUTH_AUTO_PROVISION` | Allows pre-registration-only deployments. |
 
 Changes to auth settings are audit-logged. Removing all domains is rejected.
 
+### Setting up Google sign-in
+
+1. In Google Cloud Console, create (or pick) a project owned by the
+   institution's Google Workspace organisation.
+2. Configure the OAuth consent screen with user type **Internal**. This makes
+   Google itself refuse accounts outside the organisation — a second layer on
+   top of Ada's own domain checks.
+3. Create an OAuth client ID of type *Web application* with the authorised
+   redirect URI `https://<your-ada-host>/auth/google/callback`.
+4. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `AUTH_ALLOWED_DOMAINS`
+   in `.env`, then run `php artisan ada:install` to check the configuration.
+
+Since M3 both values live in `AuthSettings` (database) and are edited under
+**Administration → Sign-in** by super admins; `.env` only seeds them on the
+first migration.
+
 ## 2. Bootstrapping and recovery
 
-- `php artisan ada:install` seeds settings, the default group and policy.
+- `php artisan ada:install` ensures the default group exists and reports
+  missing configuration (APP_KEY, allowed domains, identity provider). From
+  M3 on it also seeds settings; the default budget policy follows in M5.
+  The default group itself is created by its migration, so it always exists.
 - `php artisan ada:user:promote someone@example.edu --role=super_admin`
   creates or updates a user record so that their first Google login gets the
   role. This is also the **break-glass** path: there is no password login to
@@ -120,9 +147,11 @@ namespace App\Domain\Identity\Contracts;
 /** Redirect-based protocols: OAuth2/OIDC, SAML */
 interface RedirectIdentityProvider
 {
-    public function key(): string;                          // 'google', 'oidc:entra', 'saml:university'
+    public function key(): string;                          // 'google', 'oidc-entra', 'saml-university'
+    public function isEnabled(): bool;                      // configured → offered on the login page
+    public function requiresHostedDomain(): bool;           // Google Workspace "hd" check
     public function redirect(Request $request): RedirectResponse;
-    public function resolveCallback(Request $request): ExternalIdentity;
+    public function resolveCallback(Request $request): ExternalIdentity;  // throws IdentityRejected
 }
 
 /** Credential-based protocols: LDAP / Active Directory */

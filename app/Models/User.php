@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use App\Domain\Budget\Money\Usd;
+use App\Domain\Budget\Money\UsdCast;
 use App\Domain\Identity\Enums\Appearance;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Carbon;
 
 /**
  * A person who can sign in. Ada has no passwords: users authenticate through
@@ -22,15 +26,18 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property string|null $avatar_url
  * @property UserRole $role
+ * @property int $group_id
+ * @property Usd|null $monthly_limit_override_usd Individual limit; null → the group's policy.
  * @property string|null $locale
  * @property Appearance $appearance
  * @property UserStatus $status
- * @property Carbon|null $disabled_at
- * @property Carbon|null $last_login_at
- * @property Carbon|null $last_active_at
+ * @property CarbonImmutable|null $disabled_at
+ * @property CarbonImmutable|null $last_login_at
+ * @property CarbonImmutable|null $last_active_at
  * @property string|null $remember_token
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ * @property-read Group $group
  */
 #[Fillable(['name', 'email', 'avatar_url', 'locale', 'appearance'])]
 #[Hidden(['remember_token'])]
@@ -50,6 +57,7 @@ class User extends Authenticatable
         'role' => 'user',
         'appearance' => 'system',
         'status' => 'active',
+        'monthly_limit_override_usd' => null,
     ];
 
     /**
@@ -63,10 +71,35 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'appearance' => Appearance::class,
             'status' => UserStatus::class,
+            'monthly_limit_override_usd' => UsdCast::class,
             'disabled_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Group, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * @return HasMany<BudgetPeriod, $this>
+     */
+    public function budgetPeriods(): HasMany
+    {
+        return $this->hasMany(BudgetPeriod::class);
+    }
+
+    /**
+     * @return HasMany<UserIdentity, $this>
+     */
+    public function identities(): HasMany
+    {
+        return $this->hasMany(UserIdentity::class);
     }
 
     /**

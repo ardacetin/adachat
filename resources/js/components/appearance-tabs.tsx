@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
@@ -5,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Appearance } from '@/hooks/use-appearance';
 import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
+import { update } from '@/routes/appearance';
 
 export default function AppearanceToggleTab({
     className = '',
@@ -12,6 +14,17 @@ export default function AppearanceToggleTab({
 }: HTMLAttributes<HTMLDivElement>) {
     const { t } = useTranslation('settings');
     const { appearance, updateAppearance } = useAppearance();
+
+    const select = (value: Appearance) => {
+        updateAppearance(value);
+
+        // Save to the account so the choice follows the user to other devices.
+        router.put(
+            update.url(),
+            { appearance: value },
+            { preserveScroll: true, preserveState: true },
+        );
+    };
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
         { value: 'light', icon: Sun, label: t('appearance.light') },
@@ -32,7 +45,7 @@ export default function AppearanceToggleTab({
                     key={value}
                     type="button"
                     aria-pressed={appearance === value}
-                    onClick={() => updateAppearance(value)}
+                    onClick={() => select(value)}
                     className={cn(
                         'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
                         appearance === value

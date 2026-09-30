@@ -1,6 +1,8 @@
 # Database Design
 
-> Status: **Proposed (M0)**. Target engine: **MySQL 8.4 LTS**, InnoDB,
+> Status: **Implemented through M5** (users, groups, identities, settings,
+> audit log, providers/models/aliases, budget tables); conversations and
+> messages follow in M6. Target engine: **MySQL 8.4 LTS**, InnoDB,
 > character set `utf8mb4`.
 
 ## 1. Global conventions
@@ -181,7 +183,7 @@ adding OIDC/Entra/SAML later and survives e-mail changes.
 |---|---|---|---|
 | id | BIGINT PK | | |
 | user_id | BIGINT UNSIGNED | | |
-| provider | VARCHAR(32) | | `google`, later `oidc:<name>`, `saml:<name>` |
+| provider | VARCHAR(32) | | `google`, later e.g. `oidc-<name>`, `saml-<name>` (URL-safe: `[a-z0-9-]+`) |
 | subject | VARCHAR(255) `utf8mb4_bin` | | stable IdP subject (`sub`) |
 | email | VARCHAR(255) | | email at last login |
 | last_claims | JSON | yes | non-sensitive claims for troubleshooting (`hd`, `email_verified`) — never tokens |
@@ -208,7 +210,12 @@ Purpose: organisational policy unit (Standard Personnel, Academics, IT…).
 
 - Indexes: `UNIQUE(name)`, `INDEX(budget_policy_id)`.
 - FKs: `budget_policy_id → budget_policies.id ON DELETE RESTRICT`.
-- Seed: a `Default` group with the default policy, created by `ada:install`.
+- M2 creates the table with `name`, `description`, `is_default` and inserts
+  the default group in the same migration; M5 adds `budget_policy_id`
+  (existing groups get the Default policy), `requests_per_minute` (default
+  20, enforced from M6/M7) and `max_concurrent_streams` (default 2).
+- Seed: the migrations create the `Default` group and the `Default` policy
+  (limit from `ADA_DEFAULT_MONTHLY_LIMIT_USD`, default `10`).
 
 ### 5.4 `group_model_alias`
 
@@ -222,6 +229,7 @@ Purpose: which model aliases a group may use.
 
 - PK: `(group_id, model_alias_id)`; `INDEX(model_alias_id)`.
 - FKs: both `ON DELETE CASCADE`.
+- Created in M4 (schema only); managed from the group admin screens (M7).
 
 ### 5.5 `budget_policies`
 
@@ -260,6 +268,9 @@ Purpose: configured AI provider accounts.
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(slug)`.
+- Constraints (M4): `CHECK (driver IN ('openai', 'anthropic', 'gemini'))`,
+  widened when a driver is added. The driver cannot be changed after
+  creation (admin validation).
 
 ### 5.7 `provider_credentials`
 
@@ -272,7 +283,7 @@ secrets, and so key rotation leaves history.
 | id | BIGINT PK | | |
 | provider_id | BIGINT UNSIGNED | | |
 | secret | TEXT | | Laravel `encrypted` cast (AES-256, `APP_KEY`) |
-| last_four | CHAR(4) | | for masked display `sk-…8f2a` |
+| last_four | CHAR(4) | | for masked display `••••8f2a` |
 | is_active | BOOLEAN | | one active credential per provider |
 | created_by | BIGINT UNSIGNED | yes | |
 | rotated_at | DATETIME | yes | when superseded |
@@ -283,6 +294,8 @@ secrets, and so key rotation leaves history.
   `created_by → users.id ON DELETE SET NULL`.
 - If no active DB credential exists, the adapter falls back to `.env`
   (`OPENAI_API_KEY`, …). The model's `$hidden` includes `secret`.
+- Rotation (`CredentialVault`) inserts a new active row and deactivates the
+  previous one (`is_active = false`, `rotated_at` set); history is kept.
 
 ### 5.8 `ai_models`
 
@@ -312,7 +325,10 @@ capabilities. Admin-facing only.
 
 - Indexes: `UNIQUE(provider_id, provider_model_id)`, `INDEX(enabled)`.
 - FKs: `provider_id → providers.id ON DELETE RESTRICT`.
-- Constraints: all prices `>= 0`, `context_window > 0`.
+- Constraints: all prices `>= 0`, `context_window > 0`, `max_output_tokens > 0`
+  (one `CHECK`). Prices are cast `decimal:6` (strings, never floats); the
+  admin form validates at most six decimals and `max_output_tokens ≤
+  context_window`.
 - Tiered pricing (e.g. higher price above 200k input tokens) is stored in
   `metadata.pricing_tiers`; V1 reservation uses the **highest** tier price
   (conservative) and settlement uses the tier that applies.
@@ -338,7 +354,11 @@ Swapping the backing model does not change user experience or permissions.
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(slug)`, `INDEX(enabled, sort_order)`, `INDEX(ai_model_id)`.
-- FKs: `ai_model_id → ai_models.id ON DELETE RESTRICT`.
+- FKs: `ai_model_id → ai_models.id ON DELETE RESTRICT` (the FK index serves
+  `INDEX(ai_model_id)`).
+- `max_output_tokens ≤ ai_models.max_output_tokens` is enforced by admin
+  validation; null means "use the model maximum". Every locale in
+  `ada.locales.available` needs a `name`.
 
 ### 5.10 `budget_periods` (replaces `monthly_budgets`)
 
@@ -466,7 +486,7 @@ Purpose: immutable financial record of every charge.
 | provider_id | BIGINT UNSIGNED | yes | |
 | ai_model_id | BIGINT UNSIGNED | yes | |
 | model_alias_id | BIGINT UNSIGNED | yes | |
-| source | VARCHAR(16) | | `chat` (later `api`) |
+| source | VARCHAR(16) | | `chat`, `admin` (adjustments); later `api` |
 | input_tokens | INT UNSIGNED | | non-cached input |
 | cached_input_tokens | INT UNSIGNED | | cache reads |
 | cache_write_tokens | INT UNSIGNED | | cache writes |
@@ -497,7 +517,10 @@ Purpose: immutable financial record of every charge.
   `provider_id`, `ai_model_id`, `model_alias_id` → `ON DELETE RESTRICT`.
   `conversation_id` and `message_id` have **no FK**, so conversation retention
   and user deletion of chats never cascade into the ledger.
-- Constraints: token counts `>= 0`; `CHECK (type = 'adjustment' OR total_cost_usd >= 0)`.
+- Constraints: token counts `>= 0` (unsigned); one `CHECK`: `type` and
+  `status` values, all costs `>= 0` unless `type = 'adjustment'`, and
+  adjustments require a `reason`.
+- The `budget_period_id` FK index serves `INDEX(budget_period_id)`.
 
 **Append-only enforcement**
 

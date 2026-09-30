@@ -1,0 +1,2 @@
+data: {"candidates":[{"content":{"parts":[{"text":"Uzun bir"}],"role":"model"},"finishReason":"MAX_TOKENS","index":0}],"usageMetadata":{"promptTokenCount":10,"candidatesTokenCount":16,"totalTokenCount":26},"responseId":"gem_2"}
+

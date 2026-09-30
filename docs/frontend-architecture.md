@@ -1,6 +1,7 @@
 # Frontend Architecture
 
-> Status: **Proposed (M0)**.
+> Status: **Partially implemented** — foundation, i18n, theming/branding,
+> settings and admin screens (M1–M4). The chat UI follows in M6.
 
 ## 1. Foundation
 
@@ -184,11 +185,18 @@ active locale and the institution timezone.
 
   - Only primary-derived tokens are customizable in V1 (accessible by
     construction; no free-form theme editor).
-  - `--primary-foreground` is chosen automatically (near-white or near-black)
-    for ≥ 4.5:1 contrast; the dark variant adjusts lightness. Colours that
-    cannot meet contrast are rejected in the admin form with an explanation.
-- Logos (light/dark) and favicon come from settings; the product name "Ada" is
-  always shown alongside the institution name (e.g. "Ada · <short name>").
+  - Rules (`App\Domain\Institution\Theme\ThemeTokens`): the colour needs
+    ≥ 3:1 contrast against the light background (WCAG 1.4.11, buttons and
+    focus rings), otherwise the admin form rejects it with an explanation;
+    the dark-mode variant is lightened in OKLCH until it reaches 3:1 on the
+    dark background; `--primary-foreground` is near-white or near-black,
+    falling back to pure white/black for mid tones, always ≥ 4.5:1.
+- Logos (light/dark) and favicon come from settings and are served with
+  root-relative URLs (robust behind reverse proxies). The sidebar shows the
+  product name with the institution short name underneath; the sign-in page
+  shows the institution logo.
+- The `admin` translation namespace is loaded lazily by the admin layout
+  (`useLazyNamespace`), so it never enters the chat bundle.
 
 ## 8. Layout and responsive behaviour
 
