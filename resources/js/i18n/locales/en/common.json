@@ -4,7 +4,8 @@
         "logOut": "Log out",
         "menu": "Menu",
         "navigation": "Navigation",
-        "admin": "Administration"
+        "admin": "Administration",
+        "usage": "Usage"
     },
     "actions": {
         "save": "Save"

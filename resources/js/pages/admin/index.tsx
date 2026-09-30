@@ -10,6 +10,8 @@ import {
 import { index } from '@/routes/admin';
 import { index as aliases } from '@/routes/admin/aliases';
 import { edit as editAuthentication } from '@/routes/admin/authentication';
+import { index as budgetPolicies } from '@/routes/admin/budget-policies';
+import { index as groups } from '@/routes/admin/groups';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
 import { index as providers } from '@/routes/admin/providers';
@@ -20,6 +22,8 @@ const sections = [
     { key: 'providers', href: providers() },
     { key: 'models', href: models() },
     { key: 'aliases', href: aliases() },
+    { key: 'groups', href: groups() },
+    { key: 'budgetPolicies', href: budgetPolicies() },
 ] as const;
 
 export default function AdminIndex() {

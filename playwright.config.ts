@@ -23,6 +23,8 @@ export default defineConfig({
     timeout: 60_000,
     use: {
         baseURL,
+        // The app's existing convention (e.g. data-test="logout-button").
+        testIdAttribute: 'data-test',
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH

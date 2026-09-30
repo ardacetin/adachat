@@ -18,6 +18,7 @@ function institutionPayload(array $overrides = []): array
         'privacy_url' => 'https://example.edu/privacy',
         'terms_url' => '',
         'primary_color' => '#1E40AF',
+        'budget_display' => 'percent',
     ], $overrides);
 }
 
@@ -53,6 +54,7 @@ test('settings are saved, normalised and audited', function () {
     expect($settings->short_name)->toBe('EXU')
         ->and($settings->primary_color)->toBe('#1e40af')
         ->and($settings->timezone)->toBe('Europe/Istanbul')
+        ->and($settings->budget_display)->toBe('percent')
         ->and($settings->terms_url)->toBeNull();
 
     $log = AuditLog::query()->sole();
@@ -68,6 +70,7 @@ test('invalid values are rejected', function (array $overrides, string $field) {
         ->assertSessionHasErrors($field);
 })->with([
     'too light colour' => [['primary_color' => '#ffff00'], 'primary_color'],
+    'unknown budget display' => [['budget_display' => 'hidden'], 'budget_display'],
     'not a colour' => [['primary_color' => 'blue'], 'primary_color'],
     'unknown locale' => [['default_locale' => 'de'], 'default_locale'],
     'unknown timezone' => [['timezone' => 'Mars/Olympus'], 'timezone'],

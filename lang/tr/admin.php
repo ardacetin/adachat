@@ -3,6 +3,8 @@
 return [
 
     'saved' => 'Ayarlar kaydedildi.',
+    'policy_in_use' => 'Bu bütçe politikası bir grup tarafından kullanılıyor, silinemez.',
+    'group_not_deletable' => 'Varsayılan grup ve üyesi olan gruplar silinemez.',
     'primary_color_contrast' => 'Bu renk çok açık: düğmelerin okunabilir kalması için beyaza karşı en az 3:1 kontrast gerekir.',
     'alias_max_tokens' => 'Çıktı sınırı modelin üst sınırını (:max token) aşamaz.',
 

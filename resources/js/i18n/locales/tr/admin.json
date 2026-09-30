@@ -7,11 +7,13 @@
         "authentication": "Giriş",
         "providers": "Sağlayıcılar",
         "models": "Modeller",
-        "aliases": "Model takma adları"
+        "aliases": "Model takma adları",
+        "groups": "Gruplar",
+        "budgetPolicies": "Bütçe politikaları"
     },
     "index": {
         "intro": "Yapılandırmak istediğiniz bölümü seçin.",
-        "comingSoon": "Kullanıcı, grup, model, bütçe ve kullanım yönetimi sonraki sürümlerde eklenecek."
+        "comingSoon": "Kullanıcı yönetimi, raporlar ve denetim kaydı sonraki sürümlerde eklenecek."
     },
     "institution": {
         "title": "Kurum",
@@ -39,7 +41,11 @@
         "faviconHelp": "Kare PNG, 16–512 piksel, en fazla 256 KB.",
         "current": "Mevcut",
         "remove": "Kaldır",
-        "none": "Ayarlanmadı"
+        "none": "Ayarlanmadı",
+        "budgetDisplay": "Kullanıcılara gösterilen bütçe",
+        "budgetDisplayAmount": "Tutar (ABD doları) ve yüzde",
+        "budgetDisplayPercent": "Yalnızca yüzde",
+        "budgetDisplayHelp": "“Yalnızca yüzde” seçilirse kullanıcılar dolar tutarı görmez; yöneticiler görmeye devam eder."
     },
     "authentication": {
         "title": "Giriş",
@@ -76,7 +82,9 @@
         "back": "Geri",
         "empty": "Henüz kayıt yok.",
         "copy": "Kopyala",
-        "copied": "Kopyalandı"
+        "copied": "Kopyalandı",
+        "delete": "Sil",
+        "cancel": "Vazgeç"
     },
     "providers": {
         "title": "Sağlayıcılar",
@@ -150,5 +158,48 @@
         "groups": "Kullanabilecek gruplar",
         "groupsHelp": "Bu takma adı yalnızca seçilen grupların üyeleri kullanabilir.",
         "noModels": "Önce bir model ekleyin."
+    },
+    "groups": {
+        "title": "Gruplar",
+        "description": "Her kullanıcı bir gruba aittir. Grup; aylık bütçe politikasını, istek sınırlarını ve üyelerinin kullanabileceği modelleri belirler.",
+        "add": "Grup ekle",
+        "create": "Yeni grup",
+        "edit": "Grubu düzenle",
+        "name": "Ad",
+        "descriptionField": "Açıklama",
+        "default": "Varsayılan",
+        "defaultHelp": "Yeni kullanıcılar varsayılan gruba katılır.",
+        "policy": "Bütçe politikası",
+        "monthlyLimit": "Aylık limit",
+        "requestsPerMinute": "Dakika başına istek",
+        "requestsPerMinuteHelp": "Kullanıcı başına; 1–1000.",
+        "maxConcurrentStreams": "Eşzamanlı yanıt",
+        "maxConcurrentStreamsHelp": "Bir kullanıcının aynı anda üretilmekte olan yanıt sayısı; 1–20.",
+        "members": "Üyeler",
+        "aliases": "Modeller",
+        "aliasesField": "Kullanılabilir modeller",
+        "aliasesHelp": "Üyeler yalnızca bu model takma adlarını seçebilir.",
+        "noAliases": "Henüz model takma adı yok.",
+        "aliasDisabled": "kapalı",
+        "applyToCurrentPeriod": "Değişen bütçe politikasını bu aya uygula",
+        "applyToCurrentPeriodHelp": "Aksi hâlde üyeler bu ayın limitini korur, yenisi gelecek ay geçerli olur. Bireysel bütçeler etkilenmez.",
+        "deleteTitle": "Grup silinsin mi?",
+        "deleteConfirm": "“{{name}}” grubu kaldırılacak. Yalnızca üyesi olmayan gruplar silinebilir."
+    },
+    "budgetPolicies": {
+        "title": "Bütçe politikaları",
+        "description": "Gruplara atanan adlandırılmış aylık limitler. Sınırsız bütçe yoktur; 0 $ kullanımı engeller.",
+        "add": "Politika ekle",
+        "create": "Yeni politika",
+        "edit": "Politikayı düzenle",
+        "name": "Ad",
+        "monthlyLimit": "Aylık limit (USD)",
+        "monthlyLimitHelp": "Kullanıcı başına, kurumun saat dilimine göre takvim ayı.",
+        "groups": "Gruplar",
+        "users": "Kullanıcılar",
+        "applyToCurrentPeriod": "Değişen limiti bu aya uygula",
+        "applyToCurrentPeriodHelp": "{{count}} kullanıcının bu ayki limiti güncellenir. Aksi hâlde gelecek aydan itibaren geçerli olur. Bireysel bütçeler etkilenmez.",
+        "deleteTitle": "Politika silinsin mi?",
+        "deleteConfirm": "“{{name}}” politikası kaldırılacak. Bir grubun kullandığı politikalar silinemez."
     }
 }

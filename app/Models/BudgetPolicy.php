@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Usd $monthly_limit_usd
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read int|null $groups_count withCount('groups')
  */
 #[Fillable(['name', 'monthly_limit_usd'])]
 class BudgetPolicy extends Model

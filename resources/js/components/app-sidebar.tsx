@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, SquarePen } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import BudgetIndicator from '@/components/budget/budget-indicator';
 import { ConversationList } from '@/components/chat/conversation-list';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -53,6 +54,7 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
+                <BudgetIndicator />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

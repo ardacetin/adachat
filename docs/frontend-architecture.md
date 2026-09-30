@@ -218,8 +218,15 @@ active locale and the institution timezone.
 - Composer V1: auto-growing `Textarea`, Send (Enter; Shift+Enter newline),
   Stop while streaming, `ModelSelector`. No attachment button until uploads
   exist. The composer has named slots for future tools/attachments.
-- Budget indicator: "Monthly usage · $6.24 / $10.00", `Progress`,
-  "$3.76 remaining · Resets Oct 1" (localized).
+- Budget indicator (as built, M7: `components/budget/budget-indicator.tsx`):
+  "Monthly budget · 38% used", a progress bar, and "$6.24 of $10.00 left" —
+  or, with the institution's *percentage only* display, "Renews on 1
+  November". It links to the usage page (`/usage`) and comes from the shared
+  `budget` prop (`BudgetSummary`), refreshed after every answer.
+- Budget exhausted: the chat shows a destructive alert with the renewal date
+  and a link to the usage page, and the composer is disabled; a refusal with
+  `budget_exhausted` reloads the `budget` prop instead of showing a generic
+  error.
 
 ## 9. Performance
 

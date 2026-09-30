@@ -42,6 +42,7 @@ class UpdateInstitutionSettingsRequest extends FormRequest
             'privacy_url' => ['nullable', 'url:https,http', 'max:2048'],
             'terms_url' => ['nullable', 'url:https,http', 'max:2048'],
             'primary_color' => ['nullable', new UsablePrimaryColor],
+            'budget_display' => ['required', Rule::in(['amount', 'percent'])],
             'logo' => $image,
             'logo_dark' => $image,
             'favicon' => ['nullable', 'image', 'mimes:png', 'max:256', 'dimensions:min_width=16,max_width=512,ratio=1'],

@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M6 done**, M7 next. Milestones are small and independently
+> Status: **M0–M7 done**, M8 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -78,17 +78,22 @@ LICENSE (AGPL-3.0-or-later).
   (the alias form has a group checklist; new aliases start with the Default
   group). Playwright runs against a mock OpenAI server (`tests/e2e`).
 
-### M7 — Groups, permissions and user usage
+### M7 — Groups, permissions and user usage ✅
 - Groups with policy, rate limits, concurrent stream limit, alias permissions.
 - User budget override.
 - Sidebar budget indicator, budget-exhausted UX, user usage page.
 - Playwright: budget exhausted, language switch.
+- As built: admin screens for groups and budget policies (with "apply to
+  this month"), `ada:user:budget` for individual limits (the users screen
+  follows in M8), and an institution setting for what users see of their
+  budget (amounts and percentage, or percentage only).
 
 ### M8 — Administration
 - Users (table: name, e-mail, group, budget, spent, remaining, last active,
   status; actions: change group, override budget, disable, change role,
   view usage).
-- Groups, budget policies (apply to current period), manual adjustments.
+- Individual budget override in the users screen, manual adjustments
+  (groups and budget policies were done in M7).
 - Audit log viewer.
 - Playwright: admin model and budget management.
 

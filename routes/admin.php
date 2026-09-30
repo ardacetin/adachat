@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AiModelController;
 use App\Http\Controllers\Admin\AuthSettingsController;
+use App\Http\Controllers\Admin\BudgetPolicyController;
+use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstitutionSettingsController;
 use App\Http\Controllers\Admin\ModelAliasController;
 use App\Http\Controllers\Admin\ProviderController;
@@ -27,5 +29,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::resource('aliases', ModelAliasController::class)
             ->parameters(['aliases' => 'alias'])
             ->except(['show', 'destroy']);
+
+        Route::resource('groups', GroupController::class)->except(['show']);
+        Route::resource('budget-policies', BudgetPolicyController::class)->except(['show']);
     });
 });
