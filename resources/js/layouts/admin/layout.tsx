@@ -9,15 +9,18 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { allNamespaces, useLazyNamespace } from '@/i18n';
 import { cn, toUrl } from '@/lib/utils';
 import { index } from '@/routes/admin';
+import { index as aliases } from '@/routes/admin/aliases';
 import { edit as editAuthentication } from '@/routes/admin/authentication';
 import { edit as editInstitution } from '@/routes/admin/institution';
+import { index as models } from '@/routes/admin/models';
+import { index as providers } from '@/routes/admin/providers';
 import type { NavItem } from '@/types';
 
 export default function AdminLayout({ children }: PropsWithChildren) {
     const ready = useLazyNamespace('admin');
     const { t } = useTranslation(allNamespaces);
     const { can } = usePage().props;
-    const { isCurrentUrl } = useCurrentUrl();
+    const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 
     const items: NavItem[] = [
         { titleKey: 'admin:nav.overview', href: index() },
@@ -30,6 +33,18 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.authentication',
                       href: editAuthentication(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.providers',
+                      href: providers(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.models',
+                      href: models(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.aliases',
+                      href: aliases(),
                   } satisfies NavItem,
               ]
             : []),
@@ -64,7 +79,10 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                                 variant="ghost"
                                 asChild
                                 className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentUrl(item.href),
+                                    'bg-muted':
+                                        item.href === items[0].href
+                                            ? isCurrentUrl(item.href)
+                                            : isCurrentOrParentUrl(item.href),
                                 })}
                             >
                                 <Link href={item.href}>{t(item.titleKey)}</Link>

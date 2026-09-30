@@ -39,3 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   light and dark mode; institution logo in the sidebar and on sign-in;
   appearance preference saved per user; append-only audit log with
   redaction, recording settings changes and CLI role assignments.
+- M4 providers & models: `providers`, `provider_credentials` (encrypted,
+  masked, rotation history, `.env` fallback), `ai_models` (exact DECIMAL
+  prices, capabilities), `model_aliases` (localized names, per-alias output
+  cap) and the `group_model_alias` pivot; direct-HTTP adapters for OpenAI
+  (Responses API), Anthropic (Messages API) and Gemini with a shared SSE
+  parser, cancellation, disjoint token usage and error mapping; input token
+  counting through each provider's count endpoint with configurable margins
+  and an `estimate`/`reject` fallback policy; admin screens (super admin,
+  audited) for providers, models and aliases with a "Test connection" check;
+  `ada:provider:check`; opt-in live provider tests.

@@ -82,7 +82,7 @@ Nginx ──► PHP-FPM ──► Laravel application
 | Database | **MySQL 8.4 LTS**, InnoDB, `utf8mb4` | Only officially supported database. MariaDB is not tested. |
 | Cache / sessions / rate limiting / queue | Redis in production; `database` drivers in development | Budget correctness never depends on Redis. |
 | Frontend | React 19, TypeScript, Inertia.js v3, Tailwind CSS v4, shadcn/ui, Vite+ | Based on the official Laravel React starter kit. |
-| AI SDK | Prism PHP behind Ada's own interface | See [provider-architecture.md](provider-architecture.md). |
+| AI SDK | Direct HTTP adapters (Laravel HTTP client + SSE parser) behind Ada's own interface | See [provider-architecture.md](provider-architecture.md). |
 | Auth | Laravel Socialite (Google) behind Ada's own interface | See [authentication.md](authentication.md). |
 | Tests | Pest (PHP), Vitest (TS), Playwright (E2E) | PHP tests run against MySQL, never SQLite. |
 

@@ -7,6 +7,7 @@ use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -47,6 +48,16 @@ class Group extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    /**
+     * Model aliases members of this group may use.
+     *
+     * @return BelongsToMany<ModelAlias, $this>
+     */
+    public function modelAliases(): BelongsToMany
+    {
+        return $this->belongsToMany(ModelAlias::class);
     }
 
     /**

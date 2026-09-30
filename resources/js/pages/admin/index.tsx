@@ -8,8 +8,19 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { index } from '@/routes/admin';
+import { index as aliases } from '@/routes/admin/aliases';
 import { edit as editAuthentication } from '@/routes/admin/authentication';
 import { edit as editInstitution } from '@/routes/admin/institution';
+import { index as models } from '@/routes/admin/models';
+import { index as providers } from '@/routes/admin/providers';
+
+const sections = [
+    { key: 'institution', href: editInstitution() },
+    { key: 'authentication', href: editAuthentication() },
+    { key: 'providers', href: providers() },
+    { key: 'models', href: models() },
+    { key: 'aliases', href: aliases() },
+] as const;
 
 export default function AdminIndex() {
     const { t } = useTranslation('admin');
@@ -28,33 +39,24 @@ export default function AdminIndex() {
 
                 {can.manageSystem && (
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <Link href={editInstitution()} className="rounded-xl">
-                            <Card className="h-full transition-colors hover:bg-muted/50">
-                                <CardHeader>
-                                    <CardTitle>
-                                        {t('institution.title')}
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {t('institution.description')}
-                                    </CardDescription>
-                                </CardHeader>
-                            </Card>
-                        </Link>
-                        <Link
-                            href={editAuthentication()}
-                            className="rounded-xl"
-                        >
-                            <Card className="h-full transition-colors hover:bg-muted/50">
-                                <CardHeader>
-                                    <CardTitle>
-                                        {t('authentication.title')}
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {t('authentication.description')}
-                                    </CardDescription>
-                                </CardHeader>
-                            </Card>
-                        </Link>
+                        {sections.map((section) => (
+                            <Link
+                                key={section.key}
+                                href={section.href}
+                                className="rounded-xl"
+                            >
+                                <Card className="h-full transition-colors hover:bg-muted/50">
+                                    <CardHeader>
+                                        <CardTitle>
+                                            {t(`${section.key}.title`)}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {t(`${section.key}.description`)}
+                                        </CardDescription>
+                                    </CardHeader>
+                                </Card>
+                            </Link>
+                        ))}
                     </div>
                 )}
 

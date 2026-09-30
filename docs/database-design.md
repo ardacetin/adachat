@@ -225,6 +225,7 @@ Purpose: which model aliases a group may use.
 
 - PK: `(group_id, model_alias_id)`; `INDEX(model_alias_id)`.
 - FKs: both `ON DELETE CASCADE`.
+- Created in M4 (schema only); managed from the group admin screens (M7).
 
 ### 5.5 `budget_policies`
 
@@ -263,6 +264,9 @@ Purpose: configured AI provider accounts.
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(slug)`.
+- Constraints (M4): `CHECK (driver IN ('openai', 'anthropic', 'gemini'))`,
+  widened when a driver is added. The driver cannot be changed after
+  creation (admin validation).
 
 ### 5.7 `provider_credentials`
 
@@ -275,7 +279,7 @@ secrets, and so key rotation leaves history.
 | id | BIGINT PK | | |
 | provider_id | BIGINT UNSIGNED | | |
 | secret | TEXT | | Laravel `encrypted` cast (AES-256, `APP_KEY`) |
-| last_four | CHAR(4) | | for masked display `sk-…8f2a` |
+| last_four | CHAR(4) | | for masked display `••••8f2a` |
 | is_active | BOOLEAN | | one active credential per provider |
 | created_by | BIGINT UNSIGNED | yes | |
 | rotated_at | DATETIME | yes | when superseded |
@@ -286,6 +290,8 @@ secrets, and so key rotation leaves history.
   `created_by → users.id ON DELETE SET NULL`.
 - If no active DB credential exists, the adapter falls back to `.env`
   (`OPENAI_API_KEY`, …). The model's `$hidden` includes `secret`.
+- Rotation (`CredentialVault`) inserts a new active row and deactivates the
+  previous one (`is_active = false`, `rotated_at` set); history is kept.
 
 ### 5.8 `ai_models`
 
@@ -315,7 +321,10 @@ capabilities. Admin-facing only.
 
 - Indexes: `UNIQUE(provider_id, provider_model_id)`, `INDEX(enabled)`.
 - FKs: `provider_id → providers.id ON DELETE RESTRICT`.
-- Constraints: all prices `>= 0`, `context_window > 0`.
+- Constraints: all prices `>= 0`, `context_window > 0`, `max_output_tokens > 0`
+  (one `CHECK`). Prices are cast `decimal:6` (strings, never floats); the
+  admin form validates at most six decimals and `max_output_tokens ≤
+  context_window`.
 - Tiered pricing (e.g. higher price above 200k input tokens) is stored in
   `metadata.pricing_tiers`; V1 reservation uses the **highest** tier price
   (conservative) and settlement uses the tier that applies.
@@ -341,7 +350,11 @@ Swapping the backing model does not change user experience or permissions.
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(slug)`, `INDEX(enabled, sort_order)`, `INDEX(ai_model_id)`.
-- FKs: `ai_model_id → ai_models.id ON DELETE RESTRICT`.
+- FKs: `ai_model_id → ai_models.id ON DELETE RESTRICT` (the FK index serves
+  `INDEX(ai_model_id)`).
+- `max_output_tokens ≤ ai_models.max_output_tokens` is enforced by admin
+  validation; null means "use the model maximum". Every locale in
+  `ada.locales.available` needs a `name`.
 
 ### 5.10 `budget_periods` (replaces `monthly_budgets`)
 

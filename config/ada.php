@@ -49,4 +49,35 @@ return [
         'dev_login' => (bool) env('ADA_DEV_LOGIN', false),
     ],
 
+    'providers' => [
+        // Maximum duration of one generation request (streaming), seconds.
+        'timeout' => (int) env('ADA_PROVIDER_TIMEOUT', 300),
+
+        // Token-count endpoints must answer quickly; they run before every request.
+        'counter_timeout' => (int) env('ADA_COUNTER_TIMEOUT', 3),
+
+        // Fallback API keys when no credential is stored in the admin panel.
+        'env_keys' => [
+            'openai' => env('OPENAI_API_KEY'),
+            'anthropic' => env('ANTHROPIC_API_KEY'),
+            'gemini' => env('GEMINI_API_KEY'),
+        ],
+    ],
+
+    'budget' => [
+        // Safety margin added to counted input tokens, per counting source.
+        // Anthropic documents count_tokens as an estimate; the heuristic
+        // fallback gets a deliberately large margin.
+        'input_count_margins' => [
+            'openai' => 0.0,
+            'anthropic' => 0.05,
+            'gemini' => 0.0,
+            'estimated' => 0.5,
+        ],
+
+        // When a token-count endpoint fails: 'estimate' (conservative
+        // heuristic) or 'reject' (refuse the request, retryable).
+        'on_counter_failure' => env('ADA_ON_COUNTER_FAILURE', 'estimate'),
+    ],
+
 ];

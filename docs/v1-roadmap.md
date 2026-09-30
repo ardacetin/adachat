@@ -50,11 +50,12 @@ LICENSE (AGPL-3.0-or-later).
 ### M4 — Providers, models and aliases
 - `providers`, `provider_credentials` (encrypted, masked), `ai_models`, `model_aliases`.
 - Admin CRUD for providers, credentials, models, aliases, prices.
-- `ChatProvider` + Prism adapter; **spike** validating streaming usage,
-  output caps and cancellation per provider; native adapters where needed.
+- `ChatProvider` with direct-HTTP adapters for OpenAI (Responses),
+  Anthropic (Messages) and Gemini (decided in M4 instead of Prism — see
+  [provider-architecture.md §2.1](provider-architecture.md#21-decision-direct-http)).
 - `InputTokenCounter` implementations (OpenAI, Anthropic, Gemini, Estimated),
   margin config, failure policy.
-- Contract tests with recorded fixtures.
+- Contract tests with documented-format SSE fixtures; opt-in live tests.
 
 ### M5 — Budget engine core (parallel with M3/M4)
 - `budget_policies`, `budget_periods`, `budget_reservations`, `usage_events`.
