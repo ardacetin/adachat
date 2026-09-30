@@ -193,6 +193,15 @@ before the expiry date shown in the admin panel and update `.env`.
   only the owner; there is no admin route returning message content.
 - Admins cannot promote to `super_admin`, cannot change their own role, and
   the last `super_admin` cannot be demoted or disabled.
+- As built (M8): `App\Policies\UserPolicy` (`update` = group and individual
+  budget, `changeStatus`, `changeRole`, `adjustBudget`) and
+  `App\Domain\Identity\Services\UserAdministration`. Administrators manage
+  users and groups but not super administrators; nobody changes their own
+  role or status; the last *active* super administrator cannot be demoted or
+  disabled. Individual budgets have no cap (every change is audited).
+  Disabling deletes the user's database sessions and rotates the "remember
+  me" token. The audit log is readable by administrators; the user pages
+  show accounts, budgets and usage, never conversation content.
 
 ## 5. Abstraction for future providers
 

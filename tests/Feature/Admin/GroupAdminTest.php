@@ -42,10 +42,23 @@ function policyPayload(array $overrides = []): array
     return ['name' => 'Staff', 'monthly_limit_usd' => '15', ...$overrides];
 }
 
-test('only super admins manage groups and budget policies', function (string $route) {
+test('only super admins manage budget policies', function (string $route) {
     $this->actingAs(User::factory()->admin()->create())->get(route($route))->assertForbidden();
     $this->actingAs($this->admin)->get(route($route))->assertOk();
-})->with(['admin.groups.index', 'admin.groups.create', 'admin.budget-policies.index', 'admin.budget-policies.create']);
+})->with(['admin.budget-policies.index', 'admin.budget-policies.create']);
+
+test('administrators manage groups; users do not', function (string $route) {
+    $this->actingAs(User::factory()->create())->get(route($route))->assertForbidden();
+    $this->actingAs(User::factory()->admin()->create())->get(route($route))->assertOk();
+})->with(['admin.groups.index', 'admin.groups.create']);
+
+test('an administrator can save a group', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->post(route('admin.groups.store'), groupPayload())
+        ->assertSessionHasNoErrors();
+
+    expect(Group::query()->where('name', 'Researchers')->exists())->toBeTrue();
+});
 
 test('a group is created with its limits and models, and audited', function () {
     $aliases = ModelAlias::factory()->count(2)->create();

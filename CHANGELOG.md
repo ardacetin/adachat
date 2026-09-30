@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M8 administration: a **users** screen (search; filters by group, role and
+  status; this month's budget and spending; last activity) and a user page
+  to change the group, set an individual budget, disable or enable the
+  account (signs the user out everywhere), change the role and record manual
+  adjustments, with the user's usage. An **audit log** viewer with filters.
+  Administrators manage users and groups; super administrators also roles,
+  adjustments and system settings. The last active super administrator
+  cannot be demoted or disabled.
+- Last activity is recorded (at most every five minutes).
+- Playwright: administration flow (budget policy, group, alias, user group
+  and budget, adjustment, audit log) and the administrator role matrix.
 - Admin screens for **groups** (budget policy, requests per minute, parallel
   answers, available model aliases; empty non-default groups can be
   deleted) and **budget policies** (monthly limit; unused policies can be

@@ -520,6 +520,9 @@ Differences from the sections above:
   users (group members without an individual override) **who already have a
   period this month**; everyone else gets the new limit when their period is
   created. `ada:user:budget` does the same for one user's override.
+- **Adjustments in the UI (M8):** super administrators record a charge
+  (positive) or credit (negative) with a reason on the user page; it calls
+  `adjust()`, so a credit larger than this month's spending is refused.
 - **What users see (M7):** `Services\BudgetSummary` reads the current period
   without creating it (limit, spent, remaining, percentage, renewal date in
   the institution's time zone). With `InstitutionSettings::budget_display =
