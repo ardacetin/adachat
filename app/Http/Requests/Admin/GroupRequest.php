@@ -11,7 +11,7 @@ class GroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-system') ?? false;
+        return $this->user()?->can('access-admin') ?? false;
     }
 
     /**

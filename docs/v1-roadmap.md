@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M7 done**, M8 next. Milestones are small and independently
+> Status: **M0–M8 done**, M9 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -88,7 +88,7 @@ LICENSE (AGPL-3.0-or-later).
   follows in M8), and an institution setting for what users see of their
   budget (amounts and percentage, or percentage only).
 
-### M8 — Administration
+### M8 — Administration ✅
 - Users (table: name, e-mail, group, budget, spent, remaining, last active,
   status; actions: change group, override budget, disable, change role,
   view usage).
@@ -96,6 +96,11 @@ LICENSE (AGPL-3.0-or-later).
   (groups and budget policies were done in M7).
 - Audit log viewer.
 - Playwright: admin model and budget management.
+- As built: users screen (search, filters by group/role/status, sorting by
+  last activity or spending) and a user page (group, individual budget,
+  enable/disable, role, manual adjustment, usage); administrators manage
+  users and groups, super administrators additionally roles, adjustments and
+  system settings. Last activity is recorded at most every five minutes.
 
 ### M9 — Dashboard and reports
 - KPIs: monthly spend, active users, requests, average spend per user.

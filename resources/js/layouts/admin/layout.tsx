@@ -10,12 +10,14 @@ import { allNamespaces, useLazyNamespace } from '@/i18n';
 import { cn, toUrl } from '@/lib/utils';
 import { index } from '@/routes/admin';
 import { index as aliases } from '@/routes/admin/aliases';
+import { index as auditLog } from '@/routes/admin/audit-log';
 import { edit as editAuthentication } from '@/routes/admin/authentication';
 import { index as budgetPolicies } from '@/routes/admin/budget-policies';
 import { index as groups } from '@/routes/admin/groups';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
 import { index as providers } from '@/routes/admin/providers';
+import { index as users } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
 
 export default function AdminLayout({ children }: PropsWithChildren) {
@@ -26,6 +28,9 @@ export default function AdminLayout({ children }: PropsWithChildren) {
 
     const items: NavItem[] = [
         { titleKey: 'admin:nav.overview', href: index() },
+        { titleKey: 'admin:nav.users', href: users() },
+        { titleKey: 'admin:nav.groups', href: groups() },
+        { titleKey: 'admin:nav.auditLog', href: auditLog() },
         ...(can.manageSystem
             ? [
                   {
@@ -47,10 +52,6 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.aliases',
                       href: aliases(),
-                  } satisfies NavItem,
-                  {
-                      titleKey: 'admin:nav.groups',
-                      href: groups(),
                   } satisfies NavItem,
                   {
                       titleKey: 'admin:nav.budgetPolicies',

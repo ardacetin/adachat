@@ -27,7 +27,7 @@ final class BudgetSummary
      *
      * @return array{display: string, percent_used: int, exhausted: bool, period_start: string, resets_on: string, limit_usd?: string, spent_usd?: string, remaining_usd?: string}
      */
-    public function for(User $user, ?CarbonImmutable $now = null): array
+    public function for(User $user, ?CarbonImmutable $now = null, ?string $display = null): array
     {
         $now ??= CarbonImmutable::now();
         [$start, $end] = PeriodCalculator::monthContaining($now, $this->institution->timezone);
@@ -43,7 +43,8 @@ final class BudgetSummary
         $remaining = $limit->minus($spent)->minus($reserved)->max(Usd::zero());
 
         $summary = [
-            'display' => $this->institution->budget_display === 'percent' ? 'percent' : 'amount',
+            // Administrators always see amounts ($display = 'amount').
+            'display' => ($display ?? $this->institution->budget_display) === 'percent' ? 'percent' : 'amount',
             'percent_used' => self::percent($spent, $limit),
             'exhausted' => ! $remaining->isPositive(),
             'period_start' => $start->setTimezone($this->institution->timezone)->toDateString(),

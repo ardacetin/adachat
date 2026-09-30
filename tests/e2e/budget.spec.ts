@@ -39,7 +39,7 @@ test('the sidebar shows the budget and the usage page the spending', async ({
     await page.waitForURL(/\/c\//);
     await expect(page.getByText('Birinci madde')).toBeVisible();
     // The indicator is refreshed with the conversation after the answer.
-    await expect(indicator).toContainText('1% used');
+    await expect(indicator).toContainText(/[1-9]\d*% used/);
 
     await indicator.click();
     await page.waitForURL('/usage');

@@ -33,10 +33,10 @@ final class UsageReport
     /**
      * @return array<string, mixed>
      */
-    public function for(User $user, ?CarbonImmutable $now = null): array
+    public function for(User $user, ?CarbonImmutable $now = null, ?string $display = null): array
     {
         $now ??= CarbonImmutable::now();
-        $summary = $this->summary->for($user, $now);
+        $summary = $this->summary->for($user, $now, $display);
         [$start] = PeriodCalculator::monthContaining($now, $this->institution->timezone);
 
         $period = BudgetPeriod::query()->where('user_id', $user->id)->where('period_start', $start)->first();

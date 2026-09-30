@@ -9,11 +9,13 @@
         "models": "Modeller",
         "aliases": "Model takma adları",
         "groups": "Gruplar",
-        "budgetPolicies": "Bütçe politikaları"
+        "budgetPolicies": "Bütçe politikaları",
+        "users": "Kullanıcılar",
+        "auditLog": "Denetim kaydı"
     },
     "index": {
         "intro": "Yapılandırmak istediğiniz bölümü seçin.",
-        "comingSoon": "Kullanıcı yönetimi, raporlar ve denetim kaydı sonraki sürümlerde eklenecek."
+        "comingSoon": "Raporlar ve gösterge paneli sonraki sürümde eklenecek."
     },
     "institution": {
         "title": "Kurum",
@@ -84,7 +86,15 @@
         "copy": "Kopyala",
         "copied": "Kopyalandı",
         "delete": "Sil",
-        "cancel": "Vazgeç"
+        "cancel": "Vazgeç",
+        "search": "Ara",
+        "filter": "Filtrele",
+        "all": "Tümü",
+        "previous": "Önceki",
+        "next": "Sonraki",
+        "page": "Sayfa {{page}} / {{last}}",
+        "never": "Hiç",
+        "none": "Yok"
     },
     "providers": {
         "title": "Sağlayıcılar",
@@ -201,5 +211,80 @@
         "applyToCurrentPeriodHelp": "{{count}} kullanıcının bu ayki limiti güncellenir. Aksi hâlde gelecek aydan itibaren geçerli olur. Bireysel bütçeler etkilenmez.",
         "deleteTitle": "Politika silinsin mi?",
         "deleteConfirm": "“{{name}}” politikası kaldırılacak. Bir grubun kullandığı politikalar silinemez."
+    },
+    "roles": {
+        "super_admin": "Süper yönetici",
+        "admin": "Yönetici",
+        "user": "Kullanıcı"
+    },
+    "statuses": {
+        "active": "Etkin",
+        "disabled": "Devre dışı"
+    },
+    "users": {
+        "title": "Kullanıcılar",
+        "description": "Hesaplar, gruplar ve bütçeler. Sohbetler özeldir ve burada hiçbir zaman gösterilmez.",
+        "searchPlaceholder": "Ad veya e-posta",
+        "group": "Grup",
+        "role": "Rol",
+        "status": "Durum",
+        "sort": "Sıralama",
+        "sortName": "Ad",
+        "sortLastActive": "Son etkinlik",
+        "sortSpent": "Bu ay harcanan",
+        "name": "Ad",
+        "budget": "Bu ayki bütçe",
+        "spent": "Harcanan",
+        "remaining": "Kalan",
+        "limit": "Limit",
+        "individual": "bireysel",
+        "lastActive": "Son etkinlik",
+        "lastLogin": "Son giriş",
+        "created": "Oluşturulma",
+        "count": "{{count}} kullanıcı",
+        "back": "Tüm kullanıcılar",
+        "account": "Hesap",
+        "groupHelp": "Grup; bütçe politikasını, istek sınırlarını ve modelleri belirler.",
+        "changeGroup": "Grubu değiştir",
+        "budgetTitle": "Bireysel bütçe",
+        "budgetHelp": "Boş = grup politikası (aylık {{limit}}). 0 $ kullanımı engeller.",
+        "monthlyLimit": "Aylık limit (USD)",
+        "saveBudget": "Bütçeyi kaydet",
+        "applyToCurrentPeriod": "Bu aya uygula",
+        "statusTitle": "Erişim",
+        "disable": "Hesabı devre dışı bırak",
+        "enable": "Hesabı etkinleştir",
+        "disableHelp": "Kullanıcının tüm oturumlarını kapatır ve girişi engeller. Hiçbir şey silinmez.",
+        "disabledHelp": "Bu hesap devre dışı ve giriş yapamaz.",
+        "roleTitle": "Rol",
+        "changeRole": "Rolü değiştir",
+        "adjustTitle": "Manuel düzeltme",
+        "adjustHelp": "Bu ayki bütçeye tutar ekler (pozitif) veya iade eder (negatif); ör. başarısız bir isteği iade etmek için. Adınızla kaydedilir.",
+        "amount": "Tutar (USD)",
+        "reason": "Gerekçe",
+        "adjust": "Düzeltmeyi kaydet",
+        "adjustments": "Son düzeltmeler",
+        "by": "{{name}} tarafından",
+        "usage": "Kullanım",
+        "self": "Bu sizin hesabınız: kendi rolünüzü veya durumunuzu değiştiremezsiniz.",
+        "protected": "Süper yöneticileri yalnızca süper yöneticiler değiştirebilir."
+    },
+    "auditLog": {
+        "title": "Denetim kaydı",
+        "description": "Yönetim değişiklikleri ve güvenlik olayları. Gizli bilgiler asla kaydedilmez.",
+        "action": "İşlem",
+        "actor": "Yapan",
+        "actorPlaceholder": "Ad veya e-posta",
+        "subject": "Konu",
+        "from": "Başlangıç",
+        "to": "Bitiş",
+        "time": "Zaman",
+        "changes": "Değişiklikler",
+        "before": "Önce",
+        "after": "Sonra",
+        "system": "Sistem",
+        "cli": "Komut satırı",
+        "empty": "Eşleşen kayıt yok.",
+        "ip": "IP adresi"
     }
 }

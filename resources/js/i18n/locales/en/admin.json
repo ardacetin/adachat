@@ -9,11 +9,13 @@
         "models": "Models",
         "aliases": "Model aliases",
         "groups": "Groups",
-        "budgetPolicies": "Budget policies"
+        "budgetPolicies": "Budget policies",
+        "users": "Users",
+        "auditLog": "Audit log"
     },
     "index": {
         "intro": "Choose a section to configure.",
-        "comingSoon": "User management, reports and the audit log will be added in upcoming releases."
+        "comingSoon": "Reports and the dashboard will be added in an upcoming release."
     },
     "institution": {
         "title": "Institution",
@@ -84,7 +86,15 @@
         "copy": "Copy",
         "copied": "Copied",
         "delete": "Delete",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "search": "Search",
+        "filter": "Filter",
+        "all": "All",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {{page}} of {{last}}",
+        "never": "Never",
+        "none": "None"
     },
     "providers": {
         "title": "Providers",
@@ -201,5 +211,80 @@
         "applyToCurrentPeriodHelp": "Updates the limit of {{count}} users for the current month. Otherwise it applies from next month. Individual budgets are not affected.",
         "deleteTitle": "Delete policy?",
         "deleteConfirm": "The policy “{{name}}” will be removed. Policies used by a group cannot be deleted."
+    },
+    "roles": {
+        "super_admin": "Super administrator",
+        "admin": "Administrator",
+        "user": "User"
+    },
+    "statuses": {
+        "active": "Active",
+        "disabled": "Disabled"
+    },
+    "users": {
+        "title": "Users",
+        "description": "Accounts, groups and budgets. Conversations are private and never shown here.",
+        "searchPlaceholder": "Name or e-mail",
+        "group": "Group",
+        "role": "Role",
+        "status": "Status",
+        "sort": "Sort by",
+        "sortName": "Name",
+        "sortLastActive": "Last active",
+        "sortSpent": "Spent this month",
+        "name": "Name",
+        "budget": "Budget this month",
+        "spent": "Spent",
+        "remaining": "Remaining",
+        "limit": "Limit",
+        "individual": "individual",
+        "lastActive": "Last active",
+        "lastLogin": "Last sign-in",
+        "created": "Created",
+        "count": "{{count}} users",
+        "back": "All users",
+        "account": "Account",
+        "groupHelp": "The group sets the budget policy, request limits and models.",
+        "changeGroup": "Change group",
+        "budgetTitle": "Individual budget",
+        "budgetHelp": "Empty = the group policy ({{limit}} per month). $0 blocks usage.",
+        "monthlyLimit": "Monthly limit (USD)",
+        "saveBudget": "Save budget",
+        "applyToCurrentPeriod": "Apply to this month",
+        "statusTitle": "Access",
+        "disable": "Disable account",
+        "enable": "Enable account",
+        "disableHelp": "Signs the user out everywhere and blocks sign-in. Nothing is deleted.",
+        "disabledHelp": "This account is disabled and cannot sign in.",
+        "roleTitle": "Role",
+        "changeRole": "Change role",
+        "adjustTitle": "Manual adjustment",
+        "adjustHelp": "Charges (positive) or credits (negative) this month’s budget, e.g. to refund a failed request. Recorded with your name.",
+        "amount": "Amount (USD)",
+        "reason": "Reason",
+        "adjust": "Record adjustment",
+        "adjustments": "Recent adjustments",
+        "by": "by {{name}}",
+        "usage": "Usage",
+        "self": "This is your own account: you cannot change your own role or status.",
+        "protected": "Only super administrators can change super administrators."
+    },
+    "auditLog": {
+        "title": "Audit log",
+        "description": "Administrative changes and security events. Secrets are never recorded.",
+        "action": "Action",
+        "actor": "By",
+        "actorPlaceholder": "Name or e-mail",
+        "subject": "Subject",
+        "from": "From",
+        "to": "To",
+        "time": "Time",
+        "changes": "Changes",
+        "before": "Before",
+        "after": "After",
+        "system": "System",
+        "cli": "Command line",
+        "empty": "No entries match.",
+        "ip": "IP address"
     }
 }
