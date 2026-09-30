@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureAcknowledged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastActivity;
 use Illuminate\Foundation\Application;
@@ -25,11 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['auth/*/acs']);
 
         $middleware->web(append: [
+            SecurityHeaders::class,
             EnsureUserIsActive::class,
             TrackLastActivity::class,
             SetLocale::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
+            EnsureAcknowledged::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
     })

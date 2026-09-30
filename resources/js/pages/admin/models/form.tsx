@@ -1,10 +1,17 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import CheckboxField from '@/components/admin/checkbox-field';
 import FormField from '@/components/admin/form-field';
+import ModelCostHints, {
+    cost,
+    pages,
+    price,
+    words,
+} from '@/components/admin/model-cost-hints';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatNumber, formatUsdPrecise } from '@/lib/format';
 import {
     Select,
     SelectContent,
@@ -38,6 +45,7 @@ type AiModel = {
 type Props = {
     model: AiModel | null;
     providers: { id: number; name: string }[];
+    exampleBudgetUsd: string;
 };
 
 type PriceField =
@@ -52,8 +60,14 @@ type CapabilityField =
     | 'supports_tools'
     | 'supports_reasoning';
 
-export default function ModelForm({ model, providers }: Props) {
+export default function ModelForm({
+    model,
+    providers,
+    exampleBudgetUsd,
+}: Props) {
     const { t } = useTranslation('admin');
+    const { locale } = usePage().props;
+    const lang = locale.current;
     const { t: tCommon } = useTranslation('common');
 
     const form = useForm({
@@ -85,6 +99,23 @@ export default function ModelForm({ model, providers }: Props) {
             form.put(update.url(model.id));
         }
     };
+
+    // Live hints: what these numbers mean in money and text length.
+    const prices = {
+        input: price(form.data.input_price_per_million),
+        output: price(form.data.output_price_per_million),
+        cachedInput: price(
+            form.data.cached_input_price_per_million,
+            price(form.data.input_price_per_million),
+        ),
+        cacheWrite: price(
+            form.data.cache_write_price_per_million,
+            price(form.data.input_price_per_million),
+        ),
+    };
+    const contextWindow = Number(form.data.context_window) || 0;
+    const maxOutput = Number(form.data.max_output_tokens) || 0;
+    const usd = (value: number) => formatUsdPrecise(value, lang);
 
     const priceInput = (field: PriceField, label: string, help?: string) => (
         <FormField
@@ -216,22 +247,44 @@ export default function ModelForm({ model, providers }: Props) {
                         {priceInput(
                             'input_price_per_million',
                             t('models.inputPrice'),
+                            t('models.hints.input', {
+                                cost: usd(cost(1000, prices.input)),
+                            }),
                         )}
                         {priceInput(
                             'output_price_per_million',
                             t('models.outputPrice'),
+                            t('models.hints.output', {
+                                cost: usd(cost(500, prices.output)),
+                            }),
                         )}
                         {priceInput(
                             'cached_input_price_per_million',
                             t('models.cachedInputPrice'),
-                            t('models.optionalPriceHelp'),
+                            `${t('models.optionalPriceHelp')} ${t(
+                                'models.hints.cachedInput',
+                                {
+                                    cost: usd(cost(10000, prices.cachedInput)),
+                                    full: usd(cost(10000, prices.input)),
+                                },
+                            )}`,
                         )}
                         {priceInput(
                             'cache_write_price_per_million',
                             t('models.cacheWritePrice'),
-                            t('models.optionalPriceHelp'),
+                            `${t('models.optionalPriceHelp')} ${t(
+                                'models.hints.cacheWrite',
+                                {
+                                    cost: usd(cost(10000, prices.cacheWrite)),
+                                },
+                            )}`,
                         )}
                     </div>
+                    <ModelCostHints
+                        prices={prices}
+                        budget={Number(exampleBudgetUsd)}
+                        lang={lang}
+                    />
                 </section>
 
                 <Separator />
@@ -244,10 +297,25 @@ export default function ModelForm({ model, providers }: Props) {
                         <FormField
                             id="context_window"
                             label={t('models.contextWindow')}
+                            help={
+                                contextWindow > 0
+                                    ? t('models.hints.context', {
+                                          words: formatNumber(
+                                              words(contextWindow),
+                                              lang,
+                                          ),
+                                          pages: formatNumber(
+                                              pages(contextWindow),
+                                              lang,
+                                          ),
+                                      })
+                                    : undefined
+                            }
                             error={form.errors.context_window}
                         >
                             <Input
                                 id="context_window"
+                                aria-describedby="context_window-help"
                                 type="number"
                                 min={1}
                                 value={form.data.context_window}
@@ -263,10 +331,24 @@ export default function ModelForm({ model, providers }: Props) {
                         <FormField
                             id="max_output_tokens"
                             label={t('models.maxOutputTokens')}
+                            help={
+                                maxOutput > 0
+                                    ? t('models.hints.maxOutput', {
+                                          words: formatNumber(
+                                              words(maxOutput),
+                                              lang,
+                                          ),
+                                          cost: usd(
+                                              cost(maxOutput, prices.output),
+                                          ),
+                                      })
+                                    : undefined
+                            }
                             error={form.errors.max_output_tokens}
                         >
                             <Input
                                 id="max_output_tokens"
+                                aria-describedby="max_output_tokens-help"
                                 type="number"
                                 min={1}
                                 value={form.data.max_output_tokens}

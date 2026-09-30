@@ -4,6 +4,51 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
 
+type Highlighter = Awaited<
+    ReturnType<typeof import('shiki').createHighlighter>
+>;
+
+let highlighter: Promise<Highlighter> | null = null;
+
+/**
+ * One shared highlighter, languages loaded on demand. It uses Shiki's
+ * JavaScript regex engine instead of the WebAssembly one, so the Content
+ * Security Policy does not need 'wasm-unsafe-eval'.
+ */
+async function highlightCode(
+    code: string,
+    language: string,
+): Promise<string | null> {
+    const [shiki, { createJavaScriptRegexEngine }] = await Promise.all([
+        import('shiki'),
+        import('shiki/engine/javascript'),
+    ]);
+
+    if (!(language in shiki.bundledLanguages)) {
+        return null;
+    }
+
+    highlighter ??= shiki.createHighlighter({
+        themes: ['github-light', 'github-dark'],
+        langs: [],
+        engine: createJavaScriptRegexEngine({ forgiving: true }),
+    });
+
+    const instance = await highlighter;
+
+    if (!instance.getLoadedLanguages().includes(language)) {
+        await instance.loadLanguage(
+            language as keyof typeof shiki.bundledLanguages,
+        );
+    }
+
+    return instance.codeToHtml(code, {
+        lang: language,
+        themes: { light: 'github-light', dark: 'github-dark' },
+        defaultColor: false,
+    });
+}
+
 type Props = {
     code: string;
     language: string | null;
@@ -28,18 +73,7 @@ export default function CodeBlock({ code, language, highlight }: Props) {
 
         let active = true;
 
-        import('shiki')
-            .then(({ codeToHtml, bundledLanguages }) => {
-                if (!(language in bundledLanguages)) {
-                    return null;
-                }
-
-                return codeToHtml(code, {
-                    lang: language,
-                    themes: { light: 'github-light', dark: 'github-dark' },
-                    defaultColor: false,
-                });
-            })
+        highlightCode(code, language)
             .then((result) => {
                 if (active && result) {
                     setHtml(result);

@@ -81,11 +81,14 @@ End-to-end tests (Playwright, against a mock AI provider): prepare a database
 with `php artisan migrate:fresh --seed && php tests/e2e/seed.php`, build the
 assets, then run `npx playwright install chromium` once and `npm run test:e2e`.
 
-The budget jobs (expiring abandoned reservations, daily reconciliation) run
-from Laravel's scheduler: `php artisan schedule:work` locally, a cron entry
+The budget jobs (expiring abandoned reservations, daily reconciliation) and
+the nightly retention clean-up (`ada:retention:prune`) run from Laravel's
+scheduler: `php artisan schedule:work` locally, a cron entry
 for `php artisan schedule:run` every minute in production. The monthly limit
 of the Default budget policy comes from `ADA_DEFAULT_MONTHLY_LIMIT_USD` on
-installation.
+installation. `php artisan ada:doctor` checks a running installation
+(settings, database, scheduler, sign-in, AI providers) and exits with an
+error when something needs fixing.
 
 ## Documentation
 

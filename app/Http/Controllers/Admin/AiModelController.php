@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AiModelRequest;
 use App\Models\AiModel;
+use App\Models\Group;
 use App\Models\Provider;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -80,6 +81,8 @@ class AiModelController extends Controller
         return Inertia::render('admin/models/form', [
             'model' => $model?->only(['id', ...self::FIELDS]),
             'providers' => Provider::query()->orderBy('name')->get(['id', 'name']),
+            // Used by the cost hints ("a user with this budget can send …").
+            'exampleBudgetUsd' => Group::default()->budgetPolicy->monthly_limit_usd->toString(),
         ]);
     }
 

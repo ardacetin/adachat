@@ -12,7 +12,8 @@
         "budgetPolicies": "Bütçe politikaları",
         "users": "Kullanıcılar",
         "auditLog": "Denetim kaydı",
-        "reports": "Raporlar"
+        "reports": "Raporlar",
+        "privacy": "Gizlilik"
     },
     "index": {
         "intro": "Bu ayın özeti."
@@ -144,7 +145,21 @@
         "tools": "Araçlar",
         "reasoning": "Akıl yürütme",
         "enabled": "Etkin",
-        "noProviders": "Önce bir sağlayıcı ekleyin."
+        "noProviders": "Önce bir sağlayıcı ekleyin.",
+        "hints": {
+            "input": "Modele gönderilen her şey: mesaj, o ana kadarki sohbet ve sistem istemi. 1.000 girdi token’ı (≈ 750 İngilizce kelime) {{cost}} tutar.",
+            "output": "Yanıt. 500 token’lık tipik bir yanıt (≈ 375 kelime) {{cost}} tutar.",
+            "cachedInput": "Sağlayıcının önbelleğinde zaten bulunan girdi (ör. her istekte tekrarlanan uzun bir sistem istemi). 10.000 önbellekli token {{full}} yerine {{cost}} tutar.",
+            "cacheWrite": "Girdinin önbelleğe ilk kez yazılması. 10.000 token yazmak {{cost}} tutar; sonraki okumalar önbellek fiyatından ücretlendirilir.",
+            "context": "≈ {{words}} İngilizce kelime (yaklaşık {{pages}} sayfa). Uzun sohbetlerde eski mesajlar, her istek sığacak şekilde dışarıda bırakılır.",
+            "maxOutput": "Olası en uzun yanıt: ≈ {{words}} kelime, en fazla {{cost}}. Yanıt üretilirken bütçeden bu kadarı ayrılır (takma adlar daha düşük bir sınır koyabilir).",
+            "examplesTitle": "Bu fiyatlarla örnek maliyetler",
+            "exampleShort": "Kısa soru ve yanıt (500 girdi / 300 çıktı token)",
+            "exampleTypical": "Biraz geçmişi olan tipik mesaj (2.000 girdi / 500 çıktı)",
+            "exampleLong": "Uzun sohbet veya belge (20.000 girdi / 1.000 çıktı)",
+            "perBudget": "{{budget}} aylık bütçeyle bir kullanıcı yaklaşık {{count}} tipik mesaj gönderebilir.",
+            "tokensNote": "Pratik kural: 1 token ≈ ¾ İngilizce kelime; Türkçe metin aynı uzunluk için yaklaşık %30–50 daha fazla token gerektirir."
+        }
     },
     "aliases": {
         "title": "Model takma adları",
@@ -355,5 +370,23 @@
         "details": "Ayrıntılar",
         "allReports": "Tüm raporlar",
         "noUsage": "Bu ay henüz kullanım yok."
+    },
+    "privacy": {
+        "title": "Gizlilik",
+        "description": "Kullanıcıların onayladığı kullanım bilgilendirmesi ve verilerin ne kadar saklanacağı.",
+        "notice": "Kullanım bilgilendirmesi",
+        "enabled": "Kullanıcılar başlamadan önce bilgilendirmeyi onaylasın",
+        "text": "Özel bilgilendirme ({{locale}})",
+        "textHelp": "Düz metin; boş satırlar paragrafları ayırır. Boş = yerleşik metin. Kurum ayarlarındaki gizlilik ve koşullar bağlantıları altında gösterilir.",
+        "askAgain": "Herkesten yeniden onay iste",
+        "askAgainHelp": "Metin değişince otomatik olur. Geçerli sürüm: {{version}}.",
+        "retention": "Veri saklama",
+        "retentionHelp": "Her gece ada:retention:prune ile silinir. Kullanım kayıtları hiçbir zaman mesaj içeriği içermez.",
+        "conversationDays": "Sohbetleri sakla (gün)",
+        "conversationDaysHelp": "Son mesajdan itibaren sayılır. Boş = kullanıcı silene kadar saklanır.",
+        "deletedDays": "Silinen sohbetleri kaldır (gün sonra)",
+        "deletedDaysHelp": "Kullanıcının sildiği sohbetler o zamana kadar bir operatör tarafından geri getirilebilir. 0 = bir sonraki çalışmada.",
+        "usageMonths": "Kullanım kayıtlarını sakla (ay)",
+        "usageMonthsHelp": "Raporlar ve bütçeler için maliyet ve token sayıları; en az 12."
     }
 }

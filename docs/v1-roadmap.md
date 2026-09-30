@@ -120,7 +120,8 @@ LICENSE (AGPL-3.0-or-later).
 
 ### M10 — Hardening
 - Security headers + CSP nonces, rate limits review, retention prune command,
-  first-login usage acknowledgment, `ada:doctor`.
+  first-login usage acknowledgment, `ada:doctor`. ✅ (see
+  [security.md](security.md) §5, §7, §9, §12 as built)
 - Complete E2E suite, axe accessibility checks, bundle size budget.
 - Internal security review (OWASP ASVS L2 core).
 

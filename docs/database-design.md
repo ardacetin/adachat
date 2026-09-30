@@ -583,11 +583,17 @@ audit-logged. A versioned table can be added later without migrating events.
 ## 7. Retention readiness
 
 - Conversation content (`conversations`, `messages`) can be pruned by age
-  (`ChatSettings.conversation_retention_days`) without touching
-  `usage_events` (no FKs) or `budget_periods`.
+  (`PrivacySettings.conversation_retention_days`, default: keep) without
+  touching `usage_events` (no FKs) or `budget_periods`. Conversations the
+  user deleted (soft-deleted) are removed for good after
+  `deleted_conversation_days` (default 30).
 - The usage ledger is pruned separately
-  (`ChatSettings.usage_retention_months`, e.g. 24) by `ada:retention:prune`,
-  which sets `@ada_allow_prune`.
+  (`PrivacySettings.usage_retention_months`, default 24, minimum 12) in whole
+  months of the institution's time zone, together with the reservations and
+  budget periods no longer referenced. As built (M10):
+  `App\Domain\Retention\RetentionPruner`, `ada:retention:prune
+  [--dry-run]`, scheduled nightly, audited with the counts (the optional
+  database triggers are not shipped, so no `@ada_allow_prune` is needed).
 - User offboarding: users are **disabled**, not deleted. Hard deletion (e.g.
   a data-subject request) deletes conversations and identities and
   pseudonymizes ledger rows via an explicit, audited command.

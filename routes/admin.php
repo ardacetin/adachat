@@ -8,12 +8,13 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstitutionSettingsController;
 use App\Http\Controllers\Admin\ModelAliasController;
+use App\Http\Controllers\Admin\PrivacySettingsController;
 use App\Http\Controllers\Admin\ProviderController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('index');
     Route::get('reports', ReportController::class)->name('reports.index');
 
@@ -38,6 +39,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
         Route::get('authentication', [AuthSettingsController::class, 'edit'])->name('authentication.edit');
         Route::put('authentication', [AuthSettingsController::class, 'update'])->name('authentication.update');
+
+        Route::get('privacy', [PrivacySettingsController::class, 'edit'])->name('privacy.edit');
+        Route::put('privacy', [PrivacySettingsController::class, 'update'])->name('privacy.update');
 
         Route::resource('providers', ProviderController::class)->except(['show', 'destroy']);
         Route::post('providers/{provider}/check', [ProviderController::class, 'check'])

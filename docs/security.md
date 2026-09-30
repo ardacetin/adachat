@@ -62,9 +62,16 @@ operators with server access (ultimately trusted); compromised dependencies.
   validated as `#rrggbb` and converted server-side into numeric OKLCH values
   (no raw CSS injection). The appearance cookie is validated against the
   enum before it reaches the inline script.
-- Content Security Policy with nonces for the inline branding style and
-  Vite scripts; `default-src 'self'`; `connect-src 'self'`; no third-party
-  scripts.
+- Content Security Policy (as built, M10: `App\Http\Middleware\SecurityHeaders`):
+  `script-src 'self' 'nonce-…'` — Vite's tags and the inline appearance
+  script carry a per-request nonce, nothing else runs (no `unsafe-eval`, no
+  `wasm-unsafe-eval`: code highlighting uses Shiki's JavaScript regex
+  engine); `style-src 'self' 'unsafe-inline'` because UI libraries inject
+  `<style>` tags at runtime and React sets style attributes (CSS cannot run
+  code); `default-src`/`connect-src 'self'`, `object-src 'none'`,
+  `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`; no
+  third-party scripts. Not sent while the Vite dev server runs. The
+  Playwright specs fail on any CSP violation.
 
 ## 6. Provider credentials
 
@@ -88,10 +95,22 @@ operators with server access (ultimately trusted); compromised dependencies.
 | Huge prompts | Input counted with provider token counters before reservation; context window limit; request size limit |
 | Huge outputs | `max_output_tokens` always set and capped to remaining budget |
 | Many concurrent streams | Per-group `max_concurrent_streams`, checked under the budget lock |
-| Request flooding | Per-user `requests_per_minute` (Laravel RateLimiter, Redis) + per-IP limits |
+| Request flooding | Per-user `requests_per_minute` of the group for chat, plus per-route limits and per-user ceilings (below) |
 | Holding FPM workers | Max stream duration; per-user concurrent stream limit |
 | Counter endpoint unavailable | `on_counter_failure = estimate` (large margin) or `reject` |
 | Institution-wide overspend | Admin dashboard alerts; provider-side hard limits recommended; institution-wide cap proposed for v1.1 |
+
+Rate limits as built (M10), per user when signed in, otherwise per IP:
+
+| Route(s) | Limit per minute |
+|---|---|
+| All signed-in pages and actions (`throttle:app`) | 300 |
+| Administration (`throttle:admin`) | 120 |
+| Chat: send / regenerate (plus the group's requests per minute) | 60 each |
+| Chat: stop | 120 |
+| Login page / SAML redirect / ACS | 60 / 20 / 20 |
+| Usage notice acknowledgment | 10 |
+| Provider connection check | 10 |
 
 ## 8. Authorization and admin privilege boundaries
 
@@ -120,7 +139,11 @@ operators with server access (ultimately trusted); compromised dependencies.
   should review provider data-processing terms (zero-retention options, region)
   and local law (e.g. KVKK in Turkey, GDPR in the EU). Ada supports showing
   `privacy_url` / `terms_url` and a first-login acknowledgment (recommended
-  for V1).
+  for V1). As built (M10): on by default; users acknowledge the built-in
+  notice (or the institution's own text per language, plain text) before
+  anything else (`EnsureAcknowledged`); changing the text or "ask everyone
+  again" raises the version and everyone acknowledges again. Admin →
+  Privacy.
 - Retention: conversation retention and usage retention configured separately
   (see [database-design.md §7](database-design.md#7-retention-readiness)).
 
@@ -153,6 +176,10 @@ operators with server access (ultimately trusted); compromised dependencies.
   `Referrer-Policy: strict-origin-when-cross-origin`;
   `X-Frame-Options: DENY` / `frame-ancestors 'none'`;
   `Permissions-Policy` minimal; CSP as above.
+- As built (M10): `X-Content-Type-Options`, `X-Frame-Options: DENY`,
+  `Referrer-Policy`, `Permissions-Policy` (camera, microphone, geolocation,
+  payment, usb off), `Cross-Origin-Opener-Policy: same-origin`, and HSTS
+  (one year) on https requests.
 - `APP_DEBUG=false` and `APP_ENV=production` verified by `ada:doctor`;
   debug tools (e.g. Telescope) not installed in production.
 

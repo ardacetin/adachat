@@ -29,6 +29,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M10 hardening (part 1): security headers and a nonce-based Content
+  Security Policy; per-user rate limits for all signed-in and admin routes;
+  a first-sign-in usage notice (built-in or the institution's own text,
+  asked again when it changes); data retention settings with a nightly
+  `ada:retention:prune` (deleted conversations after 30 days, optional
+  conversation expiry, usage records 24 months); `ada:doctor` to check an
+  installation; Admin → Privacy.
+- Cost and size hints on the model form: what 1,000 input / 500 output
+  tokens cost, example messages, how many messages a monthly budget covers,
+  and the context window and output limit in words.
 - M9 dashboard and reports: the admin overview shows this month's
   spending, requests, active users and average per user against last month,
   daily spending, top models and groups, users at their limit and an
