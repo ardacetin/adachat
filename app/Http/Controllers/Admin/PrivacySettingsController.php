@@ -49,11 +49,14 @@ class PrivacySettingsController extends Controller
         $validated = $request->validate($rules);
         $before = $settings->toArray();
 
-        $texts = array_filter(
-            array_map(fn ($text) => is_string($text) ? trim($text) : '', (array) ($validated['acknowledgment_text'] ?? [])),
-            fn (string $text) => $text !== '',
-        );
-        /** @var array<string, string>|null $texts */
+        $texts = [];
+
+        foreach ((array) ($validated['acknowledgment_text'] ?? []) as $locale => $text) {
+            if (is_string($locale) && is_string($text) && trim($text) !== '') {
+                $texts[$locale] = trim($text);
+            }
+        }
+
         $texts = $texts === [] ? null : $texts;
 
         $enabled = $request->boolean('acknowledgment_enabled');
