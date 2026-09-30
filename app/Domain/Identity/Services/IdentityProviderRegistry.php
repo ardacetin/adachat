@@ -34,9 +34,9 @@ final class IdentityProviderRegistry
      */
     public function enabledKeys(): array
     {
-        return array_values(array_keys(array_filter(
+        return array_keys(array_filter(
             $this->providers,
             static fn (RedirectIdentityProvider $provider): bool => $provider->isEnabled(),
-        )));
+        ));
     }
 }

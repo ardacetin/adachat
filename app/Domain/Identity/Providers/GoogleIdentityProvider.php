@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Contracts\Factory as Socialite;
+use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -79,8 +80,12 @@ final class GoogleIdentityProvider implements RedirectIdentityProvider
         return $this->toExternalIdentity($user);
     }
 
-    public function toExternalIdentity(AbstractUser $user): ExternalIdentity
+    public function toExternalIdentity(SocialiteUser $user): ExternalIdentity
     {
+        if (! $user instanceof AbstractUser) {
+            throw new IdentityRejected(RejectionReason::ProviderError);
+        }
+
         /** @var array<string, mixed> $claims */
         $claims = $user->getRaw();
 

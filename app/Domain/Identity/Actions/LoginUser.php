@@ -55,7 +55,7 @@ final class LoginUser
                 ->lockForUpdate()
                 ->first();
 
-            $user = $record?->user
+            $user = $record->user
                 ?? $this->findUserByEmail($identity)
                 ?? $this->provision($identity);
 

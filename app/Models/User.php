@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Domain\Identity\Enums\Appearance;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Carbon;
 
 /**
  * A person who can sign in. Ada has no passwords: users authenticate through
@@ -28,12 +28,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $locale
  * @property Appearance $appearance
  * @property UserStatus $status
- * @property Carbon|null $disabled_at
- * @property Carbon|null $last_login_at
- * @property Carbon|null $last_active_at
+ * @property CarbonImmutable|null $disabled_at
+ * @property CarbonImmutable|null $last_login_at
+ * @property CarbonImmutable|null $last_active_at
  * @property string|null $remember_token
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property-read Group $group
  */
 #[Fillable(['name', 'email', 'avatar_url', 'locale', 'appearance'])]

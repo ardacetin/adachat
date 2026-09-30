@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * A user's account at an external identity provider.
@@ -15,9 +15,9 @@ use Illuminate\Support\Carbon;
  * @property string $subject
  * @property string $email
  * @property array<string, mixed>|null $last_claims
- * @property Carbon|null $last_login_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $last_login_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 class UserIdentity extends Model
 {
