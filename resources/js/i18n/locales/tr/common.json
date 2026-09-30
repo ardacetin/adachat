@@ -4,7 +4,8 @@
         "logOut": "Çıkış yap",
         "menu": "Menü",
         "navigation": "Gezinme",
-        "admin": "Yönetim"
+        "admin": "Yönetim",
+        "usage": "Kullanım"
     },
     "actions": {
         "save": "Kaydet"

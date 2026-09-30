@@ -16,7 +16,7 @@ class InstitutionSettingsController extends Controller
 {
     private const TEXT_FIELDS = [
         'name', 'short_name', 'domain', 'support_email', 'default_locale',
-        'timezone', 'privacy_url', 'terms_url', 'primary_color',
+        'timezone', 'privacy_url', 'terms_url', 'primary_color', 'budget_display',
     ];
 
     /** Upload field => settings property. */

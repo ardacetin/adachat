@@ -115,7 +115,7 @@ Each settings class maps to a `group`:
 
 | Settings class | Group | Properties |
 |---|---|---|
-| `InstitutionSettings` | `institution` | `name`, `short_name`, `logo_path`, `logo_dark_path`, `favicon_path`, `primary_color`, `domain`, `support_email`, `default_locale`, `timezone`, `privacy_url`, `terms_url` |
+| `InstitutionSettings` | `institution` | `name`, `short_name`, `logo_path`, `logo_dark_path`, `favicon_path`, `primary_color`, `domain`, `support_email`, `default_locale`, `timezone`, `privacy_url`, `terms_url`, `budget_display` (`amount` \| `percent`, M7) |
 | `AuthSettings` | `auth` | `allowed_domains` (list), `auto_provision` (bool), `default_group_id` |
 | `ChatSettings` | `chat` | `default_alias_id`, `conversation_retention_days` (nullable), `usage_retention_months` |
 | `BudgetSettings` | `budget` | `default_policy_id`, `max_concurrent_streams_default` |

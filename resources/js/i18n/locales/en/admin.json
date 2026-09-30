@@ -7,11 +7,13 @@
         "authentication": "Sign-in",
         "providers": "Providers",
         "models": "Models",
-        "aliases": "Model aliases"
+        "aliases": "Model aliases",
+        "groups": "Groups",
+        "budgetPolicies": "Budget policies"
     },
     "index": {
         "intro": "Choose a section to configure.",
-        "comingSoon": "User, group, model, budget and usage management will be added in upcoming releases."
+        "comingSoon": "User management, reports and the audit log will be added in upcoming releases."
     },
     "institution": {
         "title": "Institution",
@@ -39,7 +41,11 @@
         "faviconHelp": "Square PNG, 16–512 px, up to 256 KB.",
         "current": "Current",
         "remove": "Remove",
-        "none": "Not set"
+        "none": "Not set",
+        "budgetDisplay": "Budget shown to users",
+        "budgetDisplayAmount": "Amounts (US dollars) and percentage",
+        "budgetDisplayPercent": "Percentage only",
+        "budgetDisplayHelp": "With “percentage only”, users never see dollar amounts; administrators still do."
     },
     "authentication": {
         "title": "Sign-in",
@@ -76,7 +82,9 @@
         "back": "Back",
         "empty": "Nothing here yet.",
         "copy": "Copy",
-        "copied": "Copied"
+        "copied": "Copied",
+        "delete": "Delete",
+        "cancel": "Cancel"
     },
     "providers": {
         "title": "Providers",
@@ -150,5 +158,48 @@
         "groups": "Available to groups",
         "groupsHelp": "Only members of the selected groups can choose this alias.",
         "noModels": "Add a model first."
+    },
+    "groups": {
+        "title": "Groups",
+        "description": "Every user belongs to one group. The group sets the monthly budget policy, the request limits and the models its members may use.",
+        "add": "Add group",
+        "create": "New group",
+        "edit": "Edit group",
+        "name": "Name",
+        "descriptionField": "Description",
+        "default": "Default",
+        "defaultHelp": "New users join the default group.",
+        "policy": "Budget policy",
+        "monthlyLimit": "Monthly limit",
+        "requestsPerMinute": "Requests per minute",
+        "requestsPerMinuteHelp": "Per user; 1–1000.",
+        "maxConcurrentStreams": "Parallel answers",
+        "maxConcurrentStreamsHelp": "Answers one user may have generating at the same time; 1–20.",
+        "members": "Members",
+        "aliases": "Models",
+        "aliasesField": "Available models",
+        "aliasesHelp": "Members can choose only these model aliases.",
+        "noAliases": "No model aliases yet.",
+        "aliasDisabled": "disabled",
+        "applyToCurrentPeriod": "Apply a changed budget policy to this month",
+        "applyToCurrentPeriodHelp": "Otherwise members keep this month’s limit and get the new one next month. Individual budgets are not affected.",
+        "deleteTitle": "Delete group?",
+        "deleteConfirm": "The group “{{name}}” will be removed. Only groups without members can be deleted."
+    },
+    "budgetPolicies": {
+        "title": "Budget policies",
+        "description": "Named monthly limits assigned to groups. There is no unlimited budget; $0 blocks usage.",
+        "add": "Add policy",
+        "create": "New policy",
+        "edit": "Edit policy",
+        "name": "Name",
+        "monthlyLimit": "Monthly limit (USD)",
+        "monthlyLimitHelp": "Per user and calendar month in the institution’s time zone.",
+        "groups": "Groups",
+        "users": "Users",
+        "applyToCurrentPeriod": "Apply a changed limit to this month",
+        "applyToCurrentPeriodHelp": "Updates the limit of {{count}} users for the current month. Otherwise it applies from next month. Individual budgets are not affected.",
+        "deleteTitle": "Delete policy?",
+        "deleteConfirm": "The policy “{{name}}” will be removed. Policies used by a group cannot be deleted."
     }
 }

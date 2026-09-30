@@ -62,5 +62,36 @@
         "network": "The connection was lost.",
         "forbidden": "This model is not available to you.",
         "unknown": "Something went wrong. Please try again."
+    },
+    "budget": {
+        "title": "Monthly budget",
+        "left": "{{remaining}} of {{limit}} left",
+        "used": "{{percent}}% used",
+        "renews": "Renews on {{date}}",
+        "exhausted": "Your monthly budget is used up. It renews on {{date}}.",
+        "details": "Usage details"
+    },
+    "usage": {
+        "title": "Usage",
+        "description": "Your own usage this month and in previous months.",
+        "thisMonth": "This month",
+        "spent": "Spent",
+        "limit": "Limit",
+        "remaining": "Remaining",
+        "byModel": "By model",
+        "byDay": "By day",
+        "previousMonths": "Previous months",
+        "model": "Model",
+        "otherModel": "Other",
+        "requests": "Requests",
+        "inputTokens": "Input tokens",
+        "outputTokens": "Output tokens",
+        "cost": "Cost",
+        "share": "Share of limit",
+        "date": "Date",
+        "month": "Month",
+        "used": "Used",
+        "empty": "No usage yet this month.",
+        "note": "Costs are the providers’ prices at the time of each request. Adjustments made by administrators change your budget but are not listed here."
     }
 }

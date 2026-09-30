@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { BudgetSummary } from '@/types/budget';
 
 export type Locale = 'en' | 'tr';
 
@@ -17,6 +18,7 @@ declare module '@inertiajs/core' {
                 privacyUrl: string | null;
                 termsUrl: string | null;
             };
+            budget: BudgetSummary | null;
             can: {
                 accessAdmin: boolean;
                 manageSystem: boolean;

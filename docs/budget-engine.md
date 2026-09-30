@@ -514,6 +514,20 @@ Differences from the sections above:
   marks the message `failed` (`generation_interrupted`).
 - The optional database triggers for `usage_events` are not shipped; the
   model guard enforces append-only.
+- **Apply to current period (M7):** changing a budget policy's limit or a
+  group's policy offers "apply to this month" (default on).
+  `Services\CurrentLimits` then calls `applyCurrentLimit()` for the affected
+  users (group members without an individual override) **who already have a
+  period this month**; everyone else gets the new limit when their period is
+  created. `ada:user:budget` does the same for one user's override.
+- **What users see (M7):** `Services\BudgetSummary` reads the current period
+  without creating it (limit, spent, remaining, percentage, renewal date in
+  the institution's time zone). With `InstitutionSettings::budget_display =
+  percent`, no dollar amounts leave the server — not in the shared prop and
+  not on the usage page (`App\Domain\Usage\UsageReport`, which reports
+  costs as a share of the limit instead). The percentage counts spending only
+  (not open reservations); "exhausted" means nothing remains after
+  reservations.
 
 Tests: `tests/Unit/Budget` (money, pricing tiers, sizing, periods),
 `tests/Feature/Budget/BudgetEngineTest.php` (lifecycle, idempotency,

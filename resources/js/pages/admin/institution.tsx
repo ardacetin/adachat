@@ -26,6 +26,7 @@ type Settings = {
     privacy_url: string | null;
     terms_url: string | null;
     primary_color: string | null;
+    budget_display: BudgetDisplay;
     has_logo: boolean;
     has_logo_dark: boolean;
     has_favicon: boolean;
@@ -46,6 +47,7 @@ type InstitutionForm = {
     privacy_url: string;
     terms_url: string;
     primary_color: string;
+    budget_display: BudgetDisplay;
     logo: File | null;
     logo_dark: File | null;
     favicon: File | null;
@@ -61,6 +63,8 @@ type TextField =
     | 'support_email'
     | 'privacy_url'
     | 'terms_url';
+
+type BudgetDisplay = 'amount' | 'percent';
 
 const DEFAULT_PICKER_COLOR = '#171717';
 
@@ -79,6 +83,7 @@ export default function Institution({ settings, timezones }: Props) {
         privacy_url: settings.privacy_url ?? '',
         terms_url: settings.terms_url ?? '',
         primary_color: settings.primary_color ?? '',
+        budget_display: settings.budget_display,
         logo: null,
         logo_dark: null,
         favicon: null,
@@ -234,6 +239,38 @@ export default function Institution({ settings, timezones }: Props) {
                                         {zone}
                                     </SelectItem>
                                 ))}
+                            </SelectContent>
+                        </Select>
+                    </FormField>
+                    <FormField
+                        id="budget_display"
+                        label={t('institution.budgetDisplay')}
+                        help={t('institution.budgetDisplayHelp')}
+                        error={form.errors.budget_display}
+                    >
+                        <Select
+                            value={form.data.budget_display}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'budget_display',
+                                    value as BudgetDisplay,
+                                )
+                            }
+                        >
+                            <SelectTrigger
+                                id="budget_display"
+                                className="w-full"
+                                aria-describedby="budget_display-help"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="amount">
+                                    {t('institution.budgetDisplayAmount')}
+                                </SelectItem>
+                                <SelectItem value="percent">
+                                    {t('institution.budgetDisplayPercent')}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </FormField>

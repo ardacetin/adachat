@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\MessageController;
+use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
 // Public: the IdP administrator (or the IdP) reads it; also the SP entity ID.
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/', [ConversationController::class, 'index'])->name('home');
+    Route::get('usage', [UsageController::class, 'show'])->name('usage');
     Route::get('c/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::patch('c/{conversation}', [ConversationController::class, 'update'])->name('conversations.update');
     Route::delete('c/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');

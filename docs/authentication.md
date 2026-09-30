@@ -158,6 +158,9 @@ before the expiry date shown in the admin panel and update `.env`.
   creates or updates a user record so that their first sign-in gets the
   role. This is also the **break-glass** path: there is no password login to
   fall back to, and server access is the recovery mechanism.
+- `php artisan ada:user:budget someone@example.edu --limit=25` sets an
+  individual monthly limit (`--clear` returns to the group policy; the
+  current month is updated unless `--next-period` is given). Audited.
 - Development only: a `POST /dev/login` route to sign in as any existing
   user without the IdP. It is registered only when `APP_ENV` is `local` or
   `testing` **and** `ADA_DEV_LOGIN=true`; the controller re-checks both.

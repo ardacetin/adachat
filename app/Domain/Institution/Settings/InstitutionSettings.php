@@ -36,6 +36,9 @@ class InstitutionSettings extends Settings
 
     public ?string $favicon_path;
 
+    /** How users see their budget: "amount" (USD and percentage) or "percent" only. */
+    public string $budget_display;
+
     public static function group(): string
     {
         return 'institution';

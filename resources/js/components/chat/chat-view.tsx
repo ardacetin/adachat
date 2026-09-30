@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Composer from '@/components/chat/composer';
@@ -6,6 +6,8 @@ import MessageItem from '@/components/chat/message-item';
 import ModelSelector from '@/components/models/model-selector';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useChatStream } from '@/hooks/use-chat-stream';
+import { formatDate } from '@/lib/format';
+import { usage } from '@/routes';
 import { show } from '@/routes/conversations';
 import { cancel, regenerate, store } from '@/routes/messages';
 import type { AliasOption, ChatMessage, ErrorEvent } from '@/types/chat';
@@ -56,6 +58,7 @@ export default function ChatView({
     aliases,
 }: Props) {
     const { t } = useTranslation('chat');
+    const { budget, locale } = usePage().props;
     const { status, draft, run, stop } = useChatStream();
     const [input, setInput] = useState('');
     const [aliasId, setAliasId] = useState<number | null>(() =>
@@ -141,7 +144,13 @@ export default function ChatView({
                 if (!started) {
                     // Refused before anything was stored: give the text back.
                     setPending(null);
-                    setError(describe(event));
+
+                    if (event.code === 'budget_exhausted') {
+                        // The budget alert below explains it, with the renewal date.
+                        router.reload({ only: ['budget'] });
+                    } else {
+                        setError(describe(event));
+                    }
 
                     if (restoreInput !== null) {
                         setInput(restoreInput);
@@ -175,7 +184,7 @@ export default function ChatView({
 
                 if (targetConversation === conversationId) {
                     router.reload({
-                        only: ['messages', 'conversations'],
+                        only: ['messages', 'conversations', 'budget'],
                         ...done,
                     });
                 } else {
@@ -241,6 +250,7 @@ export default function ChatView({
         );
 
     const last = shown.at(-1);
+    const exhausted = budget?.exhausted === true && !streaming;
 
     return (
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4">
@@ -288,6 +298,30 @@ export default function ChatView({
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
+                {exhausted && budget && (
+                    <Alert
+                        variant="destructive"
+                        className="mb-2"
+                        data-test="budget-exhausted"
+                    >
+                        <AlertDescription>
+                            <p>
+                                {t('budget.exhausted', {
+                                    date: formatDate(
+                                        budget.resets_on,
+                                        locale.current,
+                                    ),
+                                })}
+                            </p>
+                            <Link
+                                href={usage()}
+                                className="underline underline-offset-4"
+                            >
+                                {t('budget.details')}
+                            </Link>
+                        </AlertDescription>
+                    </Alert>
+                )}
                 {aliases.length === 0 ? (
                     <Alert>
                         <AlertDescription>{t('model.none')}</AlertDescription>
@@ -299,6 +333,7 @@ export default function ChatView({
                         onSubmit={send}
                         onStop={() => stop((id) => cancel.url(id))}
                         streaming={streaming}
+                        disabled={exhausted}
                         toolbar={
                             <ModelSelector
                                 aliases={aliases}

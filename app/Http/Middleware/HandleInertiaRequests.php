@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Budget\Services\BudgetSummary;
 use App\Domain\Institution\Services\Branding;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,6 +53,8 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->role->value,
                 ],
             ],
+            // The user's own budget (sidebar indicator, budget-exhausted state).
+            'budget' => fn () => $user === null ? null : app(BudgetSummary::class)->for($user),
             // UI hints only; every action is authorized server-side.
             'can' => [
                 'accessAdmin' => $user?->can('access-admin') ?? false,

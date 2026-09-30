@@ -3,6 +3,8 @@
 return [
 
     'saved' => 'Settings saved.',
+    'policy_in_use' => 'This budget policy is used by a group and cannot be deleted.',
+    'group_not_deletable' => 'The default group and groups with members cannot be deleted.',
     'primary_color_contrast' => 'This colour is too light: it needs a contrast of at least 3:1 against white so buttons stay readable.',
     'alias_max_tokens' => 'The output limit cannot exceed the model maximum (:max tokens).',
 

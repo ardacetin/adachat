@@ -62,5 +62,36 @@
         "network": "Bağlantı koptu.",
         "forbidden": "Bu model sizin kullanımınıza açık değil.",
         "unknown": "Bir sorun oluştu. Lütfen tekrar deneyin."
+    },
+    "budget": {
+        "title": "Aylık bütçe",
+        "left": "{{limit}} bütçenin {{remaining}} kadarı kaldı",
+        "used": "%{{percent}} kullanıldı",
+        "renews": "{{date}} tarihinde yenilenir",
+        "exhausted": "Aylık bütçeniz doldu. {{date}} tarihinde yenilenir.",
+        "details": "Kullanım ayrıntıları"
+    },
+    "usage": {
+        "title": "Kullanım",
+        "description": "Bu ayki ve önceki aylardaki kendi kullanımınız.",
+        "thisMonth": "Bu ay",
+        "spent": "Harcanan",
+        "limit": "Limit",
+        "remaining": "Kalan",
+        "byModel": "Modele göre",
+        "byDay": "Güne göre",
+        "previousMonths": "Önceki aylar",
+        "model": "Model",
+        "otherModel": "Diğer",
+        "requests": "İstek",
+        "inputTokens": "Girdi token",
+        "outputTokens": "Çıktı token",
+        "cost": "Maliyet",
+        "share": "Limitteki payı",
+        "date": "Tarih",
+        "month": "Ay",
+        "used": "Kullanılan",
+        "empty": "Bu ay henüz kullanım yok.",
+        "note": "Maliyetler, her isteğin yapıldığı andaki sağlayıcı fiyatlarıdır. Yöneticilerin yaptığı düzeltmeler bütçenizi değiştirir ama burada listelenmez."
     }
 }

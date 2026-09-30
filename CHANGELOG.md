@@ -25,6 +25,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Admin screens for **groups** (budget policy, requests per minute, parallel
+  answers, available model aliases; empty non-default groups can be
+  deleted) and **budget policies** (monthly limit; unused policies can be
+  deleted). Changing a limit or a group's policy can be applied to the
+  current month. All changes are audited.
+- `php artisan ada:user:budget <email> --limit=<USD> | --clear` for an
+  individual monthly limit.
+- Users see their budget: a sidebar indicator, a budget-exhausted state in
+  the chat with the renewal date, and a usage page (this month by model and
+  by day, previous months).
+- Institution setting *Budget shown to users*: amounts and percentage, or
+  percentage only (no dollar amounts are sent to the browser).
+- Playwright: budget indicator, usage page, exhausted budget.
 - M6 streaming chat: conversations and messages (UUIDv7, soft-deleted
   conversations, regenerate as sibling answers), `ChatGenerationService`
   (context trimming → token count → budget reserve → provider stream →

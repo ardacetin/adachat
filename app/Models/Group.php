@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read BudgetPolicy $budgetPolicy
+ * @property-read int|null $users_count withCount('users')
+ * @property-read int|null $model_aliases_count withCount('modelAliases')
  */
 #[Fillable(['name', 'description', 'budget_policy_id', 'requests_per_minute', 'max_concurrent_streams'])]
 class Group extends Model
