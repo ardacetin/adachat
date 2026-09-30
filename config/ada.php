@@ -68,6 +68,10 @@ return [
         // Password-less development login. Only ever active in the local and
         // testing environments, regardless of this flag.
         'dev_login' => (bool) env('ADA_DEV_LOGIN', false),
+
+        // Sessions end this many minutes after sign-in, even when active
+        // (SESSION_LIFETIME is the idle timeout). Default: 7 days.
+        'max_session_minutes' => (int) env('SESSION_MAX_LIFETIME', 10080),
     ],
 
     'chat' => [

@@ -246,8 +246,18 @@ active locale and the institution timezone.
   labels (`aria-label` translated), and keyboard support.
 - Message list is an `aria-live="polite"` region updated per completed block,
   not per token, to avoid screen reader spam.
-- Colour contrast enforced for branding (§7). Target WCAG 2.1 AA; automated
-  axe checks in Playwright from M10.
+- Colour contrast enforced for branding (§7). Target WCAG 2.1 AA.
+- As built (M10): `tests/e2e/accessibility.spec.ts` runs axe-core (WCAG 2.1
+  A/AA) on the sign-in page, the chat, usage and settings pages (light and
+  dark) and the main administration pages, and fails on serious or critical
+  violations. Automated checks find only part of the problems; before a
+  release also check by hand: keyboard-only use of the chat (send, stop,
+  model menu, sidebar), a screen reader on a streamed answer, 200 % zoom and
+  a narrow (320 px) screen.
+- Bundle size budget (M10): `npm run bundle:check` after a build (also in
+  CI) — the entry (gzipped JS loaded on every page) at most 230 KiB, the
+  chat pages 75 KiB, other pages 40 KiB; lazily loaded code (Shiki,
+  translations) is not counted. Budgets are raised only deliberately.
 
 ## 11. Frontend tests
 

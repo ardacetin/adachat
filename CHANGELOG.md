@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The model menu in the chat opens upwards; below the composer it was
+  squeezed into a few pixels.
 - Provider errors (e.g. an unknown model or an unsupported parameter) are
   logged with the provider's reason, so administrators can see why the chat
   showed "The AI service rejected the request".
@@ -29,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M10 hardening (part 2): axe-core accessibility checks (WCAG 2.1 AA) in
+  Playwright on the main user and admin screens (light and dark); a bundle
+  size budget (`npm run bundle:check`, in CI); an absolute session lifetime
+  (`SESSION_MAX_LIFETIME`, default 7 days); the internal OWASP ASVS Level 2
+  review (`docs/security-review.md`).
 - M10 hardening (part 1): security headers and a nonce-based Content
   Security Policy; per-user rate limits for all signed-in and admin routes;
   a first-sign-in usage notice (built-in or the institution's own text,

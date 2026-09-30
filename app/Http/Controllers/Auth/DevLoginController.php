@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class DevLoginController extends Controller
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
+        EnsureUserIsActive::startSession($request);
 
         $user->forceFill(['last_login_at' => now()])->save();
 

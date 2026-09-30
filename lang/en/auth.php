@@ -19,6 +19,7 @@ return [
         'domain_not_allowed' => 'This account is not allowed to sign in. Please use your institutional account.',
         'not_provisioned' => 'You do not have access yet. Please contact your administrator.',
         'account_disabled' => 'Your account has been disabled. Please contact your administrator.',
+        'session_expired' => 'Your session has ended. Please sign in again.',
         'account_conflict' => 'Your account could not be linked. Please contact your administrator.',
     ],
 

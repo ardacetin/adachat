@@ -122,3 +122,15 @@ test('the chat is available in Turkish', async ({ page }) => {
         await setLanguage(page, /English|İngilizce/);
     }
 });
+
+test('the model menu opens fully above the composer', async ({ page }) => {
+    await signIn(page);
+
+    await page.getByRole('combobox', { name: 'Model' }).click();
+    const option = page.getByRole('option', { name: /Smart/ });
+
+    await expect(option).toBeVisible();
+    await expect(option).toBeInViewport({ ratio: 1 });
+    expect((await option.boundingBox())?.height ?? 0).toBeGreaterThan(30);
+    await page.keyboard.press('Escape');
+});

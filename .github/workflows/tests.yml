@@ -70,6 +70,9 @@ jobs:
       - name: Build assets
         run: npm run build
 
+      - name: Bundle size budget
+        run: npm run bundle:check
+
       - name: PHP code style (Pint)
         run: composer lint:check
 

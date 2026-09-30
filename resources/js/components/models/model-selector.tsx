@@ -39,7 +39,10 @@ export default function ModelSelector({
             >
                 <SelectValue />
             </SelectTrigger>
-            <SelectContent align="start">
+            {/* The composer sits at the bottom of the screen: open upwards.
+                (Below, the list would be squeezed into the few pixels left
+                instead of flipping, because its height follows the space.) */}
+            <SelectContent side="top" align="start" className="max-h-96">
                 {aliases.map((alias) => (
                     <SelectItem
                         key={alias.id}
