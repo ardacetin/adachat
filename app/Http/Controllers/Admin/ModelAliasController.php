@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ModelAliasRequest;
 use App\Models\AiModel;
+use App\Models\Group;
 use App\Models\ModelAlias;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -51,19 +52,26 @@ class ModelAliasController extends Controller
     {
         $alias = ModelAlias::query()->create($this->values($request));
 
-        $audit->record('model_alias.created', $alias, [], $alias->only(self::FIELDS));
+        // New aliases are available to the Default group unless chosen otherwise.
+        $alias->groups()->sync($request->has('group_ids') ? $this->groupIds($request) : [Group::default()->id]);
+
+        $audit->record('model_alias.created', $alias, [], [...$alias->only(self::FIELDS), 'group_ids' => $this->currentGroupIds($alias)]);
 
         return $this->saved();
     }
 
     public function update(ModelAliasRequest $request, ModelAlias $alias, AuditLogger $audit): RedirectResponse
     {
-        $before = $alias->only(self::FIELDS);
+        $before = [...$alias->only(self::FIELDS), 'group_ids' => $this->currentGroupIds($alias)];
 
         $alias->fill($this->values($request))->save();
 
-        // Includes a change of the backing model.
-        [$old, $new] = AuditLogger::diff($before, $alias->refresh()->only(self::FIELDS));
+        if ($request->has('group_ids')) {
+            $alias->groups()->sync($this->groupIds($request));
+        }
+
+        // Includes a change of the backing model and of the allowed groups.
+        [$old, $new] = AuditLogger::diff($before, [...$alias->refresh()->only(self::FIELDS), 'group_ids' => $this->currentGroupIds($alias)]);
 
         if ($new !== []) {
             $audit->record('model_alias.updated', $alias, $old, $new);
@@ -83,10 +91,27 @@ class ModelAliasController extends Controller
         return $values;
     }
 
+    /**
+     * @return list<int>
+     */
+    private function groupIds(ModelAliasRequest $request): array
+    {
+        return array_values(array_map('intval', (array) $request->validated('group_ids', [])));
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function currentGroupIds(ModelAlias $alias): array
+    {
+        return $alias->groups()->orderBy('groups.id')->pluck('groups.id')->map(fn ($id) => (int) $id)->values()->all();
+    }
+
     private function form(?ModelAlias $alias): Response
     {
         return Inertia::render('admin/aliases/form', [
-            'alias' => $alias?->only(['id', ...self::FIELDS]),
+            'alias' => $alias === null ? null : [...$alias->only(['id', ...self::FIELDS]), 'group_ids' => $this->currentGroupIds($alias)],
+            'groups' => Group::query()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),
             'models' => AiModel::query()
                 ->with('provider:id,name')
                 ->orderBy('display_name')

@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { House, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, SquarePen } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { ConversationList } from '@/components/chat/conversation-list';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -20,7 +21,7 @@ export function AppSidebar() {
     const { can } = usePage().props;
 
     const mainNavItems: NavItem[] = [
-        { titleKey: 'nav.home', href: home(), icon: House },
+        { titleKey: 'chat:newChat', href: home(), icon: SquarePen },
         ...(can.accessAdmin
             ? [
                   {
@@ -48,6 +49,7 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                <ConversationList />
             </SidebarContent>
 
             <SidebarFooter>

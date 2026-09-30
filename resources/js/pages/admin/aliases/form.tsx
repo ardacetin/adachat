@@ -29,14 +29,18 @@ type Alias = {
     show_model_details: boolean;
     sort_order: number;
     enabled: boolean;
+    group_ids: number[];
 };
+
+type Group = { id: number; name: string; is_default: boolean };
 
 type Props = {
     alias: Alias | null;
     models: { id: number; label: string; max_output_tokens: number }[];
+    groups: Group[];
 };
 
-export default function AliasForm({ alias, models }: Props) {
+export default function AliasForm({ alias, models, groups }: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
     const { locale } = usePage().props;
@@ -57,7 +61,19 @@ export default function AliasForm({ alias, models }: Props) {
         show_model_details: alias?.show_model_details ?? false,
         sort_order: String(alias?.sort_order ?? 0),
         enabled: alias?.enabled ?? true,
+        // New aliases start available to the default group.
+        group_ids:
+            alias?.group_ids ??
+            groups.filter((group) => group.is_default).map((group) => group.id),
     });
+
+    const toggleGroup = (id: number, checked: boolean) =>
+        form.setData(
+            'group_ids',
+            checked
+                ? [...form.data.group_ids, id]
+                : form.data.group_ids.filter((groupId) => groupId !== id),
+        );
 
     const modelMax =
         models.find((model) => String(model.id) === form.data.ai_model_id)
@@ -268,6 +284,31 @@ export default function AliasForm({ alias, models }: Props) {
                     checked={form.data.enabled}
                     onChange={(checked) => form.setData('enabled', checked)}
                 />
+
+                <fieldset className="space-y-3">
+                    <legend className="text-sm font-medium">
+                        {t('aliases.groups')}
+                    </legend>
+                    <p className="text-sm text-muted-foreground">
+                        {t('aliases.groupsHelp')}
+                    </p>
+                    {groups.map((group) => (
+                        <CheckboxField
+                            key={group.id}
+                            id={`group-${group.id}`}
+                            label={group.name}
+                            checked={form.data.group_ids.includes(group.id)}
+                            onChange={(checked) =>
+                                toggleGroup(group.id, checked)
+                            }
+                        />
+                    ))}
+                    {errors.group_ids && (
+                        <p className="text-sm text-destructive">
+                            {errors.group_ids}
+                        </p>
+                    )}
+                </fieldset>
 
                 <Button type="submit" disabled={form.processing}>
                     {tCommon('actions.save')}

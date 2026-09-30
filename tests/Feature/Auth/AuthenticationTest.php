@@ -12,11 +12,11 @@ test('the login page is rendered for guests', function () {
         ->assertInertia(fn ($page) => $page->component('auth/login'));
 });
 
-test('authenticated users can visit the home page', function () {
+test('authenticated users land on the chat', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('home'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('home'));
+        ->assertInertia(fn ($page) => $page->component('chat/index'));
 });
 
 test('users can log out', function () {

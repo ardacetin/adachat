@@ -1,0 +1,66 @@
+{
+    "title": "Sohbet",
+    "newChat": "Yeni sohbet",
+    "recent": "Son sohbetler",
+    "untitled": "Adsız sohbet",
+    "empty": {
+        "title": "Bugün size nasıl yardımcı olabilirim?",
+        "hint": "Yanıtlar yapay zekâ tarafından üretilir ve hatalı olabilir. Önemli bilgileri kontrol edin."
+    },
+    "composer": {
+        "label": "Mesaj",
+        "placeholder": "Bir mesaj yazın…",
+        "send": "Gönder",
+        "stop": "Durdur",
+        "hint": "Göndermek için Enter, yeni satır için Shift + Enter"
+    },
+    "model": {
+        "label": "Model",
+        "none": "Henüz kullanımınıza açık bir model yok. Lütfen bir yöneticiye başvurun."
+    },
+    "message": {
+        "you": "Siz",
+        "assistant": "Asistan",
+        "copy": "Yanıtı kopyala",
+        "copied": "Kopyalandı",
+        "regenerate": "Yanıtı yeniden oluştur",
+        "generating": "Yanıt oluşturuluyor…",
+        "cancelled": "Durduruldu",
+        "interrupted": "Yanıt yarıda kesildi.",
+        "capped": "Kalan bütçeniz nedeniyle yanıt kısaltılmış olabilir.",
+        "truncated": "Yanıt uzunluk sınırına ulaştı."
+    },
+    "code": {
+        "copy": "Kodu kopyala",
+        "copied": "Kopyalandı"
+    },
+    "conversation": {
+        "actions": "Sohbet işlemleri",
+        "rename": "Yeniden adlandır",
+        "renameTitle": "Sohbeti yeniden adlandır",
+        "delete": "Sil",
+        "deleteTitle": "Sohbet silinsin mi?",
+        "deleteConfirm": "Sohbet ve mesajları kaldırılacak. Kullanım kayıtları korunur.",
+        "cancel": "Vazgeç",
+        "save": "Kaydet"
+    },
+    "errors": {
+        "budget_exhausted": "Aylık bütçeniz doldu. Gelecek ayın başında yenilenir.",
+        "too_many_concurrent_requests": "Şu anda oluşturulan yanıtlarınız var. Lütfen bitmelerini bekleyin.",
+        "rate_limited": "Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar deneyin.",
+        "context_too_long": "Mesaj bu model için çok uzun.",
+        "token_count_unavailable": "İstek şu anda ölçülemedi. Lütfen tekrar deneyin.",
+        "provider_unavailable": "Yapay zekâ hizmeti şu anda kullanılamıyor.",
+        "overloaded": "Yapay zekâ hizmeti yoğun. Lütfen biraz sonra tekrar deneyin.",
+        "timeout": "Yapay zekâ hizmeti zamanında yanıt vermedi.",
+        "content_filtered": "Yapay zekâ hizmeti bu içeriği filtreledi.",
+        "invalid_request": "Yapay zekâ hizmeti isteği reddetti.",
+        "generation_in_progress": "Bu sohbette hâlâ bir yanıt oluşturuluyor.",
+        "cannot_regenerate": "Yalnızca son yanıt yeniden oluşturulabilir.",
+        "generation_interrupted": "Yanıt yarıda kesildi.",
+        "internal_error": "Bir sorun oluştu. Lütfen tekrar deneyin.",
+        "network": "Bağlantı koptu.",
+        "forbidden": "Bu model sizin kullanımınıza açık değil.",
+        "unknown": "Bir sorun oluştu. Lütfen tekrar deneyin."
+    }
+}
