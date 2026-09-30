@@ -49,7 +49,7 @@ final class ProviderManager
      */
     private function apiKey(Provider $provider): string
     {
-        $key = $provider->activeCredential?->secret
+        $key = $provider->activeCredential->secret
             ?? config('ada.providers.env_keys.'.$provider->driver->value);
 
         if (! is_string($key) || $key === '') {
