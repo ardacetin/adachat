@@ -1,4 +1,5 @@
 import 'i18next';
+import type admin from './locales/en/admin.json';
 import type auth from './locales/en/auth.json';
 import type common from './locales/en/common.json';
 import type settings from './locales/en/settings.json';
@@ -10,6 +11,7 @@ declare module 'i18next' {
             common: typeof common;
             auth: typeof auth;
             settings: typeof settings;
+            admin: typeof admin;
         };
     }
 }

@@ -7,8 +7,11 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: early development (M1 — foundation).** The architecture is
-> documented in [`docs/`](docs/); see the [roadmap](docs/v1-roadmap.md).
+> **Status: early development.** Milestones M0–M5 are done: foundation,
+> Google Workspace sign-in, institution settings and branding, AI providers
+> and model aliases, and the budget engine. Next: streaming chat (M6). The
+> architecture is documented in [`docs/`](docs/); see the
+> [roadmap](docs/v1-roadmap.md).
 
 ## Why Ada?
 
@@ -60,11 +63,20 @@ cp .env.example .env            # set ADA_DEV_LOGIN=true for local sign-in
 composer install && npm install
 php artisan key:generate
 php artisan migrate --seed      # creates sample users
+php artisan storage:link        # serves uploaded logos
 composer dev                    # app on http://localhost:8000
 ```
 
-Google sign-in arrives in M2; until then use the development login on the
-sign-in page. Run all checks with `composer ci:check`.
+For Google sign-in, set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and
+`AUTH_ALLOWED_DOMAINS` (see [authentication](docs/authentication.md#setting-up-google-sign-in));
+locally you can also use the development login. Run all checks with
+`composer ci:check`.
+
+The budget jobs (expiring abandoned reservations, daily reconciliation) run
+from Laravel's scheduler: `php artisan schedule:work` locally, a cron entry
+for `php artisan schedule:run` every minute in production. The monthly limit
+of the Default budget policy comes from `ADA_DEFAULT_MONTHLY_LIMIT_USD` on
+installation.
 
 ## Documentation
 

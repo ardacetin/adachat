@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Budget correctness does not depend on these jobs running on time: expired
+// reservations only hold money longer, and reconciliation only reports.
+Schedule::command('ada:budget:expire-reservations')->everyMinute()->withoutOverlapping();
+Schedule::command('ada:budget:reconcile')->dailyAt('03:17');

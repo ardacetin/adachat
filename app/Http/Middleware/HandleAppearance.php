@@ -2,21 +2,32 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Identity\Enums\Appearance;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Resolves light/dark/system for the first paint: the signed-in user's saved
+ * preference (follows them across devices), otherwise this browser's cookie.
+ */
 class HandleAppearance
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        $cookie = $request->cookie('appearance');
+        $user = $request->user();
+
+        $appearance = $user !== null
+            ? $user->appearance
+            : (is_string($cookie) ? Appearance::tryFrom($cookie) : null) ?? Appearance::System;
+
+        View::share('appearance', $appearance->value);
+        View::share('appearanceFromAccount', $user !== null);
 
         return $next($request);
     }

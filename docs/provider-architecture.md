@@ -1,26 +1,23 @@
 # Provider Architecture
 
-> Status: **Proposed (M0)**. Location: `app/Domain/AI`.
+> Status: **Implemented (M4)**. Location: `app/Domain/AI`.
 
 The provider layer turns a normalized `ChatRequest` into a normalized stream
 of events and a normalized `TokenUsage`, for any supported AI provider. It
 knows nothing about budgets, users, prices or HTTP responses to the browser.
 
 ```
-ChatGenerationService (Conversations)
+ChatGenerationService (Conversations, M6)
         │  ChatRequest
         ▼
-ProviderManager ──► ChatProvider (Ada interface)
-        │                 │
-        │                 ├── PrismChatProvider (default adapter)
-        │                 │        └── Prism PHP ──► OpenAI / Anthropic / Gemini
-        │                 └── Native adapters (only where Prism falls short)
+ProviderManager ──► HttpChatProvider (implements ChatProvider + InputTokenCounter)
+        │                 ├── OpenAIChatProvider     (Responses API)
+        │                 ├── AnthropicChatProvider  (Messages API)
+        │                 └── GeminiChatProvider     (Generative Language API)
+        │                          └── Laravel HTTP client + SseParser
         │
-        └──► InputTokenCounter (Ada interface)
-                 ├── OpenAIInputTokenCounter
-                 ├── AnthropicInputTokenCounter
-                 ├── GeminiInputTokenCounter
-                 └── EstimatedInputTokenCounter (fallback only)
+TokenCounting ──► provider endpoint counter (same adapter)
+                  └── EstimatedInputTokenCounter (fallback only)
 ```
 
 ## 1. Contracts
@@ -30,31 +27,38 @@ namespace App\Domain\AI\Contracts;
 
 interface ChatProvider
 {
-    /** @return iterable<StreamEvent> */
-    public function stream(ChatRequest $request, CancellationToken $cancel): iterable;
+    /** Yields TextDelta / ReasoningDelta / UsageReported, ends with one Finished. */
+    public function stream(ChatRequest $request, ?CancellationToken $cancellation = null): iterable;
 
     public function complete(ChatRequest $request): ChatResult;
 }
 
 interface InputTokenCounter
 {
-    public function count(ChatRequest $request): InputTokenCount;
+    /** Input tokens of the exact request that will be sent, without margin. */
+    public function count(ChatRequest $request): int;
+}
 
-    public function supports(AiModel $model): bool;
+interface CancellationToken
+{
+    public function isCancelled(): bool;
 }
 ```
+
+The margin is not the counter's concern: `Services\TokenCounting` wraps the
+raw count in an `InputTokenCount` with the method used and the configured
+margin (§6).
 
 Value objects (`App\Domain\AI\Data`):
 
 ```php
 final readonly class ChatRequest {
     public function __construct(
-        public string $providerModelId,
-        public ?string $systemPrompt,
-        /** @var list<ChatMessage> */ public array $messages,
+        public string $model,                 // provider model id
+        public array $messages,               // list<ChatMessage>
         public int $maxOutputTokens,          // always set; decided by the budget engine
+        public ?string $systemPrompt = null,
         public ?float $temperature = null,
-        public array $options = [],           // provider-specific passthrough (validated)
     ) {}
 }
 
@@ -68,7 +72,7 @@ final readonly class TokenUsage {           // all fields DISJOINT
 
 final readonly class InputTokenCount {
     public int $tokens;
-    public InputCountMethod $method;        // ProviderEndpoint | LocalTokenizer | Estimated
+    public InputCountMethod $method;        // ProviderEndpoint | Estimated
     public float $marginRatio;              // from config/ada.php
     public function reservedTokens(): int;  // ceil(tokens × (1 + marginRatio))
 }
@@ -80,7 +84,7 @@ Stream events:
 |---|---|
 | `TextDelta` | `text` |
 | `ReasoningDelta` | `text` (not shown in V1; allows future display) |
-| `UsageReported` | `TokenUsage` (may arrive once at the end, or cumulatively) |
+| `UsageReported` | `TokenUsage` (once, just before `Finished`, when the provider reported usage) |
 | `Finished` | `FinishReason` (`stop`, `length`, `content_filter`, `cancelled`, `error`), `providerRequestId` |
 
 **Change from the brief:** `calculateCost()` is **not** part of the provider
@@ -91,44 +95,52 @@ logic.
 
 ## 2. Adapters
 
-### 2.1 Prism evaluation
+### 2.1 Decision: direct HTTP
 
-[Prism PHP](https://prismphp.com) offers a Laravel-native, unified API for
-OpenAI, Anthropic and Gemini including streaming and usage reporting.
+M0 proposed [Prism PHP](https://prismphp.com) as the default adapter with
+native adapters as a fallback. For M4 the maintainers chose **direct HTTP
+adapters** instead: Laravel's HTTP client with a streamed body and a small SSE
+parser (`Http\SseParser`). Reasons:
 
-| Pros | Cons / risks |
-|---|---|
-| One API for all three V1 providers; active Laravel ecosystem project | Pre-1.0 style churn in APIs has happened |
-| Streaming, system prompts, usage objects, provider options | Usage completeness (cache writes, reasoning tokens) must be verified per provider |
-| Saves writing three SSE parsers | Abort/cancellation behaviour inside generators must be verified |
-| Easy to add more providers later (OpenRouter, Mistral, Groq, Ollama…) | Ties upgrade cadence to Prism's |
+- The budget engine depends on details a unified library tends to abstract
+  away: every usage field (cache reads/writes, reasoning tokens), the exact
+  output-cap parameter, and the providers' token-count endpoints built from
+  the *same* payload as generation.
+- Cancellation must close the upstream connection immediately.
+- Three adapters are small (≈ 150 lines each) and fully covered by fixture
+  contract tests; there is no third-party upgrade cadence to track.
 
-**Decision:** use `PrismChatProvider` as the default adapter, strictly behind
-Ada's `ChatProvider` interface. Prism types never leak outside
-`App\Domain\AI\Adapters\Prism`. In M4 a spike validates, per provider, with
-recorded fixtures and contract tests:
+Everything stays behind Ada's own contracts, so adopting a library later for
+long-tail providers remains possible without touching the rest of Ada.
 
-1. Text deltas arrive incrementally.
-2. Final usage includes input, output, cached input, cache write and reasoning
-   tokens where the provider reports them.
-3. `max_output_tokens` is passed through and respected.
-4. Breaking out of the stream closes the upstream HTTP connection.
-5. Errors map to Ada exceptions (§5).
+`Providers\HttpChatProvider` holds the shared plumbing (auth headers,
+timeouts, error mapping, streaming, `complete()` on top of `stream()`,
+`count()`, and a `checkConnection()` model-listing call). Each adapter only
+supplies its payload, URLs, count body and event translation.
 
-Any provider that fails the spike gets a native adapter
-(`OpenAIChatProvider`, `AnthropicChatProvider`, `GeminiChatProvider`) using
-Laravel's HTTP client with streaming + a small SSE parser. The rest of Ada is
-unaffected.
+| | OpenAI | Anthropic | Gemini |
+|---|---|---|---|
+| Default base URL | `https://api.openai.com/v1` | `https://api.anthropic.com/v1` | `https://generativelanguage.googleapis.com/v1beta` |
+| Generation | `POST /responses` (`stream: true`, `store: false`) | `POST /messages` (`stream: true`) | `POST /models/{m}:streamGenerateContent?alt=sse` |
+| Auth header | `Authorization: Bearer` | `x-api-key` + `anthropic-version` | `x-goog-api-key` |
+| System prompt | `instructions` | `system` | `systemInstruction` |
+| Output cap | `max_output_tokens` | `max_tokens` | `generationConfig.maxOutputTokens` |
+| Token count | `POST /responses/input_tokens` | `POST /messages/count_tokens` | `POST /models/{m}:countTokens` (`generateContentRequest`) |
+| Connection check | `GET /models` | `GET /models` | `GET /models` |
+
+The base URL is per provider row (`providers.base_url`), so OpenAI-compatible
+gateways or regional endpoints can be configured without code changes.
 
 ### 2.2 Per-provider notes
 
 | Topic | OpenAI | Anthropic | Gemini |
 |---|---|---|---|
-| Output cap | `max_output_tokens` (Responses) / `max_completion_tokens` — includes reasoning | `max_tokens` — includes thinking | `maxOutputTokens` — includes thinking |
-| Usage in stream | final event (Responses) / `stream_options.include_usage` (Chat Completions) | `message_start` (input) + `message_delta` (output) | `usageMetadata` on chunks/final |
+| Output cap | `max_output_tokens` — includes reasoning | `max_tokens` — includes thinking | `maxOutputTokens` — includes thinking |
+| Usage in stream | `response.completed` / `response.incomplete` | `message_start` (input, cache) + `message_delta` (output) | `usageMetadata` on chunks (last wins) |
+| Finish reason | `completed` → stop; `incomplete_details.reason` `max_output_tokens` → length, `content_filter` → content_filter | `stop_reason` `end_turn`/`stop_sequence`/`tool_use` → stop, `max_tokens` → length, `refusal` → content_filter | `STOP` → stop, `MAX_TOKENS` → length, `SAFETY`/`RECITATION`/`BLOCKLIST`/`PROHIBITED_CONTENT`/`SPII` → content_filter |
 | Cached input | `cached_tokens` is a **subset** of input → adapter subtracts | cache read/write reported **separately** | `cachedContentTokenCount` subset → subtract |
-| Reasoning | `reasoning_tokens` subset of output → adapter splits | thinking billed as output | `thoughtsTokenCount` |
-| Request id | `x-request-id` header | `request-id` header | response id |
+| Reasoning | `reasoning_tokens` subset of output → adapter splits | thinking billed as output (not split) | `thoughtsTokenCount` (separate) |
+| Request id | `x-request-id` header | `request-id` header | `responseId` |
 
 The adapter's job is to turn each provider's conventions into the disjoint
 `TokenUsage` fields.
@@ -137,9 +149,12 @@ The adapter's job is to turn each provider's conventions into the disjoint
 
 - Adapters yield `StreamEvent`s as soon as provider chunks arrive; no
   buffering.
-- `CancellationToken` is checked between chunks; when set (client abort or
-  cancel flag), the adapter stops iterating and closes the upstream
-  connection, then yields `Finished(cancelled)` with whatever usage is known.
+- `SseParser` checks the `CancellationToken` before every read and after
+  every event; when set (client abort or Stop), it stops reading and closes
+  the upstream body. The adapter then yields `UsageReported` (if any usage was
+  seen) and `Finished(cancelled)`.
+- Errors inside an otherwise successful stream (`error` events,
+  `response.failed`) are thrown as Ada exceptions (§5).
 - If the stream ends without `UsageReported`, the orchestrator settles with
   input from the reservation's counted tokens and output counted from the
   generated text (flagged `is_estimated`). See
@@ -147,31 +162,38 @@ The adapter's job is to turn each provider's conventions into the disjoint
 
 ## 4. Provider manager and credentials
 
-- `ProviderManager::for(AiModel $model): ChatProvider` resolves the adapter by
-  `providers.driver` and injects the decrypted credential.
+- `ProviderManager::forModel(AiModel)` / `forProvider(Provider)` resolve the
+  adapter by `providers.driver` and inject the decrypted credential, base URL
+  and timeouts (`ada.providers.timeout`, `ada.providers.counter_timeout`).
 - Credentials: active row in `provider_credentials` (Laravel `encrypted`
   cast) → fallback to `.env` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
   `GEMINI_API_KEY`). Decrypted secrets live only in memory for the request.
-- Keys are never returned to the frontend; the admin UI shows
-  `last_four` only (`sk-…8f2a`). Saving a key does a cheap validation call
-  (e.g. list models) and audit-logs `provider.credential_rotated` without the
-  value.
-- HTTP client logging is disabled for provider calls; exception reports strip
-  `Authorization`, `x-api-key`, `x-goog-api-key` headers and request bodies.
+- `Services\CredentialVault` stores and rotates keys: the new row stores
+  `last_four`, the previous active row is deactivated (history kept), and
+  `provider.credential_rotated` is audit-logged without the value.
+- Keys are never returned to the frontend; the admin UI shows `••••8f2a`
+  only. "Test connection" (and `php artisan ada:provider:check {slug}`) runs
+  a model-listing call, which spends no tokens.
+- Provider calls are not logged. Exception messages contain only the
+  provider name, HTTP status, the provider's error code and a truncated
+  message — never headers, keys or request bodies (`Http\ErrorMapper`).
 
 ## 5. Errors
 
-| Ada exception | Typical provider signal | Budget action | User message key |
+| Ada exception | Typical provider signal | Budget action | `code()` |
 |---|---|---|---|
-| `ProviderAuthFailed` | 401/403 | release | `chat.errors.provider_unavailable` (admins alerted) |
-| `ProviderRateLimited` | 429 | release | `chat.errors.rate_limited` (retryable) |
-| `ProviderOverloaded` | 529 / 503 | release | `chat.errors.overloaded` (retryable) |
-| `ContextLengthExceeded` | 400 context errors | release | `chat.errors.context_too_long` |
-| `ContentFiltered` | safety block / refusal finish | settle (tokens consumed) | `chat.errors.content_filtered` |
-| `ProviderTimeout` | connect/read timeout | release or settle (§budget-engine) | `chat.errors.timeout` |
-| `ProviderUnavailable` | 5xx / network | release or settle | `chat.errors.provider_unavailable` |
+| `ProviderAuthFailed` | 401/403 | release | `provider_unavailable` (admins alerted; users are not told about keys) |
+| `ProviderRateLimited` | 429 | release | `rate_limited` (retryable) |
+| `ProviderOverloaded` | 529 / 503 | release | `overloaded` (retryable) |
+| `ContextLengthExceeded` | 400/413 with a context-length message | release | `context_too_long` |
+| `InvalidProviderRequest` | other 4xx | release | `invalid_request` |
+| `ContentFiltered` | safety block / refusal finish | settle (tokens consumed) | `content_filtered` |
+| `ProviderTimeout` | connect/read timeout | release or settle (§budget-engine) | `timeout` |
+| `ProviderUnavailable` | 5xx / network | release or settle | `provider_unavailable` |
 
-Error codes sent over SSE are stable strings; the frontend translates them.
+`TokenCountUnavailable` (`token_count_unavailable`) is raised by
+`TokenCounting` when counting fails and estimation is not allowed. Codes are
+stable strings sent over SSE; the frontend translates them.
 
 ## 6. Input token counting
 
@@ -181,53 +203,51 @@ be sent (system prompt, full truncated history, tool definitions when added).
 
 ### 6.1 Implementations
 
-**`OpenAIInputTokenCounter`**
-- Primary: OpenAI's input-token counting endpoint for the Responses API
-  (`POST /v1/responses/input_tokens`), called with the same payload as the
-  generation request.
-- Secondary (`local_tokenizer`): a local tokenizer for the model's encoding
-  (e.g. `o200k_base`) plus documented per-message overhead, for models or
-  deployments (e.g. OpenAI-compatible endpoints) where the endpoint is not
-  available.
-- The M4 spike confirms endpoint availability per model and whether Ada uses
-  the Responses or Chat Completions API for generation; the counter must match
-  the API used.
+Counting is implemented by each adapter's `count()` method: the count body is
+derived from the **same** `payload()` as generation, so what is counted is what
+is sent (contract tests assert this parity).
 
-**`AnthropicInputTokenCounter`**
-- `POST /v1/messages/count_tokens` with the same `model`, `system`,
-  `messages` (and `tools`/`thinking` when used).
-- Anthropic documents the result as an estimate that may differ slightly from
-  billed input, so a **safety margin** applies (default 5 %, configurable).
-- The endpoint has its own rate limits; 429s trigger the counter failure
-  policy, not a generation failure.
+**OpenAI** — `POST /responses/input_tokens` with the generation payload minus
+`stream`, `store` and `max_output_tokens`. Default margin 0.
 
-**`GeminiInputTokenCounter`**
-- `POST /v1beta/models/{model}:countTokens` with the same `contents` and
-  `systemInstruction`.
+**Anthropic** — `POST /messages/count_tokens` with `model`, `system`,
+`messages`. Anthropic documents the result as an estimate that may differ
+slightly from billed input, so the default margin is 5 %. The endpoint has its
+own rate limits; a 429 triggers the counter failure policy, not a generation
+failure.
 
-**`EstimatedInputTokenCounter`** (fallback only)
-- `ceil(utf8_bytes / bytes_per_token_floor) + per_message_overhead`, with a
-  conservative floor (≈ 2 bytes/token) and a large margin (default 50 %).
-- Used only when the provider counter is unavailable and
-  `on_counter_failure = estimate`. Never the primary path.
+**Gemini** — `POST /models/{model}:countTokens` with
+`generateContentRequest` (`model`, `contents`, `systemInstruction`). Default
+margin 0.
+
+**`EstimatedInputTokenCounter`** (fallback only) —
+`ceil(utf8_bytes / 2) + 8 per message`, a deliberately pessimistic floor,
+with a 50 % margin. Used only when the provider counter failed and
+`on_counter_failure = estimate`; never the primary path.
+
+Margins: `config/ada.php` → `budget.input_count_margins`
+(`openai`, `anthropic`, `gemini`, `estimated`).
 
 ### 6.2 Resolution chain
 
 ```
-counterFor(model):
-    provider_endpoint counter  (if supports(model))
-    → local_tokenizer counter  (OpenAI family only, if configured)
-    → Estimated counter        (only if on_counter_failure = 'estimate')
-    → otherwise throw TokenCountUnavailable  (request refused, retryable)
+TokenCounting::count(model, request):
+    provider endpoint (adapter->count)                   → method ProviderEndpoint
+    on failure, if ADA_ON_COUNTER_FAILURE = estimate     → method Estimated (warning logged, no content)
+    otherwise throw TokenCountUnavailable                → request refused, retryable
 ```
+
+A local tokenizer path (for OpenAI-compatible endpoints without a count
+endpoint) is deferred until such a deployment needs it.
 
 ### 6.3 Operational concerns
 
-- Timeout: 3 s (config), one retry; counting happens outside DB transactions.
+- Timeout: 3 s (`ada.providers.counter_timeout`), no retry; counting happens
+  outside DB transactions.
 - Cost: count endpoints are free at the time of writing; if a provider ever
   charges for counting, it is recorded as `other_cost_usd`.
-- Caching: result cached by `(model, sha256(payload))` for a short TTL to make
-  retries and regenerations cheap.
+- Caching by `(model, sha256(payload))` for retries/regenerations is planned
+  with the chat flow (M6).
 - Monitoring: each usage event stores `reserved_input_tokens` and
   `input_count_method`; the admin dashboard shows counted-vs-billed deviation
   per provider/model so margins can be tuned from evidence.
@@ -245,7 +265,9 @@ counterFor(model):
 - Model capabilities (`supports_vision`, `supports_files`, `supports_tools`,
   `supports_reasoning`, `context_window`) drive UI features and history
   truncation; nothing is hard-coded per provider name.
-- Deprecations: `ai_models.metadata.deprecated_at` shows admin warnings.
+- Deprecations: `ai_models.metadata.deprecated_at` shows admin warnings (later).
+- Admin screens (super admin only, audited): Providers, Models, Aliases under
+  `/admin`. An alias's `max_output_tokens` may not exceed its model's.
 
 Model selector UX: primary line = alias name ("Advanced"), secondary =
 description ("Best for research and analysis"), optional detail (tooltip) =
@@ -262,9 +284,9 @@ the usage event.
 ## 9. Adding a provider (future)
 
 1. Add a `driver` value.
-2. Implement `ChatProvider` (via Prism if supported) and an
-   `InputTokenCounter` (or declare the local-tokenizer / estimator path and a
-   margin).
+2. Extend `HttpChatProvider` (payload, URLs, count body, event translation),
+   or implement `ChatProvider` + `InputTokenCounter` directly; declare a
+   margin.
 3. Implement usage normalization to disjoint `TokenUsage`.
 4. Add contract tests with recorded fixtures.
 
@@ -274,11 +296,17 @@ counter, the local tokenizer or the `reject` policy applies.
 
 ## 10. Tests
 
-- Contract test suite run against every adapter with recorded SSE fixtures:
-  delta order, usage normalization (disjoint fields), finish reasons,
-  cancellation, error mapping.
-- Counter tests: payload parity (the counter request body is derived from the
-  same `ChatRequest` as the generation), margin application, fallback chain,
-  `reject` policy.
-- Opt-in live tests (nightly, CI secrets): counted vs billed input within
-  margin for each configured provider.
+- `tests/Unit/AI/ProviderContractTest.php` runs one contract suite against all
+  three adapters with SSE fixtures (`tests/Fixtures/providers`) written from
+  the providers' documented formats: delta order, disjoint usage, finish
+  reasons, cancellation, error mapping (401/429/503/529/400/500/timeout),
+  outgoing request shape, and count-body parity.
+- `tests/Unit/AI/SseParserTest.php`: multi-line data, comments, partial
+  chunks, cancellation.
+- `tests/Feature/AI`: credential encryption/rotation/`.env` fallback,
+  token-counting fallback chain and `reject` policy.
+- `tests/Feature/AI/LiveProviderTest.php` (opt-in): with
+  `ADA_LIVE_PROVIDER_TESTS=1` and provider keys in the environment, streams a
+  short answer and counts tokens against each real API. Skipped by default and
+  in CI; run it on the first deployment with real keys, since fixtures are not
+  recordings.

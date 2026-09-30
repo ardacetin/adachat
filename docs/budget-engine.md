@@ -1,7 +1,8 @@
 # Budget Engine
 
-> Status: **Proposed (M0)**. The budget engine is correctness-critical and
-> must not be implemented without the tests listed in §12.
+> Status: **Implemented (M5)** — see [§18](#18-implementation-m5) for the
+> classes and the few deviations from this design. The budget engine is
+> correctness-critical: changes need the tests listed in §17.
 
 Location: `app/Domain/Budget` (enforcement) and `app/Domain/Usage` (cost
 calculation, ledger). Tables: `budget_policies`, `budget_periods`,
@@ -473,3 +474,48 @@ Admins (super admin only) can credit or debit a user's current period with an
 | Policy change "apply to current period" | Feature |
 | Reconciliation detects injected mismatch | Feature |
 | `usage_events` update/delete rejected | Feature |
+
+## 18. Implementation (M5)
+
+| Concern | Code |
+|---|---|
+| Money | `App\Domain\Budget\Money\Usd` (brick/math `BigDecimal`, scale 10, rounds up) and `UsdCast` (refuses floats) |
+| Prices, cost | `App\Domain\Usage\Pricing\PricingSnapshot` (incl. `metadata.pricing_tiers`), `App\Domain\Usage\CostCalculator` |
+| Periods | `Services\PeriodCalculator`, `Services\BudgetPeriods` (`current()` upsert outside the transaction, `applyCurrentLimit()`), `Services\EffectiveLimit` |
+| Sizing | `Services\ReservationSizer::fit()` |
+| Enforcement | `Services\BudgetEngine`: `reserve`, `settle`, `release`, `expire`, `expireStale`, `adjust` |
+| Reconciliation | `Services\Reconciler`, `ada:budget:reconcile [--fix-reserved]` |
+| Cleanup | `ada:budget:expire-reservations` (scheduled every minute; reconcile daily) |
+
+Differences from the sections above:
+
+- **Counting is the caller's job.** `reserve(User, AiModel, InputTokenCount,
+  int $maxOutputTokens)` takes an already counted input
+  (`App\Domain\AI\Services\TokenCounting`, M4), so the engine never makes
+  network calls. The M6 chat flow counts, then reserves.
+- **Context window.** The sizer also caps output at
+  `context_window − counted input` (providers reject requests whose input +
+  output cap exceed it) and refuses input that fills the window
+  (`context_too_long`).
+- **Minimum useful output** applies only when the alias/model cap is larger;
+  an alias capped at 100 tokens still works.
+- **Concurrent streams** are counted per user (all active reservations),
+  under the period lock.
+- **Settling a released reservation** is a programming error and throws;
+  released means nothing billable was consumed.
+- **Adjustments** (`source = admin`) cannot credit more than was spent in the
+  period (`spent_usd` never goes negative). Authorization is the caller's
+  concern (super admin, M8 UI).
+- **Not yet implemented:** the local-tokenizer counting path, count caching
+  and retry (§5.1), and settling expired reservations from partially streamed
+  messages (§11) — the cleanup job only expires until messages exist (M6).
+- The optional database triggers for `usage_events` are not shipped; the
+  model guard enforces append-only.
+
+Tests: `tests/Unit/Budget` (money, pricing tiers, sizing, periods),
+`tests/Feature/Budget/BudgetEngineTest.php` (lifecycle, idempotency,
+overshoot, rollover, midnight crossing, expiry and late settlement, price
+snapshots, limits, adjustments, reconciliation) and
+`tests/Concurrency/ConcurrentReservationTest.php` — six PHP processes with
+their own MySQL connections reserve and settle against one user; the test
+fails if the row lock is removed.

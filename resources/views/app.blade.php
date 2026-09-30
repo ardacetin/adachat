@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+@inject('branding', 'App\Domain\Institution\Services\Branding')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
@@ -8,6 +9,11 @@
         <script>
             (function() {
                 const appearance = '{{ $appearance ?? "system" }}';
+
+                @if ($appearanceFromAccount ?? false)
+                // The account preference wins over what this browser last stored.
+                try { localStorage.setItem('appearance', appearance); } catch (e) {}
+                @endif
 
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -30,10 +36,15 @@
             }
         </style>
 
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="{{ $branding->faviconUrl() }}">
 
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+
+        {{-- Institution theme: primary tokens derived server-side from a validated colour. --}}
+        @if ($themeCss = $branding->themeCss())
+            <style>{!! $themeCss !!}</style>
+        @endif
         <x-inertia::head>
             <title>{{ config('app.name') }}</title>
         </x-inertia::head>
