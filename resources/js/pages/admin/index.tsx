@@ -1,0 +1,73 @@
+import { Head, Link, usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
+import Heading from '@/components/heading';
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { index } from '@/routes/admin';
+import { index as aliases } from '@/routes/admin/aliases';
+import { edit as editAuthentication } from '@/routes/admin/authentication';
+import { edit as editInstitution } from '@/routes/admin/institution';
+import { index as models } from '@/routes/admin/models';
+import { index as providers } from '@/routes/admin/providers';
+
+const sections = [
+    { key: 'institution', href: editInstitution() },
+    { key: 'authentication', href: editAuthentication() },
+    { key: 'providers', href: providers() },
+    { key: 'models', href: models() },
+    { key: 'aliases', href: aliases() },
+] as const;
+
+export default function AdminIndex() {
+    const { t } = useTranslation('admin');
+    const { can } = usePage().props;
+
+    return (
+        <>
+            <Head title={t('title')} />
+
+            <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title={t('nav.overview')}
+                    description={t('index.intro')}
+                />
+
+                {can.manageSystem && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {sections.map((section) => (
+                            <Link
+                                key={section.key}
+                                href={section.href}
+                                className="rounded-xl"
+                            >
+                                <Card className="h-full transition-colors hover:bg-muted/50">
+                                    <CardHeader>
+                                        <CardTitle>
+                                            {t(`${section.key}.title`)}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {t(`${section.key}.description`)}
+                                        </CardDescription>
+                                    </CardHeader>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+
+                <p className="text-sm text-muted-foreground">
+                    {t('index.comingSoon')}
+                </p>
+            </div>
+        </>
+    );
+}
+
+AdminIndex.layout = {
+    breadcrumbs: [{ titleKey: 'admin:title', href: index() }],
+};

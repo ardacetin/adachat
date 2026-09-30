@@ -1,0 +1,27 @@
+{
+    "title": "Ayarlar",
+    "description": "Profilinizi ve tercihlerinizi yönetin.",
+    "nav": {
+        "profile": "Profil",
+        "language": "Dil",
+        "appearance": "Görünüm"
+    },
+    "profile": {
+        "title": "Profil",
+        "description": "Adınız ve e-posta adresiniz kurumsal hesabınızdan gelir ve burada değiştirilemez.",
+        "name": "Ad",
+        "email": "E-posta adresi"
+    },
+    "language": {
+        "title": "Dil",
+        "description": "Arayüz dilini seçin.",
+        "label": "Arayüz dili"
+    },
+    "appearance": {
+        "title": "Görünüm",
+        "description": "Ada'nın bu cihazda nasıl görüneceğini seçin.",
+        "light": "Açık",
+        "dark": "Koyu",
+        "system": "Sistem"
+    }
+}

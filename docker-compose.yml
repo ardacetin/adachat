@@ -1,0 +1,48 @@
+# Development services for Ada Chat.
+#
+# Runs the backing services only; the application itself runs on the host
+# with `composer dev`. A production image and compose file follow in M11.
+#
+#   docker compose up -d
+#
+# Matches .env.example: DB_USERNAME=ada, DB_PASSWORD=secret.
+
+services:
+    mysql:
+        image: mysql:8.4
+        environment:
+            MYSQL_DATABASE: ada
+            MYSQL_USER: ada
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: root
+        command:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_0900_ai_ci
+            - --default-time-zone=+00:00
+        ports:
+            - '127.0.0.1:3306:3306'
+        volumes:
+            - mysql-data:/var/lib/mysql
+            - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-proot']
+            interval: 5s
+            timeout: 5s
+            retries: 20
+
+    redis:
+        image: redis:7-alpine
+        ports:
+            - '127.0.0.1:6379:6379'
+        volumes:
+            - redis-data:/data
+
+    mailpit:
+        image: axllent/mailpit:latest
+        ports:
+            - '127.0.0.1:1025:1025'
+            - '127.0.0.1:8025:8025'
+
+volumes:
+    mysql-data:
+    redis-data:

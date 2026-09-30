@@ -1,0 +1,23 @@
+{
+    "nav": {
+        "home": "Home",
+        "settings": "Settings",
+        "logOut": "Log out",
+        "menu": "Menu",
+        "navigation": "Navigation",
+        "admin": "Administration"
+    },
+    "home": {
+        "title": "Home",
+        "welcome": "Welcome, {{name}}",
+        "intro": "Ada is being set up. Chat will be available in an upcoming release; meanwhile you can choose your language and appearance in settings.",
+        "openSettings": "Open settings"
+    },
+    "actions": {
+        "save": "Save"
+    },
+    "locales": {
+        "en": "English",
+        "tr": "Türkçe"
+    }
+}

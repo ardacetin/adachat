@@ -1,0 +1,6 @@
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","delta":"Par"}
+
+event: error
+data: {"type":"error","code":"rate_limit_exceeded","message":"Rate limit reached"}
+
