@@ -26,6 +26,9 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'group_id' => fn () => Group::default()->id,
             'remember_token' => Str::random(10),
+            // Test and sample users have read the usage notice; see unacknowledged().
+            'acknowledged_version' => 1,
+            'acknowledged_at' => now(),
         ];
     }
 
@@ -45,5 +48,13 @@ class UserFactory extends Factory
             'status' => UserStatus::Disabled,
             'disabled_at' => now(),
         ]);
+    }
+
+    /**
+     * A user who has not acknowledged the usage notice yet (a first sign-in).
+     */
+    public function unacknowledged(): static
+    {
+        return $this->state(fn (array $attributes) => ['acknowledged_version' => null, 'acknowledged_at' => null]);
     }
 }

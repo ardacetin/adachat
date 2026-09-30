@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcknowledgmentController;
 use App\Http\Controllers\Auth\DevLoginController;
 use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
@@ -34,8 +35,13 @@ Route::middleware('guest')->group(function () {
     }
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('acknowledgment', [AcknowledgmentController::class, 'show'])->name('acknowledgment.show');
+    Route::post('acknowledgment', [AcknowledgmentController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('acknowledgment.store');
 
     Route::get('/', [ConversationController::class, 'index'])->name('home');
     Route::get('usage', [UsageController::class, 'show'])->name('usage');

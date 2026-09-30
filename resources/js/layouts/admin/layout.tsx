@@ -16,6 +16,7 @@ import { index as budgetPolicies } from '@/routes/admin/budget-policies';
 import { index as groups } from '@/routes/admin/groups';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
+import { edit as editPrivacy } from '@/routes/admin/privacy';
 import { index as providers } from '@/routes/admin/providers';
 import { index as reports } from '@/routes/admin/reports';
 import { index as users } from '@/routes/admin/users';
@@ -42,6 +43,10 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.authentication',
                       href: editAuthentication(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.privacy',
+                      href: editPrivacy(),
                   } satisfies NavItem,
                   {
                       titleKey: 'admin:nav.providers',

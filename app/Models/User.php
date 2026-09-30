@@ -34,6 +34,8 @@ use Illuminate\Notifications\Notifiable;
  * @property CarbonImmutable|null $disabled_at
  * @property CarbonImmutable|null $last_login_at
  * @property CarbonImmutable|null $last_active_at
+ * @property int|null $acknowledged_version Usage notice version the user acknowledged.
+ * @property CarbonImmutable|null $acknowledged_at
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -75,6 +77,8 @@ class User extends Authenticatable
             'disabled_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
+            'acknowledged_at' => 'datetime',
+            'acknowledged_version' => 'integer',
         ];
     }
 

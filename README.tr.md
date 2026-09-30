@@ -76,10 +76,14 @@ yerelde geliştirme girişini de kullanabilirsiniz. Tüm kontroller:
 `composer ci:check`.
 
 Bütçe işleri (yarım kalan rezervasyonların süresinin dolması, günlük
-mutabakat) Laravel zamanlayıcısıyla çalışır: yerelde `php artisan
+mutabakat) ve gece çalışan saklama temizliği (`ada:retention:prune`) Laravel
+zamanlayıcısıyla çalışır: yerelde `php artisan
 schedule:work`, üretimde her dakika `php artisan schedule:run` çalıştıran bir
 cron girdisi. Varsayılan bütçe politikasının aylık limiti kurulumda
-`ADA_DEFAULT_MONTHLY_LIMIT_USD` değerinden alınır.
+`ADA_DEFAULT_MONTHLY_LIMIT_USD` değerinden alınır. `php artisan ada:doctor`
+çalışan bir kurulumu (ayarlar, veritabanı, zamanlayıcı, giriş, yapay zekâ
+sağlayıcıları) kontrol eder ve düzeltilmesi gereken bir şey varsa hata koduyla
+biter.
 
 ## Belgeler
 

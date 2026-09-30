@@ -12,7 +12,8 @@
         "budgetPolicies": "Budget policies",
         "users": "Users",
         "auditLog": "Audit log",
-        "reports": "Reports"
+        "reports": "Reports",
+        "privacy": "Privacy"
     },
     "index": {
         "intro": "This month at a glance."
@@ -144,7 +145,21 @@
         "tools": "Tools",
         "reasoning": "Reasoning",
         "enabled": "Enabled",
-        "noProviders": "Add a provider first."
+        "noProviders": "Add a provider first.",
+        "hints": {
+            "input": "Everything sent to the model: the message, the conversation so far and the system prompt. 1,000 input tokens (≈ 750 English words) cost {{cost}}.",
+            "output": "The answer. A typical answer of 500 tokens (≈ 375 words) costs {{cost}}.",
+            "cachedInput": "Input the provider already has in its cache (e.g. a long system prompt repeated in every request). 10,000 cached tokens cost {{cost}} instead of {{full}}.",
+            "cacheWrite": "Storing input in the cache the first time. Writing 10,000 tokens costs {{cost}}; later reads cost the cached price.",
+            "context": "≈ {{words}} English words (about {{pages}} pages). Older messages of long conversations are left out so that each request fits.",
+            "maxOutput": "The longest possible answer: ≈ {{words}} words, at most {{cost}}. The budget reserves this amount while an answer is generated (aliases can set a lower limit).",
+            "examplesTitle": "Example costs with these prices",
+            "exampleShort": "Short question and answer (500 in / 300 out tokens)",
+            "exampleTypical": "Typical message with some history (2,000 in / 500 out)",
+            "exampleLong": "Long conversation or document (20,000 in / 1,000 out)",
+            "perBudget": "With a monthly budget of {{budget}}, a user can send about {{count}} typical messages.",
+            "tokensNote": "Rules of thumb: 1 token ≈ ¾ of an English word; Turkish text needs roughly 30–50 % more tokens for the same length."
+        }
     },
     "aliases": {
         "title": "Model aliases",
@@ -355,5 +370,23 @@
         "details": "Details",
         "allReports": "All reports",
         "noUsage": "No usage yet this month."
+    },
+    "privacy": {
+        "title": "Privacy",
+        "description": "The usage notice users acknowledge and how long data is kept.",
+        "notice": "Usage notice",
+        "enabled": "Ask users to acknowledge the notice before they start",
+        "text": "Custom notice ({{locale}})",
+        "textHelp": "Plain text; blank lines separate paragraphs. Empty = the built-in notice. The privacy and terms links from Institution settings are shown below it.",
+        "askAgain": "Ask everyone to acknowledge again",
+        "askAgainHelp": "Happens automatically when the text changes. Version {{version}} is current.",
+        "retention": "Data retention",
+        "retentionHelp": "Deleted every night by ada:retention:prune. Usage records never contain message content.",
+        "conversationDays": "Keep conversations for (days)",
+        "conversationDaysHelp": "Counted from the last message. Empty = keep until the user deletes them.",
+        "deletedDays": "Remove deleted conversations after (days)",
+        "deletedDaysHelp": "Conversations the user deleted can be restored by an operator until then. 0 = at the next run.",
+        "usageMonths": "Keep usage records for (months)",
+        "usageMonthsHelp": "Costs and token counts for reports and budgets; at least 12."
     }
 }

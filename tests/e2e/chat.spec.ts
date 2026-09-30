@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 
 /*
@@ -41,6 +41,8 @@ test('a new conversation streams a Markdown answer', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Merhaba!' })).toBeVisible();
     await expect(page.getByText('Birinci madde')).toBeVisible();
     await expect(page.locator('pre')).toContainText("echo 'Ada';");
+    // Highlighted by Shiki (JavaScript engine: allowed by the CSP).
+    await expect(page.locator('pre.shiki')).toBeVisible();
     await expect(
         page.getByRole('button', { name: 'Regenerate answer' }),
     ).toBeVisible();

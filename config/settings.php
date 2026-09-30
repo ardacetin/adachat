@@ -2,6 +2,7 @@
 
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
+use App\Domain\Institution\Settings\PrivacySettings;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeZoneCast;
 use Spatie\LaravelSettings\SettingsRepositories\DatabaseSettingsRepository;
@@ -16,6 +17,7 @@ return [
     'settings' => [
         InstitutionSettings::class,
         AuthSettings::class,
+        PrivacySettings::class,
     ],
 
     /*
