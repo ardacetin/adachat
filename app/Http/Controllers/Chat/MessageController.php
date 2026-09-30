@@ -43,7 +43,7 @@ class MessageController extends Controller
         $conversation = null;
 
         if (isset($validated['conversation_id'])) {
-            $conversation = Conversation::query()->findOrFail($validated['conversation_id']);
+            $conversation = Conversation::query()->whereKey($validated['conversation_id'])->firstOrFail();
             Gate::authorize('update', $conversation);
         }
 

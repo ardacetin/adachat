@@ -104,7 +104,7 @@ class ModelAliasController extends Controller
      */
     private function currentGroupIds(ModelAlias $alias): array
     {
-        return $alias->groups()->orderBy('groups.id')->pluck('groups.id')->map(fn ($id) => (int) $id)->values()->all();
+        return array_values(array_map(intval(...), $alias->groups()->orderBy('groups.id')->pluck('groups.id')->all()));
     }
 
     private function form(?ModelAlias $alias): Response
