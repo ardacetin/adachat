@@ -147,6 +147,8 @@
         "showModelDetails": "Arkadaki modeli kullanıcılara göster",
         "sortOrder": "Sıra",
         "enabled": "Etkin",
+        "groups": "Kullanabilecek gruplar",
+        "groupsHelp": "Bu takma adı yalnızca seçilen grupların üyeleri kullanabilir.",
         "noModels": "Önce bir model ekleyin."
     }
 }

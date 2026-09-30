@@ -7,9 +7,10 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: early development.** Milestones M0–M5 are done: foundation,
-> Google Workspace sign-in, institution settings and branding, AI providers
-> and model aliases, and the budget engine. Next: streaming chat (M6). The
+> **Status: early development.** Milestones M0–M6 are done: foundation,
+> Google Workspace (SAML) sign-in, institution settings and branding, AI
+> providers and model aliases, the budget engine and streaming chat. Next:
+> groups, permissions and user usage (M7). The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
 
@@ -74,6 +75,10 @@ and Entity ID (`<APP_URL>/auth/saml/metadata`) in Google Admin (see
 [authentication](docs/authentication.md#setting-up-the-google-workspace-saml-app));
 locally you can also use the development login. Run all checks with
 `composer ci:check`.
+
+End-to-end tests (Playwright, against a mock AI provider): prepare a database
+with `php artisan migrate:fresh --seed && php tests/e2e/seed.php`, build the
+assets, then run `npx playwright install chromium` once and `npm run test:e2e`.
 
 The budget jobs (expiring abandoned reservations, daily reconciliation) run
 from Laravel's scheduler: `php artisan schedule:work` locally, a cron entry

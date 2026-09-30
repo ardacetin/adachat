@@ -192,7 +192,8 @@ deferred / merge props so it does not delay the first paint.
 ### 5.2 Chat message (streaming)
 
 ```
-POST /conversations/{conversation}/messages   (fetch, CSRF header, Accept: text/event-stream)
+POST /chat/messages   (fetch, X-XSRF-TOKEN header, Accept: text/event-stream;
+                       body: conversation_id or none for a new one, model_alias_id, content)
   1. Validate input, authorize (owner, alias allowed for user's group, user active)
   2. Rate limit (per-user requests/minute from group)
   3. Build ChatRequest (history truncated to model context window)
@@ -209,6 +210,13 @@ POST /conversations/{conversation}/messages   (fetch, CSRF header, Accept: text/
   7. finally: Budget::settle() / release()  ── short DB transaction
   8. SSE "message.completed" (or "error")
 ```
+
+As built (M6): `MessageController` streams what
+`ChatGenerationService::send()` yields; `regenerate()` (`POST
+/chat/messages/{message}/regenerate`) runs steps 3–8 again for the last answer
+as a sibling of it (same `parent_message_id`). Refusals before anything is
+stored (budget, rate limit, alias not allowed, context too long) are plain JSON
+responses with a stable error code, not a stream.
 
 Locks are held only inside the millisecond-scale reserve and settle
 transactions, **never for the duration of a stream**. Token counting (step 3b)
@@ -262,15 +270,32 @@ SSE event protocol (Ada → browser):
 
 | Event | Payload | Meaning |
 |---|---|---|
-| `message.started` | `user_message_id`, `assistant_message_id`, `model_alias` | Messages persisted, generation starting |
+| `message.started` | `conversation_id`, `user_message_id`, `assistant_message_id`, `model_alias_id`, `output_capped` | Messages persisted, generation starting |
 | `delta` | `text` | Incremental assistant text |
-| `message.completed` | `finish_reason`, `usage` (tokens, cost) | Generation finished and settled |
-| `error` | `code` (stable, translatable), `retryable` | Generation failed; budget released or settled |
+| `message.completed` | `assistant_message_id`, `status`, `finish_reason`, `usage` (tokens, cost) | Generation finished (or stopped) and settled |
+| `error` | `code` (stable, translatable), `retryable`, `assistant_message_id` | Generation failed; budget released or settled |
 
-Future features supported by this design: **Stop** (client abort +
-`POST /messages/{id}/cancel` cache flag), **Regenerate / Retry** (a new
-assistant message with the same `parent_message_id`), **tool calls** (new event
-types).
+**Stop** is `POST /chat/messages/{message}/cancel`: it sets a short-lived cache
+flag (`chat:cancel:{id}`) that the streaming process checks every 0.5 seconds,
+next to `connection_aborted()`. The provider stream is closed, the partial
+answer is kept with `status = cancelled` and what was generated is charged.
+The browser aborts the fetch itself only if the stream has not ended 5 seconds
+after the request. **Regenerate** creates a new assistant message with the same
+`parent_message_id`; the conversation shows the active branch (the parent chain
+of the newest message). Tool calls would be new event types.
+
+Provider streams are parsed line by line (`SseParser`): PHP's HTTP stream
+blocks a `read(8192)` until 8 KiB have arrived, which would hold back small
+events and make the answer appear all at once.
+
+Answers interrupted by a dead process (still `streaming` when their
+reservation expires) are settled by `ada:budget:expire-reservations`: the
+stored partial text is charged as an estimate and the message is marked
+`failed` with the error code `generation_interrupted`.
+
+Local development: `php artisan serve` handles one request at a time unless
+`PHP_CLI_SERVER_WORKERS` is set; set it (e.g. `4`) so that Stop can reach the
+server during a stream.
 
 ### Capacity note
 

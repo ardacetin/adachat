@@ -72,3 +72,51 @@ test('cancellation stops parsing and closes the stream', function () {
     expect($received)->toBe(['1'])
         ->and($body->isReadable())->toBeFalse();
 });
+
+test('each event is yielded as soon as it arrives', function () {
+    // Like PHP's HTTP stream wrapper, read($n) blocks until $n bytes arrived
+    // (here: consumes further network chunks). The parser must not ask for
+    // more than it needs, or tokens would reach the user in bursts.
+    $chunks = ["data: one\n\n", "data: two\n\n", "data: three\n\n"];
+
+    $network = new class($chunks) extends Stream
+    {
+        public int $delivered = 0;
+
+        private string $available = '';
+
+        /** @param list<string> $chunks */
+        public function __construct(private array $chunks)
+        {
+            parent::__construct(Utils::tryFopen('php://temp', 'r+'));
+        }
+
+        public function read($length): string
+        {
+            while (strlen($this->available) < $length && $this->chunks !== []) {
+                $this->available .= array_shift($this->chunks);
+                $this->delivered++;
+            }
+
+            $out = substr($this->available, 0, $length);
+            $this->available = substr($this->available, strlen($out));
+
+            return $out;
+        }
+
+        public function eof(): bool
+        {
+            return $this->available === '' && $this->chunks === [];
+        }
+    };
+
+    $events = SseParser::events($network);
+
+    expect($events->current()->data)->toBe('one')
+        ->and($network->delivered)->toBe(1);
+
+    $events->next();
+
+    expect($events->current()->data)->toBe('two')
+        ->and($network->delivered)->toBe(2);
+});

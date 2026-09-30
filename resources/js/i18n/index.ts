@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { initReactI18next } from 'react-i18next';
 
 /** Loaded before the first render. */
-export const namespaces = ['common', 'auth', 'settings'] as const;
+export const namespaces = ['common', 'auth', 'settings', 'chat'] as const;
 
 /** Loaded on demand (e.g. only on admin pages). */
 export const lazyNamespaces = ['admin'] as const;
@@ -17,6 +17,7 @@ export const allNamespaces = [...namespaces, ...lazyNamespaces] as [
     'common',
     'auth',
     'settings',
+    'chat',
     'admin',
 ];
 export const defaultNamespace = 'common';

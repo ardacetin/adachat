@@ -123,7 +123,11 @@ IdP values in use and the certificate's SHA-256 fingerprint and expiry date;
    the SSO URL, Entity ID and certificate) and set in Ada's `.env`:
    `SAML_IDP_SSO_URL`, `SAML_IDP_ENTITY_ID`, and the certificate in
    `SAML_IDP_CERT` (PEM, one line or with `\n`) or as a file in
-   `SAML_IDP_CERT_PATH`.
+   `SAML_IDP_CERT_PATH` (a file path in `SAML_IDP_CERT` is accepted too; the
+   file must be readable by the PHP user). Google's values look like
+   `SAML_IDP_SSO_URL=https://accounts.google.com/o/saml2/idp?idpid=…` and
+   `SAML_IDP_ENTITY_ID=https://accounts.google.com/o/saml2?idpid=…` — the
+   SSO URL is the one with `/idp`.
 3. *Service provider details*: **ACS URL** and **Entity ID** as above;
    *Start URL* empty; **Signed response** optional (Ada accepts a signed
    response or a signed assertion); **Name ID format `EMAIL`**, **Name ID
@@ -134,6 +138,12 @@ IdP values in use and the certificate's SHA-256 fingerprint and expiry date;
    Ada (User access). Google rejects everyone else before Ada sees them.
 6. Set `AUTH_ALLOWED_DOMAINS`, run `php artisan config:clear` (or
    `optimize`) and `php artisan ada:install` to check the configuration.
+
+If the login page still says sign-in is not configured, the running
+configuration lacks one of the three IdP values or the certificate file is
+not readable: check with `php artisan config:show ada.auth.saml` and clear a
+cached configuration (`php artisan config:clear`, or `config:cache` again)
+after every `.env` change.
 
 Google's SAML certificate is valid for five years; renew it in Google Admin
 before the expiry date shown in the admin panel and update `.env`.

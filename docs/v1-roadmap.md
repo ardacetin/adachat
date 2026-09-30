@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M5 done**, M6 next. Milestones are small and independently
+> Status: **M0–M6 done**, M7 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -67,13 +67,16 @@ LICENSE (AGPL-3.0-or-later).
   including multi-process concurrency tests. As built:
   [budget-engine.md §18](budget-engine.md#18-implementation-m5).
 
-### M6 — Streaming chat end-to-end
+### M6 — Streaming chat end-to-end ✅
 - Conversations/messages, `ChatGenerationService`, SSE endpoint, cancel endpoint.
 - Integration: token count → reserve → stream → settle/release.
 - `useChatStream`, chat layout, sidebar history, composer, model selector,
   markdown + code blocks, stop, regenerate last answer.
 - Partial persistence and recovery after reload.
 - First Playwright flows (login, new conversation, stream, stop).
+- As built: aliases are available only to the groups they are assigned to
+  (the alias form has a group checklist; new aliases start with the Default
+  group). Playwright runs against a mock OpenAI server (`tests/e2e`).
 
 ### M7 — Groups, permissions and user usage
 - Groups with policy, rate limits, concurrent stream limit, alias permissions.

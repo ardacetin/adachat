@@ -36,6 +36,9 @@ class ModelAliasRequest extends FormRequest
             'show_model_details' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:-1000', 'max:1000'],
             'enabled' => ['required', 'boolean'],
+            // Groups whose members may use the alias.
+            'group_ids' => ['sometimes', 'array'],
+            'group_ids.*' => ['integer', 'distinct', 'exists:groups,id'],
         ];
 
         foreach ($locales as $locale) {

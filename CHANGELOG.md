@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Provider streams are read line by line, so answers are shown as they are
+  generated instead of arriving in 8 KiB blocks.
+
 ### Changed
 
 - Sign-in uses **SAML 2.0** with a custom SAML app in Google Workspace
@@ -20,6 +25,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M6 streaming chat: conversations and messages (UUIDv7, soft-deleted
+  conversations, regenerate as sibling answers), `ChatGenerationService`
+  (context trimming → token count → budget reserve → provider stream →
+  settle/release in `finally`), Server-Sent Events over `fetch` POST
+  (`message.started`, `delta`, `message.completed`, `error`), stop via a
+  cancel endpoint, partial answers flushed to the database every second and
+  settled by the reservation cleanup job if the process dies, per-group
+  requests-per-minute limit.
+- Chat UI: conversation sidebar (rename, delete), composer, model selector,
+  Markdown rendering without raw HTML, lazily highlighted code blocks (Shiki)
+  with copy, copy/regenerate actions, TR/EN.
+- Aliases are available only to the groups they are assigned to; the alias
+  form has a group checklist (new aliases start with the Default group) and
+  group changes are audited.
+- Playwright end-to-end tests against a mock OpenAI server and a CI `e2e`
+  job.
 - Architecture documents (M0): architecture, database design, budget engine,
   authentication, provider architecture, frontend architecture, security and
   V1 roadmap.
