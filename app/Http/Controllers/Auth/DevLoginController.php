@@ -25,11 +25,11 @@ class DevLoginController extends Controller
     {
         abort_unless(self::isEnabled(), 404);
 
-        $validated = $request->validate([
+        $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
         ]);
 
-        $user = User::query()->findOrFail($validated['user_id']);
+        $user = User::query()->findOrFail($request->integer('user_id'));
 
         if (! $user->isActive()) {
             throw ValidationException::withMessages([
