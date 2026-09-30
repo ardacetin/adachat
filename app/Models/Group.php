@@ -32,7 +32,7 @@ class Group extends Model
     use HasFactory;
 
     /**
-     * @var array<string, bool|null>
+     * @var array<string, int|bool|null>
      */
     protected $attributes = [
         'description' => null,

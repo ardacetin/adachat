@@ -10,7 +10,10 @@ use InvalidArgumentException;
  * Casts DECIMAL(20,10) columns to Usd. PDO returns decimals as strings, so
  * no float is ever involved.
  *
- * @implements CastsAttributes<Usd, Usd|string|int>
+ * Setting accepts Usd, decimal strings and integers; anything else (a float)
+ * is refused at runtime, hence the mixed set type.
+ *
+ * @implements CastsAttributes<Usd, mixed>
  */
 final class UsdCast implements CastsAttributes
 {
