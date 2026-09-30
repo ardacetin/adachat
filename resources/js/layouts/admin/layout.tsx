@@ -17,6 +17,7 @@ import { index as groups } from '@/routes/admin/groups';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
 import { index as providers } from '@/routes/admin/providers';
+import { index as reports } from '@/routes/admin/reports';
 import { index as users } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
 
@@ -28,6 +29,7 @@ export default function AdminLayout({ children }: PropsWithChildren) {
 
     const items: NavItem[] = [
         { titleKey: 'admin:nav.overview', href: index() },
+        { titleKey: 'admin:nav.reports', href: reports() },
         { titleKey: 'admin:nav.users', href: users() },
         { titleKey: 'admin:nav.groups', href: groups() },
         { titleKey: 'admin:nav.auditLog', href: auditLog() },

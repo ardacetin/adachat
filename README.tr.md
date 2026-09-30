@@ -10,8 +10,8 @@ bir kurumsal AI gateway ve sohbet platformudur.
 > **Durum: erken geliştirme.** M0–M7 kilometre taşları tamamlandı: temel
 > altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
 > sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
-> bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi ve denetim
-> kaydı. Sıradaki: gösterge paneli ve raporlar (M9). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
+> bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
+> kaydı, gösterge paneli ve raporlar. Sıradaki: sağlamlaştırma (M10). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
 > [yol haritası](docs/v1-roadmap.md).
 
 ## Neden Ada?

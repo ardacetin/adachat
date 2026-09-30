@@ -18,7 +18,7 @@ final class AuditLogger
     public const REDACTED = '[redacted]';
 
     /** Keys whose values are never stored. */
-    private const SECRET_KEY_PATTERN = '/secret|password|token|api[_-]?key|credential/i';
+    private const SECRET_KEY_PATTERN = '/secret|password|api[_-]?key|credential|(^|_)(access|refresh|remember|auth|bearer|session)?_?token$/i';
 
     public function __construct(private readonly Request $request) {}
 

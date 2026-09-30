@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M8 done**, M9 next. Milestones are small and independently
+> Status: **M0–M9 done**, M10 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -102,13 +102,21 @@ LICENSE (AGPL-3.0-or-later).
   users and groups, super administrators additionally roles, adjustments and
   system settings. Last activity is recorded at most every five minutes.
 
-### M9 — Dashboard and reports
+### M9 — Dashboard and reports ✅
 - KPIs: monthly spend, active users, requests, average spend per user.
 - Reports: total, by user, group, provider, model; requests and tokens by
   model; daily/monthly spend; filters (date range, user, group, provider, model).
 - Counter deviation / overshoot panel.
 - Decision point: daily aggregate table if raw queries are too slow.
 - (CSV export: post-V1.)
+- As built: the admin overview is the dashboard (this month vs. last month,
+  daily spending, top models and groups, users at their limit, overshoot
+  alert); `/admin/reports` has date range and group/provider/model/user
+  filters, a breakdown by model/group/provider/user, spending per day or
+  month, overshoots and counter deviation. Decision: raw queries over the
+  indexed `usage_events` ledger (`App\Domain\Reports\UsageStatistics`);
+  no aggregate table until reports become slow. Days are the institution's
+  days (15-minute UTC buckets assigned in PHP; no MySQL time zone tables).
 
 ### M10 — Hardening
 - Security headers + CSP nonces, rate limits review, retention prune command,

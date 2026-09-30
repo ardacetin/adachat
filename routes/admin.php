@@ -4,15 +4,18 @@ use App\Http\Controllers\Admin\AiModelController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuthSettingsController;
 use App\Http\Controllers\Admin\BudgetPolicyController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstitutionSettingsController;
 use App\Http\Controllers\Admin\ModelAliasController;
 use App\Http\Controllers\Admin\ProviderController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::inertia('/', 'admin/index')->name('index');
+    Route::get('/', DashboardController::class)->name('index');
+    Route::get('reports', ReportController::class)->name('reports.index');
 
     // Administrators and super administrators (docs/authentication.md §4);
     // UserPolicy decides per action.
