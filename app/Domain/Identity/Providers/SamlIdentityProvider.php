@@ -12,6 +12,7 @@ use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
@@ -179,7 +180,8 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
 
             throw new IdentityRejected(RejectionReason::ProviderError, $exception);
         } finally {
-            Utils::setBaseURL(null);
+            // An empty value resets onelogin's host/protocol/port/path overrides.
+            Utils::setBaseURL('');
 
             if ($previousUri === null) {
                 unset($_SERVER['REQUEST_URI']);
@@ -208,7 +210,7 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
             // Asserted by the organisation's own IdP over a signed response.
             emailVerified: true,
             hostedDomain: null,
-            name: $name !== '' ? $name : strstr($email, '@', true),
+            name: $name !== '' ? $name : Str::before($email, '@'),
             avatarUrl: null,
             safeClaims: [
                 'idp' => (string) ($this->config['idp_entity_id'] ?? ''),
@@ -251,9 +253,8 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
     private function attribute(array $attributes, string $name): string
     {
         $key = $this->config['attributes'][$name] ?? $name;
-        $value = is_string($key) ? ($attributes[$key][0] ?? '') : '';
 
-        return is_string($value) ? trim($value) : '';
+        return is_string($key) ? trim($attributes[$key][0] ?? '') : '';
     }
 
     /**
