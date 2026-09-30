@@ -73,7 +73,7 @@ final class UsageReport
         $aliases = ModelAlias::query()->whereIn('id', $rows->pluck('model_alias_id')->filter())->get()->keyBy('id');
         $locale = app()->getLocale();
 
-        return $rows->map(fn (stdClass $row) => [
+        return array_values($rows->map(fn (stdClass $row) => [
             'alias' => isset($row->model_alias_id) && $aliases->has($row->model_alias_id)
                 ? $aliases->get($row->model_alias_id)?->localizedName($locale)
                 : null,
@@ -81,7 +81,7 @@ final class UsageReport
             'input_tokens' => (int) $row->input_tokens,
             'output_tokens' => (int) $row->output_tokens,
             ...$cost(Usd::of((string) $row->cost)),
-        ])->values()->all();
+        ])->all());
     }
 
     /**
@@ -109,11 +109,11 @@ final class UsageReport
 
         ksort($days);
 
-        return array_values(array_map(
+        return array_map(
             fn (string $day, array $totals) => ['date' => $day, 'requests' => $totals['requests'], ...$cost($totals['cost'])],
             array_keys($days),
             $days,
-        ));
+        );
     }
 
     /**
@@ -123,7 +123,7 @@ final class UsageReport
      */
     private function months(User $user, CarbonImmutable $currentStart, bool $amounts): array
     {
-        return BudgetPeriod::query()
+        return array_values(BudgetPeriod::query()
             ->where('user_id', $user->id)
             ->where('period_start', '<', $currentStart)
             ->orderByDesc('period_start')
@@ -137,7 +137,6 @@ final class UsageReport
                     'limit_usd' => BudgetSummary::cents($period->limit_usd, RoundingMode::Down),
                 ] : []),
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 }

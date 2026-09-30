@@ -37,9 +37,9 @@ final class BudgetSummary
             ->where('period_start', $start)
             ->first();
 
-        $limit = $period?->limit_usd ?? EffectiveLimit::for($user);
-        $spent = $period?->spent_usd ?? Usd::zero();
-        $reserved = $period?->reserved_usd ?? Usd::zero();
+        $limit = $period->limit_usd ?? EffectiveLimit::for($user);
+        $spent = $period->spent_usd ?? Usd::zero();
+        $reserved = $period->reserved_usd ?? Usd::zero();
         $remaining = $limit->minus($spent)->minus($reserved)->max(Usd::zero());
 
         $summary = [
