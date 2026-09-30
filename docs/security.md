@@ -38,7 +38,9 @@ operators with server access (ultimately trusted); compromised dependencies.
 - Regenerate session id on login; invalidate on logout.
 - Disabled users: sessions deleted immediately; `EnsureUserIsActive` on each
   request.
-- Idle and absolute lifetimes configurable.
+- Idle and absolute lifetimes configurable: `SESSION_LIFETIME` (idle,
+  default 480 minutes) and `SESSION_MAX_LIFETIME` (after sign-in, default
+  7 days; enforced by `EnsureUserIsActive`, M10).
 
 ## 4. CSRF
 
@@ -211,3 +213,4 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 - Header/CSP assertions.
 - Before V1 release: internal review against OWASP ASVS Level 2 core
   sections and a third-party review if the institution can provide one.
+  The internal review (M10) is [security-review.md](security-review.md).

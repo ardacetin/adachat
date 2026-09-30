@@ -19,6 +19,7 @@ return [
         'domain_not_allowed' => 'Bu hesapla giriş yapılamaz. Lütfen kurumsal hesabınızı kullanın.',
         'not_provisioned' => 'Henüz erişiminiz yok. Lütfen yöneticinizle iletişime geçin.',
         'account_disabled' => 'Hesabınız devre dışı bırakılmış. Lütfen yöneticinizle iletişime geçin.',
+        'session_expired' => 'Oturumunuz sona erdi. Lütfen yeniden giriş yapın.',
         'account_conflict' => 'Hesabınız ilişkilendirilemedi. Lütfen yöneticinizle iletişime geçin.',
     ],
 

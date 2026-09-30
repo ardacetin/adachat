@@ -11,7 +11,8 @@ bir kurumsal AI gateway ve sohbet platformudur.
 > altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
 > sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
 > bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
-> kaydı, gösterge paneli ve raporlar. Sıradaki: sağlamlaştırma (M10). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
+> kaydı, gösterge paneli ve raporlar ile sağlamlaştırma. Sıradaki: üretim
+> kurulumu (M11). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
 > [yol haritası](docs/v1-roadmap.md).
 
 ## Neden Ada?
@@ -96,6 +97,7 @@ biter.
 | [Provider mimarisi](docs/provider-architecture.md) | Provider arayüzü, adapter'lar, token sayaçları, kullanım normalizasyonu |
 | [Frontend mimarisi](docs/frontend-architecture.md) | React/Inertia yapısı, streaming state, i18n, tema |
 | [Güvenlik](docs/security.md) | Tehditler ve kontroller |
+| [Güvenlik incelemesi](docs/security-review.md) | Dahili OWASP ASVS Seviye 2 incelemesi |
 | [V1 yol haritası](docs/v1-roadmap.md) | Milestone'lar |
 
 ## Kurumdan bağımsız tasarım

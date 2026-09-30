@@ -9,6 +9,7 @@ use App\Domain\Identity\Exceptions\SignInMustRestart;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -56,6 +57,7 @@ class ExternalLoginController extends Controller
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
+        EnsureUserIsActive::startSession($request);
 
         return redirect()->intended(route('home'));
     }

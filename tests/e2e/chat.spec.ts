@@ -21,7 +21,14 @@ async function setLanguage(page: Page, option: RegExp): Promise<void> {
     await page.goto('/settings/language');
     await page.getByRole('combobox').click();
     await page.getByRole('option', { name: option }).click();
+    // Wait for the save itself: the select shows the new value at once.
+    const saved = page.waitForResponse(
+        (response) =>
+            response.url().endsWith('/settings/language') &&
+            response.request().method() === 'PUT',
+    );
     await page.getByRole('button', { name: /^(Save|Kaydet)$/ }).click();
+    await saved;
     await expect(page.getByRole('combobox')).toHaveText(option);
 }
 
@@ -121,4 +128,16 @@ test('the chat is available in Turkish', async ({ page }) => {
     } finally {
         await setLanguage(page, /English|İngilizce/);
     }
+});
+
+test('the model menu opens fully above the composer', async ({ page }) => {
+    await signIn(page);
+
+    await page.getByRole('combobox', { name: 'Model' }).click();
+    const option = page.getByRole('option', { name: /Smart/ });
+
+    await expect(option).toBeVisible();
+    await expect(option).toBeInViewport({ ratio: 1 });
+    expect((await option.boundingBox())?.height ?? 0).toBeGreaterThan(30);
+    await page.keyboard.press('Escape');
 });

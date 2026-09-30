@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M9 done**, M10 next. Milestones are small and independently
+> Status: **M0–M10 done**, M11 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -118,12 +118,13 @@ LICENSE (AGPL-3.0-or-later).
   no aggregate table until reports become slow. Days are the institution's
   days (15-minute UTC buckets assigned in PHP; no MySQL time zone tables).
 
-### M10 — Hardening
+### M10 — Hardening ✅
 - Security headers + CSP nonces, rate limits review, retention prune command,
   first-login usage acknowledgment, `ada:doctor`. ✅ (see
   [security.md](security.md) §5, §7, §9, §12 as built)
-- Complete E2E suite, axe accessibility checks, bundle size budget.
-- Internal security review (OWASP ASVS L2 core).
+- Complete E2E suite, axe accessibility checks, bundle size budget. ✅
+- Internal security review (OWASP ASVS L2 core). ✅
+  ([security-review.md](security-review.md); open items go to M11)
 
 ### M11 — Production deployment
 - Production Docker image and compose file; bare-metal guide (Ubuntu 24.04,

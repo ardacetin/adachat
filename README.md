@@ -11,7 +11,8 @@ administrative controls.
 > Google Workspace (SAML) sign-in, institution settings and branding, AI
 > providers and model aliases, the budget engine, streaming chat, groups,
 > budget policies and user usage, administration of users and the audit
-> log, and the dashboard and reports. Next: hardening (M10). The
+> log, the dashboard and reports, and hardening. Next: production
+> deployment (M11). The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
 
@@ -101,6 +102,7 @@ error when something needs fixing.
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |
 | [Frontend architecture](docs/frontend-architecture.md) | React/Inertia structure, streaming state, i18n, theming |
 | [Security](docs/security.md) | Threats and controls |
+| [Security review](docs/security-review.md) | Internal OWASP ASVS Level 2 review |
 | [V1 roadmap](docs/v1-roadmap.md) | Milestones |
 
 ## Institution-neutral by design
