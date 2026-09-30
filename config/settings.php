@@ -2,7 +2,6 @@
 
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
-use Spatie\LaravelData\Data;
 use Spatie\LaravelSettings\SettingsCasts\DataCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeZoneCast;

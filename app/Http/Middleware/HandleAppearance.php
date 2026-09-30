@@ -22,9 +22,9 @@ class HandleAppearance
         $cookie = $request->cookie('appearance');
         $user = $request->user();
 
-        $appearance = $user?->appearance
-            ?? (is_string($cookie) ? Appearance::tryFrom($cookie) : null)
-            ?? Appearance::System;
+        $appearance = $user !== null
+            ? $user->appearance
+            : (is_string($cookie) ? Appearance::tryFrom($cookie) : null) ?? Appearance::System;
 
         View::share('appearance', $appearance->value);
         View::share('appearanceFromAccount', $user !== null);
