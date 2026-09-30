@@ -23,3 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hard-coded UI text check.
 - Development-only login, sample seeders, Pest test suite on MySQL, CI
   workflow and a development `docker-compose.yml`.
+- M2 identity: Google Workspace sign-in via Socialite behind a
+  `RedirectIdentityProvider` abstraction; server-side checks of state,
+  `email_verified`, hosted domain (`hd`) and e-mail domain; `user_identities`
+  keyed by provider subject; just-in-time provisioning into the default group
+  (optional); translated rejection reasons incl. account conflicts.
+- Groups table with an always-present default group; `users.group_id`.
+- Role gates (`access-admin`, `manage-system`) and shared `can` UI hints.
+- `ada:install` (configuration check) and `ada:user:promote` (break-glass
+  role assignment).

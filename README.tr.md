@@ -62,8 +62,10 @@ php artisan migrate --seed      # örnek kullanıcıları oluşturur
 composer dev                    # uygulama: http://localhost:8000
 ```
 
-Google ile giriş M2'de gelecek; o zamana kadar giriş sayfasındaki geliştirme
-girişini kullanın. Tüm kontroller: `composer ci:check`.
+Google ile giriş için `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` ve
+`AUTH_ALLOWED_DOMAINS` değerlerini ayarlayın (bkz. [kimlik doğrulama](docs/authentication.md#setting-up-google-sign-in));
+yerelde geliştirme girişini de kullanabilirsiniz. Tüm kontroller:
+`composer ci:check`.
 
 ## Belgeler
 

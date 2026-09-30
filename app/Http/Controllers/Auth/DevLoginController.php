@@ -33,7 +33,7 @@ class DevLoginController extends Controller
 
         if (! $user->isActive()) {
             throw ValidationException::withMessages([
-                'auth' => __('auth.account_disabled'),
+                'auth' => __('auth.errors.account_disabled'),
             ]);
         }
 

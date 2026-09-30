@@ -15,4 +15,13 @@ enum UserRole: string
     {
         return $this !== self::User;
     }
+
+    /**
+     * Whether the role may manage system-level configuration (providers,
+     * credentials, models, budget policies, authentication, roles).
+     */
+    public function canManageSystem(): bool
+    {
+        return $this === self::SuperAdmin;
+    }
 }

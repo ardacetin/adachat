@@ -50,6 +50,11 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->role->value,
                 ],
             ],
+            // UI hints only; every action is authorized server-side.
+            'can' => [
+                'accessAdmin' => $user?->can('access-admin') ?? false,
+                'manageSystem' => $user?->can('manage-system') ?? false,
+            ],
             'locale' => [
                 'current' => app()->getLocale(),
                 'available' => config('ada.locales.available'),

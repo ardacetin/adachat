@@ -39,6 +39,11 @@ return [
             explode(',', (string) env('AUTH_ALLOWED_DOMAINS', '')),
         ))),
 
+        // Create users automatically on their first successful sign-in. When
+        // false, only users pre-created by an admin (or ada:user:promote) can
+        // sign in.
+        'auto_provision' => (bool) env('AUTH_AUTO_PROVISION', true),
+
         // Password-less development login. Only ever active in the local and
         // testing environments, regardless of this flag.
         'dev_login' => (bool) env('ADA_DEV_LOGIN', false),

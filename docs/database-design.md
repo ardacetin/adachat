@@ -181,7 +181,7 @@ adding OIDC/Entra/SAML later and survives e-mail changes.
 |---|---|---|---|
 | id | BIGINT PK | | |
 | user_id | BIGINT UNSIGNED | | |
-| provider | VARCHAR(32) | | `google`, later `oidc:<name>`, `saml:<name>` |
+| provider | VARCHAR(32) | | `google`, later e.g. `oidc-<name>`, `saml-<name>` (URL-safe: `[a-z0-9-]+`) |
 | subject | VARCHAR(255) `utf8mb4_bin` | | stable IdP subject (`sub`) |
 | email | VARCHAR(255) | | email at last login |
 | last_claims | JSON | yes | non-sensitive claims for troubleshooting (`hd`, `email_verified`) — never tokens |
@@ -208,6 +208,9 @@ Purpose: organisational policy unit (Standard Personnel, Academics, IT…).
 
 - Indexes: `UNIQUE(name)`, `INDEX(budget_policy_id)`.
 - FKs: `budget_policy_id → budget_policies.id ON DELETE RESTRICT`.
+- M2 creates the table with `name`, `description`, `is_default` and inserts
+  the default group in the same migration; the policy and rate-limit columns
+  are added with the budget engine (M5/M7).
 - Seed: a `Default` group with the default policy, created by `ada:install`.
 
 ### 5.4 `group_model_alias`

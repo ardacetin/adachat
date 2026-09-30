@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'group_id' => fn () => Group::default()->id,
             'remember_token' => Str::random(10),
         ];
     }

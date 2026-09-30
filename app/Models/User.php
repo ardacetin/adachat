@@ -9,6 +9,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -22,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property string|null $avatar_url
  * @property UserRole $role
+ * @property int $group_id
  * @property string|null $locale
  * @property Appearance $appearance
  * @property UserStatus $status
@@ -31,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Group $group
  */
 #[Fillable(['name', 'email', 'avatar_url', 'locale', 'appearance'])]
 #[Hidden(['remember_token'])]
@@ -67,6 +71,22 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Group, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * @return HasMany<UserIdentity, $this>
+     */
+    public function identities(): HasMany
+    {
+        return $this->hasMany(UserIdentity::class);
     }
 
     /**

@@ -7,6 +7,10 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            can: {
+                accessAdmin: boolean;
+                manageSystem: boolean;
+            };
             locale: {
                 current: Locale;
                 available: Locale[];

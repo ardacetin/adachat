@@ -63,8 +63,10 @@ php artisan migrate --seed      # creates sample users
 composer dev                    # app on http://localhost:8000
 ```
 
-Google sign-in arrives in M2; until then use the development login on the
-sign-in page. Run all checks with `composer ci:check`.
+For Google sign-in, set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and
+`AUTH_ALLOWED_DOMAINS` (see [authentication](docs/authentication.md#setting-up-google-sign-in));
+locally you can also use the development login. Run all checks with
+`composer ci:check`.
 
 ## Documentation
 
