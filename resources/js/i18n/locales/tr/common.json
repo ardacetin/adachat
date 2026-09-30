@@ -4,7 +4,8 @@
         "settings": "Ayarlar",
         "logOut": "Çıkış yap",
         "menu": "Menü",
-        "navigation": "Gezinme"
+        "navigation": "Gezinme",
+        "admin": "Yönetim"
     },
     "home": {
         "title": "Ana sayfa",

@@ -1,0 +1,53 @@
+{
+    "title": "Yönetim",
+    "description": "Ada'yı kurumunuz için yapılandırın.",
+    "nav": {
+        "overview": "Genel bakış",
+        "institution": "Kurum",
+        "authentication": "Giriş"
+    },
+    "index": {
+        "intro": "Yapılandırmak istediğiniz bölümü seçin.",
+        "comingSoon": "Kullanıcı, grup, model, bütçe ve kullanım yönetimi sonraki sürümlerde eklenecek."
+    },
+    "institution": {
+        "title": "Kurum",
+        "description": "Herkese gösterilen ad, iletişim bilgileri, dil ve markalama.",
+        "general": "Genel",
+        "name": "Kurum adı",
+        "shortName": "Kısa ad",
+        "shortNameHelp": "Kenar çubuğunda “Ada” yanında gösterilir, ör. bir kısaltma.",
+        "domain": "Alan adı",
+        "supportEmail": "Destek e-postası",
+        "privacyUrl": "Gizlilik politikası URL'si",
+        "termsUrl": "Kullanım koşulları URL'si",
+        "localization": "Dil ve saat",
+        "defaultLocale": "Varsayılan dil",
+        "timezone": "Saat dilimi",
+        "timezoneHelp": "Aylık bütçe dönemleri ve tarihler için kullanılır.",
+        "branding": "Markalama",
+        "primaryColor": "Ana renk",
+        "primaryColorHelp": "Düğmeler ve vurgular için kullanılır. Beyaza karşı en az 3:1 kontrast gerekir; okunabilir bir karanlık mod tonu otomatik üretilir.",
+        "resetColor": "Varsayılan rengi kullan",
+        "logo": "Logo",
+        "logoDark": "Karanlık mod logosu",
+        "favicon": "Favicon",
+        "logoHelp": "PNG, JPEG veya WebP, en fazla 1 MB.",
+        "faviconHelp": "Kare PNG, 16–512 piksel, en fazla 256 KB.",
+        "current": "Mevcut",
+        "remove": "Kaldır",
+        "none": "Ayarlanmadı"
+    },
+    "authentication": {
+        "title": "Giriş",
+        "description": "Ada'ya kimlerin giriş yapabileceği.",
+        "allowedDomains": "İzin verilen alan adları",
+        "allowedDomainsHelp": "Her satıra bir alan adı. Yalnızca bu alan adlarındaki doğrulanmış hesaplar giriş yapabilir (Google'da Workspace alan adı da eşleşmelidir).",
+        "autoProvision": "İlk girişte hesap oluştur",
+        "autoProvisionHelp": "Kapalıysa yalnızca yöneticinin oluşturduğu kullanıcılar giriş yapabilir.",
+        "providers": "Kimlik sağlayıcılar",
+        "providerConfigured": "Yapılandırıldı",
+        "noProviders": "Yapılandırılmış kimlik sağlayıcı yok. Sunucuda GOOGLE_CLIENT_ID ve GOOGLE_CLIENT_SECRET değerlerini ayarlayın.",
+        "secretsNote": "Sağlayıcı gizli anahtarları burada değil, sunucuda (.env) yönetilir."
+    }
+}

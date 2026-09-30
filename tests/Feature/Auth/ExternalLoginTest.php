@@ -3,6 +3,8 @@
 use App\Domain\Identity\Exceptions\IdentityRejected;
 use App\Domain\Identity\Exceptions\RejectionReason;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
+use App\Domain\Institution\Settings\AuthSettings;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\Group;
 use App\Models\User;
 use App\Models\UserIdentity;
@@ -10,7 +12,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\Support\FakeIdentityProvider;
 
 beforeEach(function () {
-    config(['ada.auth.allowed_domains' => ['example.edu'], 'ada.auth.auto_provision' => true]);
+    updateSettings(AuthSettings::class, ['allowed_domains' => ['example.edu'], 'auto_provision' => true]);
 
     $this->idp = new FakeIdentityProvider;
     $this->app->instance(IdentityProviderRegistry::class, new IdentityProviderRegistry([$this->idp]));
@@ -80,7 +82,7 @@ test('rejections are shown translated and nobody is signed in', function (Reject
 
     $this->withHeader('Accept-Language', 'tr')
         ->from(route('login'));
-    config(['ada.locales.default' => 'tr']);
+    updateSettings(InstitutionSettings::class, ['default_locale' => 'tr']);
 
     signInCallback()
         ->assertRedirect(route('login'))
@@ -102,7 +104,7 @@ test('accounts from other domains are rejected', function () {
 });
 
 test('personal Google accounts are rejected', function () {
-    config(['ada.auth.allowed_domains' => ['gmail.com']]);
+    updateSettings(AuthSettings::class, ['allowed_domains' => ['gmail.com']]);
     $this->idp->next = FakeIdentityProvider::identity(['email' => 'eve@gmail.com', 'hostedDomain' => null]);
 
     signInCallback()->assertSessionHasErrors('auth');
@@ -127,7 +129,7 @@ test('disabled users cannot sign in', function () {
 });
 
 test('without auto provisioning unknown users are rejected', function () {
-    config(['ada.auth.auto_provision' => false]);
+    updateSettings(AuthSettings::class, ['auto_provision' => false]);
 
     signInCallback()->assertSessionHasErrors(['auth' => __('auth.errors.not_provisioned')]);
 

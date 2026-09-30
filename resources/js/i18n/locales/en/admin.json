@@ -1,0 +1,53 @@
+{
+    "title": "Administration",
+    "description": "Configure Ada for your institution.",
+    "nav": {
+        "overview": "Overview",
+        "institution": "Institution",
+        "authentication": "Sign-in"
+    },
+    "index": {
+        "intro": "Choose a section to configure.",
+        "comingSoon": "User, group, model, budget and usage management will be added in upcoming releases."
+    },
+    "institution": {
+        "title": "Institution",
+        "description": "Name, contact details, language and branding shown to everyone.",
+        "general": "General",
+        "name": "Institution name",
+        "shortName": "Short name",
+        "shortNameHelp": "Shown next to “Ada” in the sidebar, e.g. an abbreviation.",
+        "domain": "Domain",
+        "supportEmail": "Support e-mail",
+        "privacyUrl": "Privacy policy URL",
+        "termsUrl": "Terms of use URL",
+        "localization": "Language and time",
+        "defaultLocale": "Default language",
+        "timezone": "Time zone",
+        "timezoneHelp": "Used for monthly budget periods and dates.",
+        "branding": "Branding",
+        "primaryColor": "Primary colour",
+        "primaryColorHelp": "Used for buttons and highlights. Must contrast at least 3:1 with white; a readable dark-mode variant is derived automatically.",
+        "resetColor": "Use default colour",
+        "logo": "Logo",
+        "logoDark": "Logo for dark mode",
+        "favicon": "Favicon",
+        "logoHelp": "PNG, JPEG or WebP, up to 1 MB.",
+        "faviconHelp": "Square PNG, 16–512 px, up to 256 KB.",
+        "current": "Current",
+        "remove": "Remove",
+        "none": "Not set"
+    },
+    "authentication": {
+        "title": "Sign-in",
+        "description": "Who may sign in to Ada.",
+        "allowedDomains": "Allowed domains",
+        "allowedDomainsHelp": "One domain per line. Only verified accounts from these domains can sign in (for Google, the Workspace domain must match too).",
+        "autoProvision": "Create accounts on first sign-in",
+        "autoProvisionHelp": "If turned off, only users created by an administrator can sign in.",
+        "providers": "Identity providers",
+        "providerConfigured": "Configured",
+        "noProviders": "No identity provider is configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET on the server.",
+        "secretsNote": "Provider secrets are managed on the server (.env), not here."
+    }
+}

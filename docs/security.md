@@ -47,10 +47,13 @@ operators with server access (ultimately trusted); compromised dependencies.
   except in audited wrappers (none planned).
 - Markdown: no raw HTML, safe URL transform, no remote images in V1
   ([frontend-architecture.md §5](frontend-architecture.md#5-markdown-rendering)).
-- Branding: logos accepted as PNG/WebP/JPEG; SVG only after sanitization
-  (`enshrined/svg-sanitize`) and served with `Content-Type: image/svg+xml` and
-  a restrictive CSP. Colours validated as hex and converted server-side (no
-  raw CSS injection).
+- Branding: logos accepted as PNG/WebP/JPEG only (favicons: square PNG),
+  stored under random names on the public disk. SVG is **not** accepted in
+  V1 (it can carry scripts); if added later it must be sanitised
+  (`enshrined/svg-sanitize`) and served with a restrictive CSP. Colours are
+  validated as `#rrggbb` and converted server-side into numeric OKLCH values
+  (no raw CSS injection). The appearance cookie is validated against the
+  enum before it reaches the inline script.
 - Content Security Policy with nonces for the inline branding style and
   Vite scripts; `default-src 'self'`; `connect-src 'self'`; no third-party
   scripts.

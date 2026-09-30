@@ -22,8 +22,9 @@ const DEV_LOGIN_URL = '/dev/login';
 
 export default function Login({ providers, devLoginUsers }: Props) {
     const { t } = useTranslation('auth');
-    const { name, errors } = usePage<{ errors: Record<string, string> }>()
-        .props;
+    const { name, institution, errors } = usePage<{
+        errors: Record<string, string>;
+    }>().props;
 
     return (
         <>
@@ -35,7 +36,9 @@ export default function Login({ providers, devLoginUsers }: Props) {
                         {t('login.title', { name })}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        {t('login.description')}
+                        {t('login.description', {
+                            institution: institution.name,
+                        })}
                     </p>
                 </div>
 

@@ -60,6 +60,7 @@ cp .env.example .env            # set ADA_DEV_LOGIN=true for local sign-in
 composer install && npm install
 php artisan key:generate
 php artisan migrate --seed      # creates sample users
+php artisan storage:link        # serves uploaded logos
 composer dev                    # app on http://localhost:8000
 ```
 

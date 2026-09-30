@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\LaravelSettings\Settings;
 use Tests\TestCase;
 
 /*
@@ -18,3 +19,14 @@ pest()->extend(TestCase::class)
     ->in('Feature');
 
 pest()->extend(TestCase::class)->in('Unit');
+
+/**
+ * Persist settings values for a test (e.g. updateSettings(AuthSettings::class, [...])).
+ *
+ * @param  class-string<Settings>  $class
+ * @param  array<string, mixed>  $values
+ */
+function updateSettings(string $class, array $values): void
+{
+    app($class)->fill($values)->save();
+}

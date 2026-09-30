@@ -1,11 +1,13 @@
 <?php
 
+use App\Domain\Institution\Settings\AuthSettings;
+
 test('the Google redirect requests OpenID scopes with a state and domain hint', function () {
+    updateSettings(AuthSettings::class, ['allowed_domains' => ['example.edu']]);
     config([
         'services.google.client_id' => 'test-client-id',
         'services.google.client_secret' => 'test-secret',
         'services.google.redirect' => 'http://localhost/auth/google/callback',
-        'ada.auth.allowed_domains' => ['example.edu'],
     ]);
 
     $response = $this->get(route('auth.redirect', 'google'));

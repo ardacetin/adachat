@@ -6,7 +6,7 @@ import type { LucideIcon } from 'lucide-react';
  * A translation key; keys outside the default namespace use the
  * "namespace:key" form (e.g. "settings:profile.title").
  */
-export type TranslationKey = ParseKeys<['common', 'auth', 'settings']>;
+export type TranslationKey = ParseKeys<['common', 'auth', 'settings', 'admin']>;
 
 export type BreadcrumbItem = {
     titleKey: TranslationKey;

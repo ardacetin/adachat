@@ -32,3 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Role gates (`access-admin`, `manage-system`) and shared `can` UI hints.
 - `ada:install` (configuration check) and `ada:user:promote` (break-glass
   role assignment).
+- M3 institution & branding: typed settings (spatie/laravel-settings) for
+  institution and sign-in policy, seeded from `.env` once; admin area
+  (super admin) for institution details, language/time zone, primary colour,
+  logos and favicon, and allowed domains; WCAG-checked OKLCH theme tokens for
+  light and dark mode; institution logo in the sidebar and on sign-in;
+  appearance preference saved per user; append-only audit log with
+  redaction, recording settings changes and CLI role assignments.

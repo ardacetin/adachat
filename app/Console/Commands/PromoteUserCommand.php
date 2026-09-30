@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Audit\AuditLogger;
 use App\Domain\Identity\Enums\UserRole;
 use App\Models\Group;
 use App\Models\User;
@@ -20,7 +21,7 @@ use Illuminate\Validation\Rule;
 #[Description('Create or update a user and assign a role (break-glass access)')]
 class PromoteUserCommand extends Command
 {
-    public function handle(): int
+    public function handle(AuditLogger $audit): int
     {
         $email = mb_strtolower(trim((string) $this->argument('email')));
         $role = (string) $this->option('role');
@@ -53,8 +54,17 @@ class PromoteUserCommand extends Command
             ]);
         }
 
+        $previousRole = $created ? null : $user->role->value;
+
         $user->role = UserRole::from($role);
         $user->save();
+
+        $audit->record(
+            $created ? 'user.created' : 'user.role_changed',
+            $user,
+            $created ? [] : ['role' => $previousRole],
+            ['role' => $user->role->value, 'via' => 'ada:user:promote'],
+        );
 
         $this->components->info(sprintf(
             '%s %s with role [%s].',

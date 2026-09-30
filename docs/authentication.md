@@ -92,9 +92,9 @@ Changes to auth settings are audit-logged. Removing all domains is rejected.
 4. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `AUTH_ALLOWED_DOMAINS`
    in `.env`, then run `php artisan ada:install` to check the configuration.
 
-> **M2 status:** `allowed_domains` and `auto_provision` are read from
-> `config/ada.php` (environment) until the settings store and admin screen
-> land in M3.
+Since M3 both values live in `AuthSettings` (database) and are edited under
+**Administration → Sign-in** by super admins; `.env` only seeds them on the
+first migration.
 
 ## 2. Bootstrapping and recovery
 

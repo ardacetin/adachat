@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Institution\Settings\InstitutionSettings;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -30,7 +31,7 @@ class SetLocale
 
         $candidates = [
             $request->user()?->locale,
-            config('ada.locales.default'),
+            app(InstitutionSettings::class)->default_locale,
         ];
 
         foreach ($candidates as $candidate) {

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Domain\Identity\Services\IdentityProviderRegistry;
+use App\Domain\Institution\Settings\AuthSettings;
 use App\Models\Group;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -10,13 +11,14 @@ use Illuminate\Console\Command;
 
 /**
  * First-run setup. Idempotent: safe to run again after upgrades.
- * Institution settings are seeded here from .env from M3 on.
+ * Initial institution and sign-in settings are seeded from .env by the
+ * settings migrations (database/settings).
  */
 #[Signature('ada:install')]
 #[Description('Prepare a new Ada installation and check its configuration')]
 class InstallCommand extends Command
 {
-    public function handle(IdentityProviderRegistry $providers): int
+    public function handle(IdentityProviderRegistry $providers, AuthSettings $authSettings): int
     {
         $this->components->info('Installing Ada Chat.');
 
@@ -36,8 +38,12 @@ class InstallCommand extends Command
             $problems[] = 'APP_KEY is not set: run php artisan key:generate.';
         }
 
-        if (config('ada.auth.allowed_domains') === []) {
-            $problems[] = 'AUTH_ALLOWED_DOMAINS is empty: nobody can sign in.';
+        if ($authSettings->allowed_domains === []) {
+            $problems[] = 'No allowed sign-in domain is configured (admin panel or AUTH_ALLOWED_DOMAINS): nobody can sign in.';
+        }
+
+        if (! file_exists(public_path('storage'))) {
+            $problems[] = 'Uploaded logos are not publicly reachable: run php artisan storage:link.';
         }
 
         if ($providers->enabledKeys() === []) {

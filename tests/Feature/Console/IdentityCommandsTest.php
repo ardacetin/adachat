@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Institution\Settings\AuthSettings;
 use App\Models\Group;
 use App\Models\User;
 
@@ -33,17 +34,18 @@ test('it rejects invalid input', function (array $arguments) {
 ]);
 
 test('install warns when no domain is allowed', function () {
-    config(['ada.auth.allowed_domains' => []]);
+    updateSettings(AuthSettings::class, ['allowed_domains' => []]);
 
     $this->artisan('ada:install')
-        ->expectsOutputToContain('AUTH_ALLOWED_DOMAINS is empty')
+        ->expectsOutputToContain('No allowed sign-in domain is configured')
         ->assertSuccessful();
 
     expect(Group::query()->where('is_default', true)->count())->toBe(1);
 });
 
 test('install warns when no identity provider is configured', function () {
-    config(['ada.auth.allowed_domains' => ['example.edu'], 'services.google.client_id' => null]);
+    updateSettings(AuthSettings::class, ['allowed_domains' => ['example.edu']]);
+    config(['services.google.client_id' => null]);
 
     $this->artisan('ada:install')
         ->expectsOutputToContain('No identity provider is configured')

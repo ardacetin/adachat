@@ -59,6 +59,7 @@ cp .env.example .env            # yerel giriş için ADA_DEV_LOGIN=true yapın
 composer install && npm install
 php artisan key:generate
 php artisan migrate --seed      # örnek kullanıcıları oluşturur
+php artisan storage:link        # yüklenen logoları yayınlar
 composer dev                    # uygulama: http://localhost:8000
 ```
 
