@@ -13,3 +13,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   authentication, provider architecture, frontend architecture, security and
   V1 roadmap.
 - README (English and Turkish), security policy, contributing guide.
+- License: GNU Affero General Public License v3.0 or later.

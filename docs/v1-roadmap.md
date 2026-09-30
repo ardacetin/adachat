@@ -18,8 +18,8 @@
 ## Milestones
 
 ### M0 — Repository and architecture ✅ (this PR)
-Architecture documents, README (EN/TR), SECURITY, CONTRIBUTING, CHANGELOG.
-License decision pending (no LICENSE file yet).
+Architecture documents, README (EN/TR), SECURITY, CONTRIBUTING, CHANGELOG,
+LICENSE (AGPL-3.0-or-later).
 
 ### M1 — Foundation
 - Laravel 13 + React starter kit; remove password auth scaffolding.

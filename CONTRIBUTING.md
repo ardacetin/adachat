@@ -30,6 +30,11 @@ phase; the best way to contribute right now is to review the documents in
    analyse`, `composer test`, `npm run lint`, `npm run types`, `npm test`.
 5. Open a pull request describing the change and how it was tested.
 
+## License of contributions
+
+Ada Chat is licensed under `AGPL-3.0-or-later`. By contributing, you agree that
+your contributions are licensed under the same license.
+
 ## Developer Certificate of Origin
 
 Contributions are accepted under the [Developer Certificate of Origin

@@ -77,5 +77,7 @@ vulnerabilities.
 
 ## License
 
-The license (AGPL-3.0 or Apache-2.0) has not been decided yet. Until a
-`LICENSE` file is added, no license is granted.
+Ada Chat is licensed under the [GNU Affero General Public License v3.0 or
+later](LICENSE) (`AGPL-3.0-or-later`). If you run a modified version of Ada for
+users over a network, you must make the source code of your modified version
+available to those users.

@@ -75,5 +75,7 @@ modellerini ve bütçelerini yapılandırır. İlk production kurulumu Beykoz
 
 ## Lisans
 
-Lisans (AGPL-3.0 veya Apache-2.0) henüz belirlenmedi. `LICENSE` dosyası
-eklenene kadar herhangi bir lisans verilmemektedir.
+Ada Chat, [GNU Affero General Public License v3.0 veya sonrası](LICENSE)
+(`AGPL-3.0-or-later`) ile lisanslanmıştır. Ada'nın değiştirilmiş bir sürümünü
+kullanıcılara ağ üzerinden sunarsanız, değiştirilmiş sürümün kaynak kodunu bu
+kullanıcılara erişilebilir kılmanız gerekir.
