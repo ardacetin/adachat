@@ -224,3 +224,23 @@ test('the admin sign-in page shows the values to enter in Google Admin', functio
             ->where('saml.certificate.expires_at', gmdate('Y-m-d', strtotime('+365 days')))
             ->missing('saml.idp_x509_cert'));
 });
+
+test('the certificate can be given as a file path', function (string $key) {
+    $path = tempnam(sys_get_temp_dir(), 'idp');
+    file_put_contents($path, $this->idp['cert']);
+    config(['ada.auth.saml.idp_x509_cert' => null, "ada.auth.saml.{$key}" => $path]);
+
+    try {
+        $requestId = startSignIn();
+        postAcs(samlResponse($requestId))->assertRedirect(route('home'));
+        $this->assertAuthenticated();
+    } finally {
+        unlink($path);
+    }
+})->with(['in SAML_IDP_CERT_PATH' => 'idp_x509_cert_path', 'in SAML_IDP_CERT' => 'idp_x509_cert']);
+
+test('an unreadable certificate path leaves sign-in unconfigured', function () {
+    config(['ada.auth.saml.idp_x509_cert' => '/nonexistent/google.pem']);
+
+    $this->get(route('login'))->assertInertia(fn ($page) => $page->where('providers', []));
+});

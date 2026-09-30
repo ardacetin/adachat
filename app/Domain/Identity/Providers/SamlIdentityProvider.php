@@ -304,6 +304,11 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
         $pem = $this->config['idp_x509_cert'] ?? null;
         $path = $this->config['idp_x509_cert_path'] ?? null;
 
+        // A file path given in SAML_IDP_CERT instead of SAML_IDP_CERT_PATH is accepted too.
+        if (is_string($pem) && ! str_contains($pem, 'BEGIN CERTIFICATE') && str_starts_with(trim($pem), '/')) {
+            [$pem, $path] = [null, trim($pem)];
+        }
+
         if ((! is_string($pem) || trim($pem) === '') && is_string($path) && $path !== '' && is_readable($path)) {
             $pem = (string) file_get_contents($path);
         }
