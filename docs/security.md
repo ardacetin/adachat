@@ -1,6 +1,7 @@
 # Security
 
-> Status: **Proposed (M0)**. Threat-oriented overview; the public
+> Status: **Accepted; applied through M5** (sign-in checks, roles, encrypted
+> provider keys, audit log, append-only ledger). Threat-oriented overview; the public
 > vulnerability disclosure policy is in [`SECURITY.md`](../SECURITY.md).
 
 ## 1. Assets and actors

@@ -1,6 +1,8 @@
 # Architecture
 
-> Status: **Proposed (M0)** — subject to review before implementation starts.
+> Status: **Accepted; implemented through M5** (foundation, identity,
+> settings/branding, providers, budget engine). Conversations and streaming
+> chat follow in M6; the roadmap tracks the rest.
 
 Ada Chat is an **institutional AI gateway with a chat interface**. It is not a
 "ChatGPT clone": the chat UI is one consumer of a core that handles identity,

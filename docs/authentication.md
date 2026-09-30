@@ -1,6 +1,7 @@
 # Authentication
 
-> Status: **Proposed (M0)**. Location: `app/Domain/Identity`.
+> Status: **Implemented (M2)**; allowed domains are admin-managed since M3.
+> Location: `app/Domain/Identity`.
 
 V1 supports **Google Workspace sign-in (OAuth 2.0 / OpenID Connect)** only,
 restricted to configured domains. There is **no password login**. The

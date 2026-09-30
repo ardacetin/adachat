@@ -1,6 +1,7 @@
 # Frontend Architecture
 
-> Status: **Proposed (M0)**.
+> Status: **Partially implemented** — foundation, i18n, theming/branding,
+> settings and admin screens (M1–M4). The chat UI follows in M6.
 
 ## 1. Foundation
 

@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **Proposed (M0)**. Milestones are small and independently
+> Status: **M0–M5 done**, M6 next. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -17,11 +17,11 @@
 
 ## Milestones
 
-### M0 — Repository and architecture ✅ (this PR)
+### M0 — Repository and architecture ✅
 Architecture documents, README (EN/TR), SECURITY, CONTRIBUTING, CHANGELOG,
 LICENSE (AGPL-3.0-or-later).
 
-### M1 — Foundation
+### M1 — Foundation ✅
 - Laravel 13 + React starter kit; remove password auth scaffolding.
 - MySQL 8.4 as default connection (UTC), `dateTime()` columns convention.
 - `app/Domain` skeleton, `config/ada.php`.
@@ -34,20 +34,20 @@ LICENSE (AGPL-3.0-or-later).
 - Dev environment: `docker-compose.yml` (MySQL, Redis, Mailpit), `.env.example`.
 - **Done when:** app boots, CI green, TR/EN switch works on a sample page.
 
-### M2 — Identity
+### M2 — Identity ✅
 - Google sign-in with `state`, `email_verified`, `hd` and domain checks.
 - `user_identities`, JIT provisioning, default group, roles, `EnsureUserIsActive`.
 - `ada:install`, `ada:user:promote`, local-only dev login.
 - **Done when:** all auth tests in [authentication.md §6](authentication.md#6-tests) pass.
 
-### M3 — Institution settings and branding
+### M3 — Institution settings and branding ✅
 - `InstitutionSettings`, `AuthSettings` (spatie/laravel-settings), seeded from `.env`.
 - Admin screens: institution settings, auth settings (allowed domains).
 - Logo/dark logo/favicon upload, primary colour → OKLCH tokens with contrast check.
 - User preferences: language, appearance (persisted).
 - Audit logger foundation (used from here on).
 
-### M4 — Providers, models and aliases
+### M4 — Providers, models and aliases ✅
 - `providers`, `provider_credentials` (encrypted, masked), `ai_models`, `model_aliases`.
 - Admin CRUD for providers, credentials, models, aliases, prices.
 - `ChatProvider` with direct-HTTP adapters for OpenAI (Responses),
@@ -57,7 +57,7 @@ LICENSE (AGPL-3.0-or-later).
   margin config, failure policy.
 - Contract tests with documented-format SSE fixtures; opt-in live tests.
 
-### M5 — Budget engine core (parallel with M3/M4)
+### M5 — Budget engine core ✅
 - `budget_policies`, `budget_periods`, `budget_reservations`, `usage_events`.
 - `Usd` value object, `CostCalculator`, `ReservationSizer`, reserve/settle/
   release/expire, append-only guards, reconciliation command, scheduler jobs.

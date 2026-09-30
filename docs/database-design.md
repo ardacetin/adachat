@@ -1,6 +1,8 @@
 # Database Design
 
-> Status: **Proposed (M0)**. Target engine: **MySQL 8.4 LTS**, InnoDB,
+> Status: **Implemented through M5** (users, groups, identities, settings,
+> audit log, providers/models/aliases, budget tables); conversations and
+> messages follow in M6. Target engine: **MySQL 8.4 LTS**, InnoDB,
 > character set `utf8mb4`.
 
 ## 1. Global conventions
