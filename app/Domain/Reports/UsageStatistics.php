@@ -278,6 +278,9 @@ final class UsageStatistics
         return $this->events($filters)->where('e.type', UsageEventType::Charge->value);
     }
 
+    /**
+     * @param  int<0, max>  $scale
+     */
     private static function money(mixed $value, int $scale = 2): string
     {
         $usd = $value instanceof Usd ? $value : Usd::of(is_numeric($value) ? (string) $value : '0');
