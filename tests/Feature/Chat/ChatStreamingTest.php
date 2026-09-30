@@ -17,6 +17,7 @@ use App\Models\UsageEvent;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
     $provider = Provider::factory()->create(['driver' => 'openai']);
@@ -297,4 +298,18 @@ test('the chat page lists only the user\'s allowed aliases and conversations', f
             ->has('aliases', 1)
             ->where('aliases.0.id', $this->alias->id)
             ->loadDeferredProps(fn ($reload) => $reload->has('conversations', 1)->where('conversations.0.title', 'Benim')));
+});
+
+test('the provider\'s reason for refusing a request is logged for administrators', function () {
+    Log::spy();
+    fakeOpenAi(error: ['status' => 400, 'body' => ['error' => ['code' => 'model_not_found', 'message' => 'The model `gpt-9` does not exist.']]]);
+
+    $events = sendMessage(['content' => 'Selam', 'model_alias_id' => $this->alias->id]);
+
+    expect($events[1]['data']['code'])->toBe('invalid_request');
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $message, array $context) => $message === 'AI provider request failed.'
+        && $context['code'] === 'invalid_request'
+        && $context['status'] === 400
+        && str_contains($context['provider'], 'model_not_found')
+        && ! str_contains(json_encode($context), 'Selam'));
 });

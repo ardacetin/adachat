@@ -520,6 +520,9 @@ Differences from the sections above:
   users (group members without an individual override) **who already have a
   period this month**; everyone else gets the new limit when their period is
   created. `ada:user:budget` does the same for one user's override.
+- **Monitoring (M9):** the reports page lists overshoots (charge above its
+  reservation) and the counter deviation per model and counting method
+  (billed input vs. counted input with margin), to tune `safety_margins`.
 - **Adjustments in the UI (M8):** super administrators record a charge
   (positive) or credit (negative) with a reason on the user page; it calls
   `adjust()`, so a credit larger than this month's spending is refused.

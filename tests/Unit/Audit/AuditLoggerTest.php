@@ -27,3 +27,8 @@ test('diff keeps only changed values', function () {
     expect($old)->toBe(['color' => null, 'domains' => ['a.edu']])
         ->and($new)->toBe(['color' => '#1e40af', 'domains' => ['a.edu', 'b.edu']]);
 });
+
+test('token limits are not mistaken for secrets', function () {
+    expect(AuditLogger::redact(['max_output_tokens' => 4096, 'remember_token' => 'abc', 'token' => 'x']))
+        ->toBe(['max_output_tokens' => 4096, 'remember_token' => AuditLogger::REDACTED, 'token' => AuditLogger::REDACTED]);
+});

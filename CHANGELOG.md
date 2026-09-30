@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Provider errors (e.g. an unknown model or an unsupported parameter) are
+  logged with the provider's reason, so administrators can see why the chat
+  showed "The AI service rejected the request".
+- The audit log no longer hides `max_output_tokens` (it is not a secret).
 - Provider streams are read line by line, so answers are shown as they are
   generated instead of arriving in 8 KiB blocks.
 
@@ -25,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M9 dashboard and reports: the admin overview shows this month's
+  spending, requests, active users and average per user against last month,
+  daily spending, top models and groups, users at their limit and an
+  overshoot alert. `/admin/reports` filters by date range, group, provider,
+  model and user, breaks spending down by model, group, provider or user,
+  charts it per day or month and lists budget overshoots and token counter
+  deviation.
 - M8 administration: a **users** screen (search; filters by group, role and
   status; this month's budget and spending; last activity) and a user page
   to change the group, set an individual budget, disable or enable the

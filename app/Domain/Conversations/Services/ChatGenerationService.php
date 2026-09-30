@@ -21,6 +21,7 @@ use App\Domain\Conversations\Data\ChatStreamEvent;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Exceptions\ChatRefused;
 use App\Domain\Usage\Enums\UsageEventStatus;
+use App\Models\AiModel;
 use App\Models\BudgetReservation;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -33,6 +34,7 @@ use Generator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Throwable;
@@ -141,6 +143,7 @@ final class ChatGenerationService
 
             return;
         } catch (ProviderException $failed) {
+            self::logProviderFailure($failed, $model);
             yield self::error($failed->code(), $failed->retryable());
 
             return;
@@ -246,6 +249,7 @@ final class ChatGenerationService
                 }
             }
         } catch (ProviderException $exception) {
+            self::logProviderFailure($exception, $alias->aiModel);
             $failure = $exception;
         } catch (Throwable $exception) {
             report($exception);
@@ -361,5 +365,21 @@ final class ChatGenerationService
             'retryable' => $retryable,
             'assistant_message_id' => $assistantMessageId,
         ], fn ($value) => $value !== null));
+    }
+
+    /**
+     * The provider's reason ("HTTP 400 — model_not_found — …") for the
+     * administrator; users only see the translated error code. The message
+     * never contains keys or prompts (ErrorMapper).
+     */
+    private static function logProviderFailure(ProviderException $exception, AiModel $model): void
+    {
+        Log::warning('AI provider request failed.', [
+            'code' => $exception->code(),
+            'status' => $exception->status,
+            'model' => $model->provider_model_id,
+            'ai_model_id' => $model->id,
+            'provider' => $exception->getMessage(),
+        ]);
     }
 }

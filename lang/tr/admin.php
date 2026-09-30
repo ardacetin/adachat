@@ -7,6 +7,8 @@ return [
     'group_not_deletable' => 'Varsayılan grup ve üyesi olan gruplar silinemez.',
     'last_super_admin' => 'Son etkin süper yönetici düşürülemez veya devre dışı bırakılamaz.',
     'credit_exceeds_spent' => 'İade, bu ay harcanan tutardan büyük olamaz.',
+    'report_range_order' => 'Bitiş tarihi başlangıçtan önce olamaz.',
+    'report_range_too_long' => 'Bir rapor en fazla :days günü kapsayabilir.',
     'primary_color_contrast' => 'Bu renk çok açık: düğmelerin okunabilir kalması için beyaza karşı en az 3:1 kontrast gerekir.',
     'alias_max_tokens' => 'Çıktı sınırı modelin üst sınırını (:max token) aşamaz.',
 

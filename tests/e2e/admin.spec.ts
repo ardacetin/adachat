@@ -109,6 +109,13 @@ test('a super administrator manages models, groups and a user budget', async ({
         entries.filter({ hasText: 'user.group_changed' }).first(),
     ).toBeVisible();
 
+    // Dashboard and reports show this month's figures.
+    await page.goto('/admin');
+    await expect(page.getByTestId('kpi-spend')).toContainText('$');
+    await page.goto('/admin/reports?by=user');
+    await expect(page.getByTestId('report-spend')).toBeVisible();
+    await expect(page.getByText('Token counter deviation')).toBeVisible();
+
     // The user sees the new model and budget.
     await logOut(page, 'Sample Super Admin');
     await signInAs(page, 'Sample Admin');

@@ -7,6 +7,8 @@ return [
     'group_not_deletable' => 'The default group and groups with members cannot be deleted.',
     'last_super_admin' => 'The last active super administrator cannot be demoted or disabled.',
     'credit_exceeds_spent' => 'A credit cannot be larger than what was spent this month.',
+    'report_range_order' => 'The end date must not be before the start date.',
+    'report_range_too_long' => 'A report can cover at most :days days.',
     'primary_color_contrast' => 'This colour is too light: it needs a contrast of at least 3:1 against white so buttons stay readable.',
     'alias_max_tokens' => 'The output limit cannot exceed the model maximum (:max tokens).',
 

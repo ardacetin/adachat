@@ -10,8 +10,8 @@ administrative controls.
 > **Status: early development.** Milestones M0–M7 are done: foundation,
 > Google Workspace (SAML) sign-in, institution settings and branding, AI
 > providers and model aliases, the budget engine, streaming chat, groups,
-> budget policies and user usage, and administration of users and the audit
-> log. Next: dashboard and reports (M9). The
+> budget policies and user usage, administration of users and the audit
+> log, and the dashboard and reports. Next: hardening (M10). The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
 
