@@ -2,6 +2,7 @@
 
 use App\Models\AiModel;
 use App\Models\AuditLog;
+use App\Models\Group;
 use App\Models\ModelAlias;
 use App\Models\Provider;
 use App\Models\User;
@@ -144,4 +145,43 @@ test('changing the backing model is audited', function () {
     $log = AuditLog::query()->where('action', 'model_alias.updated')->sole();
     expect($log->old_values['ai_model_id'])->toBe($alias->ai_model_id)
         ->and($log->new_values['ai_model_id'])->toBe($other->id);
+});
+
+test('new aliases are available to the default group', function () {
+    $model = AiModel::factory()->create();
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->post(route('admin.aliases.store'), aliasPayload($model))
+        ->assertSessionHasNoErrors();
+
+    expect(ModelAlias::query()->sole()->groups->pluck('id')->all())->toBe([Group::default()->id])
+        ->and(AuditLog::query()->sole()->new_values['group_ids'])->toBe([Group::default()->id]);
+});
+
+test('changing an alias\'s groups is audited', function () {
+    $alias = ModelAlias::factory()->create(['slug' => 'ada-smart']);
+    $alias->groups()->attach(Group::default());
+    $staff = Group::factory()->create();
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->put(route('admin.aliases.update', $alias), aliasPayload($alias->aiModel, [
+            'name' => $alias->name,
+            'max_output_tokens' => '',
+            'group_ids' => [$staff->id],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($alias->groups()->pluck('groups.id')->all())->toBe([$staff->id]);
+
+    $log = AuditLog::query()->where('action', 'model_alias.updated')->sole();
+    expect($log->old_values['group_ids'])->toBe([Group::default()->id])
+        ->and($log->new_values['group_ids'])->toBe([$staff->id]);
+});
+
+test('alias groups must exist', function () {
+    $model = AiModel::factory()->create();
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->post(route('admin.aliases.store'), aliasPayload($model, ['group_ids' => [999999]]))
+        ->assertSessionHasErrors('group_ids.0');
 });

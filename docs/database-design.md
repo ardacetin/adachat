@@ -446,17 +446,20 @@ Purpose: money held for in-flight requests; state machine
 | id | CHAR(36) UUIDv7 PK | | |
 | conversation_id | CHAR(36) | | |
 | parent_message_id | CHAR(36) | yes | tree for regenerate/branching |
-| role | VARCHAR(16) | | `user` \| `assistant` \| `system` |
+| role | VARCHAR(16) | | `user` \| `assistant` (CHECK constraint; the system prompt comes from the alias and is not stored) |
 | content | MEDIUMTEXT | | Markdown/plain text |
 | status | VARCHAR(16) | | `completed` \| `streaming` \| `failed` \| `cancelled` |
 | error_code | VARCHAR(64) | yes | stable, translatable |
 | finish_reason | VARCHAR(32) | yes | `stop`, `length`, `content_filter`, `cancelled` |
 | model_alias_id | BIGINT UNSIGNED | yes | alias chosen by the user |
 | ai_model_id | BIGINT UNSIGNED | yes | concrete model actually used |
-| metadata | JSON | yes | future: attachments, tool calls, citations |
+| reservation_id | CHAR(36) | yes | budget reservation of the generating answer (no FK; used by the cleanup job) |
+| metadata | JSON | yes | e.g. `output_capped`; future: attachments, tool calls, citations |
 | created_at, updated_at | DATETIME | | |
 
+- `status` is also covered by the CHECK constraint.
 - Indexes: `INDEX(conversation_id, created_at)`, `INDEX(parent_message_id)`,
+  `INDEX(reservation_id)`,
   `INDEX(status, updated_at)` (stale streaming cleanup).
 - FKs: `conversation_id → conversations.id ON DELETE CASCADE`,
   `parent_message_id → messages.id ON DELETE CASCADE`,

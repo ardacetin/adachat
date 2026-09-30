@@ -92,27 +92,37 @@ client-side state that outlives a render is the in-flight generation, handled
 by one hook.
 
 ```ts
-const { send, stop, status, draft, error } = useChatStream({
-  conversationId,
-  onStarted: (ids) => …,           // replace optimistic user message ids
-  onCompleted: (result) => …,      // append final assistant message, refresh budget
+const { status, draft, run, stop } = useChatStream();
+await run(url, body, {
+  onStarted: (event) => …,   // new conversation: move to /c/{id}
+  onCompleted: (event) => …, // reload the conversation props
+  onError: (code) => …,
 });
-// status: 'idle' | 'connecting' | 'streaming' | 'error'
+// status: 'idle' | 'streaming'; draft: the streaming answer's text
 ```
 
-Implementation:
+As built (M6), in `resources/js/hooks/use-chat-stream.ts`:
 
-- `fetch(url, { method: 'POST', headers: { 'X-XSRF-TOKEN', Accept: 'text/event-stream' }, body, signal })`.
-- Response body read via `ReadableStream`, parsed with `eventsource-parser`
-  (~2 kB); typed events: `message.started`, `delta`, `message.completed`,
-  `error` (see [architecture.md §6](architecture.md#6-streaming-architecture)).
+- `fetch(url, { method: 'POST', headers: { 'X-XSRF-TOKEN', Accept: 'text/event-stream' }, body, signal })`;
+  the XSRF token is read from Laravel's cookie (`lib/xsrf.ts`).
+- A response that is not `text/event-stream` is a refusal before anything was
+  stored (JSON with a stable `code`: budget, rate limit, alias not allowed…).
+- The body is read via `ReadableStream` and parsed with `eventsource-parser`;
+  typed events: `message.started`, `delta`, `message.completed`, `error` (see
+  [architecture.md §6](architecture.md#6-streaming-architecture)).
 - Deltas are accumulated in a ref and flushed to state with
   `requestAnimationFrame` to avoid re-rendering on every token.
-- **Stop:** `AbortController.abort()` + `POST /messages/{id}/cancel`.
-- Errors carry stable codes → `t('chat.errors.<code>')`; budget exhaustion
-  shows the `BudgetExhaustedAlert` with reset date.
+- **Stop:** `POST /chat/messages/{id}/cancel`; the server ends the stream
+  with `message.completed` (`status: cancelled`). The fetch is aborted only if
+  the stream has not ended 5 seconds later.
+- Errors carry stable codes → `t('chat:errors.<code>')`.
 - Leaving the page aborts the stream; revisiting shows the persisted partial
   message (the server persisted it).
+
+Components: `pages/chat/{index,show}.tsx`, `components/chat/` (`chat-view`,
+`message-item`, `composer`, `markdown`, `code-block`, `conversation-list`) and
+`components/models/model-selector.tsx`. The conversation list is a deferred
+prop shared by both pages.
 
 ## 5. Markdown rendering
 
@@ -123,9 +133,9 @@ Implementation:
 - Code blocks: language label, copy button, syntax highlighting with
   **Shiki** loaded lazily (dynamic import of the highlighter and only the
   requested language grammars), falling back to plain `<pre>` while loading.
-- Streaming performance: split the message into top-level blocks and memoize
-  completed blocks so only the last block re-renders while tokens arrive.
-  `streamdown` is evaluated in M6 as an alternative.
+- Streaming performance: completed messages are memoized, so only the
+  streaming answer re-renders (at most once per animation frame). Splitting
+  it into memoized blocks is left for when long answers show a need.
 - Images in model output are not rendered in V1 (text link instead) to avoid
   tracking-pixel leaks.
 
@@ -237,6 +247,12 @@ active locale and the institution timezone.
 - **Vitest + Testing Library:** `useChatStream` (event parsing, abort, error
   codes), markdown renderer security (raw HTML, `javascript:` links),
   budget indicator formatting, model selector.
-- **Playwright (E2E)** against a fake provider driver: login (dev login),
+- **Playwright (E2E)** against a mock provider: login (dev login),
   new conversation with streaming, stop generating, budget exhausted, language
   switch, admin model/alias management, admin budget management.
+  As built (M6): `tests/e2e/chat.spec.ts` covers the chat flows (streamed
+  Markdown answer, stop and partial answer after reload, regenerate, Turkish).
+  Ada talks to `tests/e2e/mock-provider.mjs`, a small Node server speaking the
+  OpenAI Responses API, configured as a normal provider by
+  `tests/e2e/seed.php`; `playwright.config.ts` starts both servers. CI runs it
+  as the `e2e` job. Vitest is not set up yet.

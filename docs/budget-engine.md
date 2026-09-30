@@ -507,8 +507,11 @@ Differences from the sections above:
   period (`spent_usd` never goes negative). Authorization is the caller's
   concern (super admin, M8 UI).
 - **Not yet implemented:** the local-tokenizer counting path, count caching
-  and retry (§5.1), and settling expired reservations from partially streamed
-  messages (§11) — the cleanup job only expires until messages exist (M6).
+  and retry (§5.1).
+- **Partially streamed messages (M6):** when an expired reservation belongs
+  to an answer still marked `streaming` (the PHP process died), the cleanup
+  job settles it as `partial` with the stored text estimated as output, and
+  marks the message `failed` (`generation_interrupted`).
 - The optional database triggers for `usage_events` are not shipped; the
   model guard enforces append-only.
 
