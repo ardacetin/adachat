@@ -49,3 +49,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and an `estimate`/`reject` fallback policy; admin screens (super admin,
   audited) for providers, models and aliases with a "Test connection" check;
   `ada:provider:check`; opt-in live provider tests.
+- M5 budget engine: `budget_policies` (Default policy on install),
+  per-user monthly `budget_periods` in the institution time zone (created
+  lazily, limit snapshot), `budget_reservations` (UUIDv7) and the append-only
+  `usage_events` ledger with price snapshots; group policy, concurrent stream
+  limit and personal limit override columns. Exact USD arithmetic (`Usd`,
+  brick/math, 10 decimals, rounded up), tiered pricing, cost calculation,
+  reservation sizing (counted input + margin + maximum output, output capped
+  to the remaining budget, context-window cap), row-locked reserve / settle /
+  release / expire, idempotent and late settlement, overshoot logging,
+  adjustments, "apply to current period", `ada:budget:expire-reservations`
+  and `ada:budget:reconcile` (scheduled); multi-process concurrency tests.

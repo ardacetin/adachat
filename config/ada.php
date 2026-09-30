@@ -78,6 +78,21 @@ return [
         // When a token-count endpoint fails: 'estimate' (conservative
         // heuristic) or 'reject' (refuse the request, retryable).
         'on_counter_failure' => env('ADA_ON_COUNTER_FAILURE', 'estimate'),
+
+        // Monthly limit of the Default policy created on installation (USD,
+        // a decimal string: money is never a float). Changed later in the
+        // admin panel.
+        'default_monthly_limit_usd' => (string) env('ADA_DEFAULT_MONTHLY_LIMIT_USD', '10'),
+
+        // Requests are refused rather than capped below this many output tokens.
+        'min_useful_output_tokens' => (int) env('ADA_MIN_USEFUL_OUTPUT_TOKENS', 256),
+
+        // Seconds added to the provider timeout before an unfinished
+        // reservation is considered abandoned and expired.
+        'reservation_grace_seconds' => 120,
+
+        // MySQL lock wait for budget transactions, seconds.
+        'lock_wait_timeout' => 5,
     ],
 
 ];

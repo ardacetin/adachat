@@ -14,6 +14,7 @@
     "license": "AGPL-3.0-or-later",
     "require": {
         "php": "^8.4",
+        "brick/math": "^1.0",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
         "laravel/socialite": "^5.31",

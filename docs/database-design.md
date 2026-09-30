@@ -209,9 +209,11 @@ Purpose: organisational policy unit (Standard Personnel, Academics, IT…).
 - Indexes: `UNIQUE(name)`, `INDEX(budget_policy_id)`.
 - FKs: `budget_policy_id → budget_policies.id ON DELETE RESTRICT`.
 - M2 creates the table with `name`, `description`, `is_default` and inserts
-  the default group in the same migration; the policy and rate-limit columns
-  are added with the budget engine (M5/M7).
-- Seed: a `Default` group with the default policy, created by `ada:install`.
+  the default group in the same migration; M5 adds `budget_policy_id`
+  (existing groups get the Default policy), `requests_per_minute` (default
+  20, enforced from M6/M7) and `max_concurrent_streams` (default 2).
+- Seed: the migrations create the `Default` group and the `Default` policy
+  (limit from `ADA_DEFAULT_MONTHLY_LIMIT_USD`, default `10`).
 
 ### 5.4 `group_model_alias`
 
@@ -482,7 +484,7 @@ Purpose: immutable financial record of every charge.
 | provider_id | BIGINT UNSIGNED | yes | |
 | ai_model_id | BIGINT UNSIGNED | yes | |
 | model_alias_id | BIGINT UNSIGNED | yes | |
-| source | VARCHAR(16) | | `chat` (later `api`) |
+| source | VARCHAR(16) | | `chat`, `admin` (adjustments); later `api` |
 | input_tokens | INT UNSIGNED | | non-cached input |
 | cached_input_tokens | INT UNSIGNED | | cache reads |
 | cache_write_tokens | INT UNSIGNED | | cache writes |
@@ -513,7 +515,10 @@ Purpose: immutable financial record of every charge.
   `provider_id`, `ai_model_id`, `model_alias_id` → `ON DELETE RESTRICT`.
   `conversation_id` and `message_id` have **no FK**, so conversation retention
   and user deletion of chats never cascade into the ledger.
-- Constraints: token counts `>= 0`; `CHECK (type = 'adjustment' OR total_cost_usd >= 0)`.
+- Constraints: token counts `>= 0` (unsigned); one `CHECK`: `type` and
+  `status` values, all costs `>= 0` unless `type = 'adjustment'`, and
+  adjustments require a `reason`.
+- The `budget_period_id` FK index serves `INDEX(budget_period_id)`.
 
 **Append-only enforcement**
 

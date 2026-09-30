@@ -62,7 +62,8 @@ LICENSE (AGPL-3.0-or-later).
 - `Usd` value object, `CostCalculator`, `ReservationSizer`, reserve/settle/
   release/expire, append-only guards, reconciliation command, scheduler jobs.
 - Full test plan from [budget-engine.md §17](budget-engine.md#17-test-plan),
-  including multi-process concurrency tests.
+  including multi-process concurrency tests. As built:
+  [budget-engine.md §18](budget-engine.md#18-implementation-m5).
 
 ### M6 — Streaming chat end-to-end
 - Conversations/messages, `ChatGenerationService`, SSE endpoint, cancel endpoint.

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Domain\Budget\Money\Usd;
+use App\Domain\Budget\Money\UsdCast;
 use App\Domain\Identity\Enums\Appearance;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
@@ -25,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $avatar_url
  * @property UserRole $role
  * @property int $group_id
+ * @property Usd|null $monthly_limit_override_usd Individual limit; null → the group's policy.
  * @property string|null $locale
  * @property Appearance $appearance
  * @property UserStatus $status
@@ -54,6 +57,7 @@ class User extends Authenticatable
         'role' => 'user',
         'appearance' => 'system',
         'status' => 'active',
+        'monthly_limit_override_usd' => null,
     ];
 
     /**
@@ -67,6 +71,7 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'appearance' => Appearance::class,
             'status' => UserStatus::class,
+            'monthly_limit_override_usd' => UsdCast::class,
             'disabled_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
@@ -79,6 +84,14 @@ class User extends Authenticatable
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * @return HasMany<BudgetPeriod, $this>
+     */
+    public function budgetPeriods(): HasMany
+    {
+        return $this->hasMany(BudgetPeriod::class);
     }
 
     /**
