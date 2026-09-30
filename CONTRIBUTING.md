@@ -26,8 +26,9 @@ phase; the best way to contribute right now is to review the documents in
 1. Open an issue (or comment on an existing one) before larger changes.
 2. Fork and create a branch from `main`.
 3. Make focused commits; keep PRs small.
-4. Run the checks locally (available from M1): `composer lint`, `composer
-   analyse`, `composer test`, `npm run lint`, `npm run types`, `npm test`.
+4. Run the checks locally: `composer lint:check`, `composer types:check`
+   (Larastan), `php artisan test`, `npm run check`, `npm run types:check`,
+   `npm run i18n:check` — or everything at once with `composer ci:check`.
 5. Open a pull request describing the change and how it was tested.
 
 ## License of contributions

@@ -1,0 +1,27 @@
+{
+    "title": "Settings",
+    "description": "Manage your profile and preferences.",
+    "nav": {
+        "profile": "Profile",
+        "language": "Language",
+        "appearance": "Appearance"
+    },
+    "profile": {
+        "title": "Profile",
+        "description": "Your name and e-mail address come from your institutional account and cannot be changed here.",
+        "name": "Name",
+        "email": "E-mail address"
+    },
+    "language": {
+        "title": "Language",
+        "description": "Choose the language of the interface.",
+        "label": "Interface language"
+    },
+    "appearance": {
+        "title": "Appearance",
+        "description": "Choose how Ada looks on this device.",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    }
+}

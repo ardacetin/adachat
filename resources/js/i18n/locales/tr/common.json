@@ -1,0 +1,22 @@
+{
+    "nav": {
+        "home": "Ana sayfa",
+        "settings": "Ayarlar",
+        "logOut": "Çıkış yap",
+        "menu": "Menü",
+        "navigation": "Gezinme"
+    },
+    "home": {
+        "title": "Ana sayfa",
+        "welcome": "Hoş geldiniz, {{name}}",
+        "intro": "Ada kuruluyor. Sohbet özelliği yakında gelecek bir sürümde kullanıma açılacak; bu arada ayarlardan dil ve görünüm tercihlerinizi belirleyebilirsiniz.",
+        "openSettings": "Ayarları aç"
+    },
+    "actions": {
+        "save": "Kaydet"
+    },
+    "locales": {
+        "en": "English",
+        "tr": "Türkçe"
+    }
+}

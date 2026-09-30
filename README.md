@@ -7,8 +7,8 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: architecture phase (M0).** There is no application code yet. The
-> architecture is documented in [`docs/`](docs/) and is open for review.
+> **Status: early development (M1 — foundation).** The architecture is
+> documented in [`docs/`](docs/); see the [roadmap](docs/v1-roadmap.md).
 
 ## Why Ada?
 
@@ -48,6 +48,23 @@ file uploads and multi-tenant SaaS.
 
 PHP 8.4+, Laravel 13, MySQL 8.4 LTS, Redis, Inertia.js, React, TypeScript,
 Tailwind CSS and shadcn/ui — deployed as a single application.
+
+## Development
+
+Requirements: PHP 8.4+, Composer, Node.js 22+, Docker (for MySQL/Redis/Mailpit)
+or a local MySQL 8.4.
+
+```bash
+docker compose up -d            # MySQL 8.4, Redis, Mailpit
+cp .env.example .env            # set ADA_DEV_LOGIN=true for local sign-in
+composer install && npm install
+php artisan key:generate
+php artisan migrate --seed      # creates sample users
+composer dev                    # app on http://localhost:8000
+```
+
+Google sign-in arrives in M2; until then use the development login on the
+sign-in page. Run all checks with `composer ci:check`.
 
 ## Documentation
 

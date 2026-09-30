@@ -7,8 +7,8 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: mimari aşama (M0).** Henüz uygulama kodu yok. Mimari
-> [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir ve incelemeye açıktır.
+> **Durum: erken geliştirme (M1 — temel altyapı).** Mimari [`docs/`](docs/)
+> klasöründe (İngilizce) belgelenmiştir; bkz. [yol haritası](docs/v1-roadmap.md).
 
 ## Neden Ada?
 
@@ -47,6 +47,23 @@ dosya yükleme ve multi-tenant SaaS.
 
 PHP 8.4+, Laravel 13, MySQL 8.4 LTS, Redis, Inertia.js, React, TypeScript,
 Tailwind CSS ve shadcn/ui — tek uygulama olarak deploy edilir.
+
+## Geliştirme
+
+Gereksinimler: PHP 8.4+, Composer, Node.js 22+, Docker (MySQL/Redis/Mailpit
+için) veya yerel MySQL 8.4.
+
+```bash
+docker compose up -d            # MySQL 8.4, Redis, Mailpit
+cp .env.example .env            # yerel giriş için ADA_DEV_LOGIN=true yapın
+composer install && npm install
+php artisan key:generate
+php artisan migrate --seed      # örnek kullanıcıları oluşturur
+composer dev                    # uygulama: http://localhost:8000
+```
+
+Google ile giriş M2'de gelecek; o zamana kadar giriş sayfasındaki geliştirme
+girişini kullanın. Tüm kontroller: `composer ci:check`.
 
 ## Belgeler
 

@@ -25,10 +25,12 @@ LICENSE (AGPL-3.0-or-later).
 - Laravel 13 + React starter kit; remove password auth scaffolding.
 - MySQL 8.4 as default connection (UTC), `dateTime()` columns convention.
 - `app/Domain` skeleton, `config/ada.php`.
-- i18n infrastructure (i18next namespaces, `lang/{en,tr}`), literal-string
-  lint rule, key parity check.
-- CI: Pint, Larastan, Pest (MySQL service), ESLint, `tsc`, Prettier,
-  `composer audit`, `npm audit`.
+- i18n infrastructure (i18next namespaces, `lang/{en,tr}`), hard-coded UI
+  text check, key parity check.
+- Development-only login (pulled forward from M2 so the app is usable
+  before Google sign-in exists).
+- CI: Pint, Larastan, Pest (MySQL service), Vite+ lint/format
+  (oxlint/oxfmt), `tsc`, `composer audit`, `npm audit`.
 - Dev environment: `docker-compose.yml` (MySQL, Redis, Mailpit), `.env.example`.
 - **Done when:** app boots, CI green, TR/EN switch works on a sample page.
 

@@ -5,11 +5,12 @@
 ## 1. Foundation
 
 - Start from the official **Laravel React starter kit** (Laravel 13):
-  React 19, TypeScript, Inertia.js v2, Tailwind CSS v4, shadcn/ui, Vite.
+  React 19, TypeScript, Inertia.js v3, Tailwind CSS v4, shadcn/ui, Vite+
+  (Vite with oxlint/oxfmt for linting and formatting).
 - Reuse what the kit already provides instead of rebuilding it: the
   `use-appearance` hook (light/dark/system with no flash of wrong theme), the
   shadcn `Sidebar`-based app shell, settings pages layout, Wayfinder typed
-  route helpers, ESLint/Prettier config.
+  route helpers, lint/format configuration.
 - Remove what Ada does not need: password auth pages, registration, e-mail
   verification, password reset (authentication is Google-only).
 - **No separate SPA / Next.js app.** One Laravel deployment serves pages via
@@ -78,7 +79,7 @@ interface SharedProps {
 
 - Money travels as **decimal strings** and is formatted with `Intl.NumberFormat`
   (never parsed into floats for arithmetic).
-- Conversation list: Inertia v2 deferred prop on the chat layout, paginated
+- Conversation list: Inertia deferred prop on the chat layout, paginated
   with merge props (infinite scroll), so first paint is not blocked.
 - After a stream completes, the page does a partial reload
   (`router.reload({ only: ['budget', 'conversations'] })`).
@@ -151,8 +152,11 @@ Split of responsibilities:
 Enforcement:
 
 - TypeScript resource typing so `t('chat.newConversation')` is type-checked.
-- ESLint `i18next/no-literal-string` in JSX → CI fails on hard-coded text.
-- A CI script checks that `en` and `tr` have identical key sets.
+- `npm run i18n:check` (`scripts/check-i18n.mjs`, TypeScript compiler API)
+  fails CI on JSX text or user-facing attributes (`title`, `placeholder`,
+  `aria-label`, …) containing literal text. oxlint has no equivalent rule.
+- A Pest test checks that every locale has identical key sets, for both
+  `lang/` and the frontend JSON files.
 
 Locale resolution (server, middleware): user preference → institution default
 (`InstitutionSettings.default_locale`) → `Accept-Language` → `en`. The current
@@ -208,6 +212,8 @@ active locale and the institution timezone.
 - Budget: chat route initial JS ≤ ~200 kB gzip (checked in CI with a bundle
   size report from M10).
 - No animation framework; Tailwind transitions only.
+- Fonts are bundled from npm (`@fontsource-variable/instrument-sans`); no
+  third-party font CDN at build time or runtime.
 
 ## 10. Accessibility
 

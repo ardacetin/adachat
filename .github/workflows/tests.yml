@@ -1,0 +1,94 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      # MySQL 8.4 LTS is the only supported database; tests never use SQLite.
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ada_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: ada_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: intl, mbstring, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: PHP code style (Pint)
+        run: composer lint:check
+
+      - name: PHP static analysis (Larastan)
+        run: composer types:check
+
+      - name: Frontend lint and format
+        run: npm run check
+
+      - name: TypeScript
+        run: npm run types:check
+
+      - name: No hard-coded UI text
+        run: npm run i18n:check
+
+      - name: Tests (Pest, MySQL)
+        run: php artisan test
+
+      - name: Dependency audit
+        run: |
+          composer audit
+          npm audit --audit-level=high

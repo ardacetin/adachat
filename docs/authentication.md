@@ -80,9 +80,10 @@ Changes to auth settings are audit-logged. Removing all domains is rejected.
   creates or updates a user record so that their first Google login gets the
   role. This is also the **break-glass** path: there is no password login to
   fall back to, and server access is the recovery mechanism.
-- Development only (`APP_ENV=local`): a `/dev/login` route to log in as any
-  seeded user without Google. The route is not registered in any other
-  environment and `ada:doctor` fails if it is reachable.
+- Development only: a `POST /dev/login` route to sign in as any existing
+  user without Google. It is registered only when `APP_ENV` is `local` or
+  `testing` **and** `ADA_DEV_LOGIN=true`; the controller re-checks both.
+  `ada:doctor` (M10) fails if it is reachable in production.
 
 ## 3. Sessions
 
@@ -172,4 +173,4 @@ renders one button per redirect provider.
   reuses identity by `sub` even after e-mail change.
 - Disabled user cannot log in and is logged out on next request.
 - Role matrix for every admin route; last super admin protection.
-- `/dev/login` absent outside `local`.
+- `/dev/login` absent outside `local`/`testing` or when `ADA_DEV_LOGIN` is off.

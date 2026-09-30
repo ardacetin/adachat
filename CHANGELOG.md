@@ -14,3 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   V1 roadmap.
 - README (English and Turkish), security policy, contributing guide.
 - License: GNU Affero General Public License v3.0 or later.
+- M1 foundation: Laravel 13 + Inertia v3 + React + TypeScript + shadcn/ui based
+  on the Laravel React starter kit, without password authentication.
+- MySQL 8.4 as the only supported database (UTC, `utf8mb4_0900_ai_ci`,
+  `DATETIME` columns), `config/ada.php`, `app/Domain` skeleton.
+- English and Turkish UI (i18next) and backend translations, locale
+  resolution and a language setting; translation key parity tests and a
+  hard-coded UI text check.
+- Development-only login, sample seeders, Pest test suite on MySQL, CI
+  workflow and a development `docker-compose.yml`.
