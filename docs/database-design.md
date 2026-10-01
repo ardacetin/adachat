@@ -474,7 +474,7 @@ can be enforced under a row lock ([budget-engine.md](budget-engine.md) §7.4).
 | model_alias_id | BIGINT UNSIGNED | yes | alias chosen by the user |
 | ai_model_id | BIGINT UNSIGNED | yes | concrete model actually used |
 | reservation_id | CHAR(36) | yes | budget reservation of the generating answer (no FK; used by the cleanup job) |
-| metadata | JSON | yes | e.g. `output_capped`; future: attachments, tool calls, citations |
+| metadata | JSON | yes | e.g. `output_capped`; future: tool calls, citations |
 | created_at, updated_at | DATETIME | | |
 
 - `status` is also covered by the CHECK constraint.
@@ -489,8 +489,33 @@ can be enforced under a row lock ([budget-engine.md](budget-engine.md) §7.4).
 Changes from the brief: `provider_id` is dropped (derivable from
 `ai_model_id`); **`usage_event_id` is dropped** — the usage ledger references
 messages, not the other way round, so pruning conversation content never has
-to touch financial records. Multimodal content will use a
-`message_attachments` table rather than changing `content`.
+to touch financial records. Attachments live in `message_attachments`
+(§5.13a); `content` stays the text the user typed.
+
+### 5.13a `message_attachments` (v1.1)
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| id | CHAR(36) UUIDv7 PK | | |
+| user_id | BIGINT UNSIGNED | | owner; the only person who can read the file |
+| message_id | CHAR(36) | yes | null while uploaded but not sent ("pending") |
+| kind | VARCHAR(16) | | `image` \| `text` (CHECK; `pdf`, `document` planned) |
+| original_name | VARCHAR(255) | | as uploaded, without path or control characters |
+| mime | VARCHAR(127) | | detected from the content (finfo), not from the name |
+| size | INT UNSIGNED | | bytes |
+| sha256 | CHAR(64) | | |
+| path | VARCHAR(255) | | `attachments/{user_id}/{id}` on the private `local` disk |
+| extracted_text | MEDIUMTEXT | yes | UTF-8 text of text files (sent inline) |
+| token_estimate | INT UNSIGNED | | images: `ada.attachments.image_tokens`; text: bytes / 2 |
+| width, height | SMALLINT UNSIGNED | yes | images |
+| created_at | DATETIME | | |
+
+- Indexes: `INDEX(message_id)`, `INDEX(user_id, message_id, created_at)`.
+- FKs: `user_id → users.id ON DELETE CASCADE`,
+  `message_id → messages.id ON DELETE CASCADE`.
+- The files are not covered by the cascade: `ada:retention:prune` deletes
+  them with their conversations, deletes unsent uploads after
+  `ada.attachments.pending_hours` (24) and sweeps files without a row.
 
 ### 5.14 `usage_events` (append-only ledger)
 

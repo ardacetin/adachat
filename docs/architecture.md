@@ -193,10 +193,13 @@ deferred / merge props so it does not delay the first paint.
 
 ```
 POST /chat/messages   (fetch, X-XSRF-TOKEN header, Accept: text/event-stream;
-                       body: conversation_id or none for a new one, model_alias_id, content)
-  1. Validate input, authorize (owner, alias allowed for user's group, user active)
+                       body: conversation_id or none for a new one, model_alias_id, content,
+                       attachment_ids: uploads from POST /chat/attachments)
+  1. Validate input, authorize (owner, alias allowed for user's group, user active;
+     attachments: own, unsent, images only for models with vision)
   2. Rate limit (per-user requests/minute from group)
-  3. Build ChatRequest (history truncated to model context window)
+  3. Build ChatRequest (history truncated to model context window; text files
+     appended as fenced blocks, images as inline parts)
   3b. InputTokenCounter::count(ChatRequest)
          ── provider token-count endpoint for the exact payload
             (estimator only as a fallback)
@@ -204,7 +207,7 @@ POST /chat/messages   (fetch, X-XSRF-TOKEN header, Accept: text/event-stream;
                                     reservation = counted input cost × (1 + margin)
                                                 + max possible output cost
                                     (max_output_tokens capped to remaining budget)
-  5. Persist user message + assistant message (status=streaming)
+  5. Persist user message (+ link its attachments) + assistant message (status=streaming)
   6. Provider stream ─► normalize ─► SSE "delta" events ─► browser
          (assistant content flushed to DB about every second)
   7. finally: Budget::settle() / release()  ── short DB transaction

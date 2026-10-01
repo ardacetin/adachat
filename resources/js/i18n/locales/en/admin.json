@@ -150,6 +150,7 @@
         "contextWindow": "Context window (tokens)",
         "maxOutputTokens": "Maximum output tokens",
         "capabilities": "Capabilities",
+        "capabilitiesHelp": "With \"Images\" on, users can attach images for this model (the provider must support them). Text and code files work with every model.",
         "vision": "Images",
         "files": "Files",
         "tools": "Tools",

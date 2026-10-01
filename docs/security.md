@@ -64,6 +64,13 @@ operators with server access (ultimately trusted); compromised dependencies.
   validated as `#rrggbb` and converted server-side into numeric OKLCH values
   (no raw CSS injection). The appearance cookie is validated against the
   enum before it reaches the inline script.
+- Chat attachments (v1.1): the type is detected from the content (`finfo`),
+  never from the name. Accepted: PNG, JPEG, WebP, GIF and text/code; SVG and
+  binary files are refused. Files live on the private disk and are served
+  only to their owner (anyone else gets 404) with `nosniff`; images inline
+  with their detected type, everything else as a `text/plain` download, so
+  an uploaded HTML or SVG file is never rendered. Size, image dimensions and
+  unsent uploads per user are limited (`config/ada.php` → `attachments`).
 - Content Security Policy (as built, M10: `App\Http\Middleware\SecurityHeaders`):
   `script-src 'self' 'nonce-…'` — Vite's tags and the inline appearance
   script carry a per-request nonce, nothing else runs (no `unsafe-eval`, no
@@ -128,14 +135,16 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 
 - **Accounting ≠ content.** Usage events contain tokens and costs, never
   text. Admin reports are built only from `usage_events`.
-- No admin screen or API returns message content. Viewing another user's
+- No admin screen or API returns message content or attachments (files,
+  names or previews). Viewing another user's
   conversation is not a V1 feature; if a future legal-hold feature is added it
   must require super admin, a reason, and an audit entry visible to auditors.
 - Prompts and responses are **never logged** (application logs, exception
   reports, queue payloads). Error reporting integrations (if any) must scrub
   request bodies.
-- Operators with database access can read content; this is disclosed in the
-  documentation. Application-level encryption of message content is a
+- Operators with database access can read content, and operators with
+  access to `storage/app/private/attachments` can read attached files; this
+  is disclosed in the documentation. Application-level encryption of message content is a
   possible later option (trade-off: search, backups, key management).
 - Data leaves the institution to the configured AI providers. Institutions
   should review provider data-processing terms (zero-retention options, region)

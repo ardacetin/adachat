@@ -4,6 +4,7 @@ use App\Http\Controllers\AcknowledgmentController;
 use App\Http\Controllers\Auth\DevLoginController;
 use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\UsageController;
@@ -55,6 +56,11 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::post('chat/messages/{message}/regenerate', [MessageController::class, 'regenerate'])
         ->middleware('throttle:60,1')
         ->name('messages.regenerate');
+    Route::post('chat/attachments', [AttachmentController::class, 'store'])
+        ->middleware('throttle:uploads')
+        ->name('attachments.store');
+    Route::get('chat/attachments/{attachment}', [AttachmentController::class, 'show'])->name('attachments.show');
+    Route::delete('chat/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
     Route::post('chat/messages/{message}/cancel', [MessageController::class, 'cancel'])
         ->middleware('throttle:120,1')
         ->name('messages.cancel');

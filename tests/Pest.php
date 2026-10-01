@@ -35,3 +35,5 @@ function updateSettings(string $class, array $values): void
 {
     app($class)->fill($values)->save();
 }
+
+require_once __DIR__.'/Support/attachments.php';

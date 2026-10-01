@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Domain\AI\Enums\MessageRole;
 use App\Domain\Conversations\Enums\MessageStatus;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $id
@@ -26,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $updated_at
  * @property-read Conversation $conversation
  * @property-read ModelAlias|null $modelAlias
+ * @property-read Collection<int, MessageAttachment> $attachments
  */
 class Message extends Model
 {
@@ -60,6 +63,14 @@ class Message extends Model
     public function modelAlias(): BelongsTo
     {
         return $this->belongsTo(ModelAlias::class);
+    }
+
+    /**
+     * @return HasMany<MessageAttachment, $this>
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(MessageAttachment::class)->orderBy('created_at')->orderBy('id');
     }
 
     /**

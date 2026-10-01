@@ -6,6 +6,7 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Http\ErrorMapper;
@@ -43,14 +44,37 @@ final class AnthropicChatProvider extends HttpChatProvider
         return array_filter([
             'model' => $request->model,
             'system' => $request->systemPrompt,
-            'messages' => array_map(
-                static fn (ChatMessage $message): array => ['role' => $message->role->value, 'content' => $message->text],
-                $request->messages,
-            ),
+            'messages' => array_map(self::message(...), $request->messages),
             'max_tokens' => $request->maxOutputTokens,
             'temperature' => $request->temperature,
             'stream' => true,
         ], static fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * Images come before the text, as Anthropic recommends.
+     *
+     * @return array<string, mixed>
+     */
+    private static function message(ChatMessage $message): array
+    {
+        if (! $message->hasParts()) {
+            return ['role' => $message->role->value, 'content' => $message->text];
+        }
+
+        $content = array_map(
+            static fn (ImagePart $image): array => [
+                'type' => 'image',
+                'source' => ['type' => 'base64', 'media_type' => $image->mime, 'data' => $image->base64],
+            ],
+            $message->parts,
+        );
+
+        if ($message->text !== '') {
+            $content[] = ['type' => 'text', 'text' => $message->text];
+        }
+
+        return ['role' => $message->role->value, 'content' => $content];
     }
 
     protected function streamUrl(ChatRequest $request): string

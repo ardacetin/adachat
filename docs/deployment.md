@@ -60,7 +60,7 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   applies database migrations when it starts. The `scheduler` container runs
   `php artisan schedule:work` from the same image.
 - Data lives in the volumes `ada_mysql` (database), `ada_storage` (logos,
-  compiled views) and `ada_redis`.
+  chat attachments, compiled views) and `ada_redis`.
 - The application listens on `127.0.0.1:8080`. Put the host's nginx in front
   of it: [`deploy/nginx/ada-docker-proxy.conf`](../deploy/nginx/ada-docker-proxy.conf).
   `TRUSTED_PROXIES=*` is set by the compose file; that is safe because the
@@ -194,7 +194,7 @@ What to back up:
 | What | Why | How often |
 |---|---|---|
 | The database | Everything: users, conversations, budgets, usage, settings, encrypted API keys | Nightly |
-| `storage/app` | Uploaded logos and favicon | Nightly (small) |
+| `storage/app` | Uploaded logos and favicon; chat attachments (`private/attachments`, deleted with their conversations) | Nightly |
 | `.env`, especially `APP_KEY` | Without the key the stored provider API keys cannot be decrypted | Once, and after every change — **offline, separate from the database backups** |
 
 [`deploy/backup.sh`](../deploy/backup.sh) writes a consistent dump

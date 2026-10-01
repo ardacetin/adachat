@@ -61,8 +61,8 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
 - `app` konteyneri nginx ve PHP-FPM'i yetkisiz bir kullanıcıyla çalıştırır ve
   açılışta veritabanı migration'larını uygular. `scheduler` konteyneri aynı
   imajdan `php artisan schedule:work` çalıştırır.
-- Veriler `ada_mysql` (veritabanı), `ada_storage` (logolar, derlenmiş
-  görünümler) ve `ada_redis` birimlerinde (volume) durur.
+- Veriler `ada_mysql` (veritabanı), `ada_storage` (logolar, sohbet ekleri,
+  derlenmiş görünümler) ve `ada_redis` birimlerinde (volume) durur.
 - Uygulama `127.0.0.1:8080` adresini dinler. Önüne sunucudaki nginx'i koyun:
   [`deploy/nginx/ada-docker-proxy.conf`](../deploy/nginx/ada-docker-proxy.conf).
   Compose dosyası `TRUSTED_PROXIES=*` ayarlar; port sunucunun dışından
@@ -202,7 +202,7 @@ Neyin yedeği alınmalı:
 | Ne | Neden | Ne sıklıkla |
 |---|---|---|
 | Veritabanı | Her şey: kullanıcılar, sohbetler, bütçeler, kullanım, ayarlar, şifreli API anahtarları | Her gece |
-| `storage/app` | Yüklenen logolar ve favicon | Her gece (küçük) |
+| `storage/app` | Yüklenen logolar ve favicon; sohbet ekleri (`private/attachments`, sohbetleriyle birlikte silinir) | Her gece |
 | `.env`, özellikle `APP_KEY` | Anahtar olmadan kayıtlı sağlayıcı API anahtarları çözülemez | Bir kez ve her değişiklikten sonra — **çevrimdışı, veritabanı yedeklerinden ayrı** |
 
 [`deploy/backup.sh`](../deploy/backup.sh) tutarlı bir döküm

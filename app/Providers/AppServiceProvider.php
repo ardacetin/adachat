@@ -62,6 +62,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimits(): void
     {
         RateLimiter::for('app', fn (Request $request) => Limit::perMinute(300)->by('app:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(30)->by('uploads:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
         RateLimiter::for('admin', fn (Request $request) => Limit::perMinute(120)->by('admin:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 

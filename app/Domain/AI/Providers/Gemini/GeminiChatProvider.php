@@ -6,6 +6,7 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Enums\MessageRole;
@@ -39,7 +40,7 @@ final class GeminiChatProvider extends HttpChatProvider
             'contents' => array_map(
                 static fn (ChatMessage $message): array => [
                     'role' => $message->role === MessageRole::Assistant ? 'model' : 'user',
-                    'parts' => [['text' => $message->text]],
+                    'parts' => self::parts($message),
                 ],
                 $request->messages,
             ),
@@ -54,6 +55,23 @@ final class GeminiChatProvider extends HttpChatProvider
         }
 
         return $payload;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function parts(ChatMessage $message): array
+    {
+        $parts = array_map(
+            static fn (ImagePart $image): array => ['inline_data' => ['mime_type' => $image->mime, 'data' => $image->base64]],
+            $message->parts,
+        );
+
+        if ($message->text !== '' || $parts === []) {
+            $parts[] = ['text' => $message->text];
+        }
+
+        return $parts;
     }
 
     protected function streamUrl(ChatRequest $request): string

@@ -6,6 +6,7 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Http\ErrorMapper;
@@ -38,15 +39,33 @@ final class OpenAIChatProvider extends HttpChatProvider
         return array_filter([
             'model' => $request->model,
             'instructions' => $request->systemPrompt,
-            'input' => array_map(
-                static fn (ChatMessage $message): array => ['role' => $message->role->value, 'content' => $message->text],
-                $request->messages,
-            ),
+            'input' => array_map(self::message(...), $request->messages),
             'max_output_tokens' => $request->maxOutputTokens,
             'temperature' => $request->temperature,
             'stream' => true,
             'store' => false,
         ], static fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function message(ChatMessage $message): array
+    {
+        if (! $message->hasParts()) {
+            return ['role' => $message->role->value, 'content' => $message->text];
+        }
+
+        $content = array_map(
+            static fn (ImagePart $image): array => ['type' => 'input_image', 'image_url' => $image->dataUrl()],
+            $message->parts,
+        );
+
+        if ($message->text !== '') {
+            $content[] = ['type' => 'input_text', 'text' => $message->text];
+        }
+
+        return ['role' => $message->role->value, 'content' => $content];
     }
 
     protected function streamUrl(ChatRequest $request): string

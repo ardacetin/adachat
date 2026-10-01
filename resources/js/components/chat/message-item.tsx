@@ -1,4 +1,4 @@
-import { Check, Copy, RefreshCw } from 'lucide-react';
+import { Check, Copy, FileText, RefreshCw } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown from '@/components/chat/markdown';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { cn } from '@/lib/utils';
-import type { ChatMessage } from '@/types/chat';
+import type { AttachmentInfo, ChatMessage } from '@/types/chat';
 
 type Props = {
     message: ChatMessage;
@@ -19,12 +19,17 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
     const [copied, copy] = useClipboard();
 
     if (message.role === 'user') {
+        const files = message.attachments ?? [];
+
         return (
-            <div className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2.5 break-words whitespace-pre-wrap">
-                    <span className="sr-only">{t('message.you')}: </span>
-                    {message.content}
-                </div>
+            <div className="flex flex-col items-end gap-2">
+                {files.length > 0 && <Attachments files={files} />}
+                {message.content !== '' && (
+                    <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2.5 break-words whitespace-pre-wrap">
+                        <span className="sr-only">{t('message.you')}: </span>
+                        {message.content}
+                    </div>
+                )}
             </div>
         );
     }
@@ -111,6 +116,49 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
                 </div>
             )}
         </div>
+    );
+}
+
+/** Images as thumbnails (open in a new tab), other files as download chips. */
+function Attachments({ files }: { files: AttachmentInfo[] }) {
+    const { t } = useTranslation('chat');
+
+    return (
+        <ul
+            className="flex max-w-[85%] flex-wrap justify-end gap-2"
+            aria-label={t('attachments.list')}
+        >
+            {files.map((file) => (
+                <li key={file.id}>
+                    {file.kind === 'image' ? (
+                        <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener"
+                            className="block overflow-hidden rounded-xl border"
+                        >
+                            <img
+                                src={file.url}
+                                alt={file.name}
+                                loading="lazy"
+                                className="max-h-48 max-w-64 object-cover"
+                            />
+                        </a>
+                    ) : (
+                        <a
+                            href={file.url}
+                            download={file.name}
+                            className="flex items-center gap-2 rounded-xl border bg-muted/50 px-3 py-2 text-sm hover:bg-muted"
+                        >
+                            <FileText className="size-4 text-muted-foreground" />
+                            <span className="max-w-48 truncate">
+                                {file.name}
+                            </span>
+                        </a>
+                    )}
+                </li>
+            ))}
+        </ul>
     );
 }
 

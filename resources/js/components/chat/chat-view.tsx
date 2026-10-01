@@ -5,6 +5,8 @@ import Composer from '@/components/chat/composer';
 import MessageItem from '@/components/chat/message-item';
 import ModelSelector from '@/components/models/model-selector';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAttachments } from '@/hooks/use-attachments';
+import type { AttachmentItem } from '@/hooks/use-attachments';
 import { useChatStream } from '@/hooks/use-chat-stream';
 import { formatDate } from '@/lib/format';
 import { usage } from '@/routes';
@@ -68,6 +70,14 @@ export default function ChatView({
     const [error, setError] = useState<string | null>(null);
     const bottom = useRef<HTMLDivElement>(null);
     const streaming = status === 'streaming';
+    const alias = aliases.find((candidate) => candidate.id === aliasId);
+    const attachments = useAttachments({
+        imagesAllowed: alias?.supports_vision ?? false,
+        messages: {
+            imagesUnsupported: t('attachments.imagesUnsupported'),
+            tooLarge: t('attachments.tooLarge'),
+        },
+    });
 
     const chooseAlias = (id: number) => {
         setAliasId(id);
@@ -110,6 +120,7 @@ export default function ChatView({
     }, [shown.length, draft]);
 
     const describe = (event: ErrorEvent) =>
+        event.message ??
         t(`errors.${event.code}`, { defaultValue: t('errors.unknown') });
 
     const start = (
@@ -117,6 +128,7 @@ export default function ChatView({
         body: Record<string, unknown>,
         next: Pending,
         restoreInput: string | null,
+        restoreFiles: AttachmentItem[] = [],
     ) => {
         let targetConversation = conversationId;
         let started = false;
@@ -154,6 +166,10 @@ export default function ChatView({
 
                     if (restoreInput !== null) {
                         setInput(restoreInput);
+                    }
+
+                    if (restoreFiles.length > 0) {
+                        attachments.restore(restoreFiles);
                     }
 
                     return;
@@ -209,18 +225,27 @@ export default function ChatView({
 
     const send = () => {
         const content = input.trim();
+        const files = attachments.ready;
 
-        if (content === '' || aliasId === null) {
+        if ((content === '' && files.length === 0) || aliasId === null) {
             return;
         }
 
+        // Files that failed to upload are not sent; they stay visible
+        // only until the message goes out.
+        const sentItems = attachments.items.filter(
+            (item) => item.status === 'ready',
+        );
+
         setInput('');
+        attachments.clear();
         start(
             store.url(),
             {
                 content,
                 model_alias_id: aliasId,
                 conversation_id: conversationId,
+                attachment_ids: files.map((file) => file.id),
             },
             {
                 user: {
@@ -229,11 +254,13 @@ export default function ChatView({
                     role: 'user',
                     content,
                     status: 'completed',
+                    attachments: files,
                 },
                 assistant: assistantPlaceholder(),
                 replaces: null,
             },
             content,
+            sentItems,
         );
     };
 
@@ -334,6 +361,14 @@ export default function ChatView({
                         onStop={() => stop((id) => cancel.url(id))}
                         streaming={streaming}
                         disabled={exhausted}
+                        attachments={{
+                            items: attachments.items,
+                            readyCount: attachments.ready.length,
+                            uploading: attachments.uploading,
+                            imagesAllowed: alias?.supports_vision ?? false,
+                            onAdd: attachments.add,
+                            onRemove: attachments.remove,
+                        }}
                         toolbar={
                             <ModelSelector
                                 aliases={aliases}

@@ -150,6 +150,7 @@
         "contextWindow": "Bağlam penceresi (token)",
         "maxOutputTokens": "En fazla çıktı token'ı",
         "capabilities": "Yetenekler",
+        "capabilitiesHelp": "\"Görseller\" açıkken kullanıcılar bu model için görsel ekleyebilir (sağlayıcının desteklemesi gerekir). Metin ve kod dosyaları her modelle çalışır.",
         "vision": "Görseller",
         "files": "Dosyalar",
         "tools": "Araçlar",

@@ -40,6 +40,7 @@ $model->forceFill([
     'output_price_per_million' => '10',
     'context_window' => 128000,
     'max_output_tokens' => 4096,
+    'supports_vision' => true,
 ])->save();
 
 $alias = new ModelAlias;

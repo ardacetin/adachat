@@ -25,12 +25,14 @@ use App\Models\AiModel;
 use App\Models\BudgetReservation;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageAttachment;
 use App\Models\ModelAlias;
 use App\Models\UsageEvent;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Closure;
 use Generator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -70,11 +72,13 @@ final class ChatGenerationService
 
     /**
      * Send a new user message, in a new conversation when $conversation is null.
+     * $attachments are the user's pending uploads, already checked by the caller.
      *
+     * @param  EloquentCollection<int, MessageAttachment>|null  $attachments
      * @param  Closure(): bool  $clientGone
      * @return Generator<int, ChatStreamEvent>
      */
-    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone): Generator
+    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone, ?EloquentCollection $attachments = null): Generator
     {
         $history = $conversation !== null ? ConversationThread::active($conversation) : collect();
 
@@ -92,6 +96,7 @@ final class ChatGenerationService
             'content' => $content,
             'status' => MessageStatus::Completed,
         ]);
+        $userMessage->setRelation('attachments', $attachments ?? new EloquentCollection);
 
         yield from $this->run($user, $conversation, $alias, $history->push($userMessage), $userMessage, $clientGone);
     }
@@ -150,36 +155,14 @@ final class ChatGenerationService
         }
 
         // Nothing is stored before the budget is secured.
-        [$conversation, $answer] = DB::transaction(function () use ($user, $conversation, $alias, $history, $userMessage, $reservation) {
-            if ($conversation === null) {
-                $conversation = new Conversation;
-                $conversation->forceFill([
-                    'user_id' => $user->id,
-                    'title' => Str::limit(Str::squish((string) $userMessage?->content), 80),
-                ]);
-            }
+        try {
+            [$conversation, $answer] = DB::transaction(fn () => $this->persist($user, $conversation, $alias, $history, $userMessage, $reservation));
+        } catch (ChatRefused $refused) {
+            $this->budget->release($reservation, $refused->errorCode);
+            yield self::error($refused->errorCode, $refused->retryable);
 
-            $conversation->forceFill(['model_alias_id' => $alias->id, 'last_message_at' => CarbonImmutable::now()])->save();
-
-            if ($userMessage !== null) {
-                $userMessage->conversation_id = $conversation->id;
-                $userMessage->save();
-            }
-
-            $answer = new Message;
-            $answer->forceFill([
-                'conversation_id' => $conversation->id,
-                'parent_message_id' => $userMessage->id ?? $history->last()?->id,
-                'role' => MessageRole::Assistant,
-                'content' => '',
-                'status' => MessageStatus::Streaming,
-                'model_alias_id' => $alias->id,
-                'ai_model_id' => $alias->ai_model_id,
-                'reservation_id' => $reservation->id,
-            ])->save();
-
-            return [$conversation, $answer];
-        });
+            return;
+        }
 
         $outputCapped = $reservation->max_output_tokens < min($alias->effectiveMaxOutputTokens(), $model->context_window - $count->tokens);
 
@@ -343,6 +326,77 @@ final class ChatGenerationService
         }
 
         RateLimiter::hit($key, 60);
+    }
+
+    /**
+     * Stores the conversation, the new user message (with its attachments)
+     * and the empty answer. Runs in a transaction after the reservation.
+     *
+     * @param  Collection<int, Message>  $history
+     * @return array{0: Conversation, 1: Message}
+     *
+     * @throws ChatRefused when an attachment was sent meanwhile (double submit)
+     */
+    private function persist(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, BudgetReservation $reservation): array
+    {
+        if ($conversation === null) {
+            $conversation = new Conversation;
+            $conversation->forceFill([
+                'user_id' => $user->id,
+                'title' => self::title($userMessage),
+            ]);
+        }
+
+        $conversation->forceFill(['model_alias_id' => $alias->id, 'last_message_at' => CarbonImmutable::now()])->save();
+
+        if ($userMessage !== null) {
+            $userMessage->conversation_id = $conversation->id;
+            $userMessage->save();
+            $this->attach($userMessage);
+        }
+
+        $answer = new Message;
+        $answer->forceFill([
+            'conversation_id' => $conversation->id,
+            'parent_message_id' => $userMessage->id ?? $history->last()?->id,
+            'role' => MessageRole::Assistant,
+            'content' => '',
+            'status' => MessageStatus::Streaming,
+            'model_alias_id' => $alias->id,
+            'ai_model_id' => $alias->ai_model_id,
+            'reservation_id' => $reservation->id,
+        ])->save();
+
+        return [$conversation, $answer];
+    }
+
+    /**
+     * @throws ChatRefused
+     */
+    private function attach(Message $message): void
+    {
+        $ids = $message->attachments->modelKeys();
+
+        if ($ids === []) {
+            return;
+        }
+
+        $attached = MessageAttachment::query()->whereKey($ids)->pending()->update(['message_id' => $message->id]);
+
+        if ($attached !== count($ids)) {
+            throw new ChatRefused('attachments_invalid');
+        }
+    }
+
+    private static function title(?Message $message): string
+    {
+        $text = Str::squish((string) $message?->content);
+
+        if ($text === '' && $message !== null && $message->attachments->isNotEmpty()) {
+            $text = $message->attachments->first()->original_name;
+        }
+
+        return Str::limit($text, 80);
     }
 
     /**

@@ -62,7 +62,9 @@
         "internal_error": "Bir sorun oluştu. Lütfen tekrar deneyin.",
         "network": "Bağlantı koptu.",
         "forbidden": "Bu model sizin kullanımınıza açık değil.",
-        "unknown": "Bir sorun oluştu. Lütfen tekrar deneyin."
+        "unknown": "Bir sorun oluştu. Lütfen tekrar deneyin.",
+        "attachments_invalid": "Eklenen dosyalardan biri artık kullanılamıyor. Yeniden ekleyin.",
+        "validation": "Mesaj gönderilemedi."
     },
     "budget": {
         "title": "Aylık bütçe",
@@ -94,5 +96,17 @@
         "used": "Kullanılan",
         "empty": "Bu ay henüz kullanım yok.",
         "note": "Maliyetler, her isteğin yapıldığı andaki sağlayıcı fiyatlarıdır. Yöneticilerin yaptığı düzeltmeler bütçenizi değiştirir ama burada listelenmez."
+    },
+    "attachments": {
+        "list": "Eklenen dosyalar",
+        "add": "Görsel veya dosya ekle",
+        "addText": "Metin veya kod dosyası ekle",
+        "remove": "{{name}} dosyasını kaldır",
+        "uploading": "Yükleniyor…",
+        "tokens_one": "yaklaşık {{formatted}} token",
+        "tokens_other": "yaklaşık {{formatted}} token",
+        "imagesUnsupported": "Bu model görselleri okuyamaz.",
+        "tooLarge": "Dosya çok büyük.",
+        "resent": "Eklenen dosyalar, sohbette kaldıkça her mesajla yeniden gönderilir."
     }
 }

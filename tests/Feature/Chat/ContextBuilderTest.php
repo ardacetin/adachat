@@ -6,7 +6,10 @@ use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Services\ContextBuilder;
 use App\Models\AiModel;
 use App\Models\Message;
+use App\Models\MessageAttachment;
 use App\Models\ModelAlias;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 /*
  * Window 400 tokens, answer cap 100: 300 tokens of input. The builder
@@ -35,7 +38,7 @@ test('the oldest turns are dropped and the context starts with a user turn', fun
         turn(MessageRole::User, str_repeat('e', 300)),
     ]);
 
-    $request = (new ContextBuilder)->build(contextAlias(), $history);
+    $request = app(ContextBuilder::class)->build(contextAlias(), $history);
 
     // "d" and "e" fit, but a conversation cannot start with an answer.
     expect($request->messages)->toHaveCount(1)
@@ -50,11 +53,58 @@ test('short conversations are sent whole, without empty answers', function () {
         turn(MessageRole::User, 'Hello again'),
     ]);
 
-    $request = (new ContextBuilder)->build(contextAlias(), $history);
+    $request = app(ContextBuilder::class)->build(contextAlias(), $history);
 
     expect(array_map(fn ($message) => $message->text, $request->messages))->toBe(['Hello', 'Hello again']);
 });
 
 test('a message that alone exceeds the window is refused', function () {
-    (new ContextBuilder)->build(contextAlias(), collect([turn(MessageRole::User, str_repeat('x', 1000))]));
+    app(ContextBuilder::class)->build(contextAlias(), collect([turn(MessageRole::User, str_repeat('x', 1000))]));
 })->throws(ContextLengthExceeded::class);
+
+function withFiles(Message $message, array $files): Message
+{
+    return $message->setRelation('attachments', new Collection($files));
+}
+
+function imageFile(string $name, int $bytes): MessageAttachment
+{
+    $path = "attachments/1/{$name}";
+    Storage::disk('local')->put($path, str_repeat('x', $bytes));
+
+    return (new MessageAttachment)->forceFill([
+        'kind' => 'image', 'original_name' => $name, 'mime' => 'image/png', 'size' => $bytes, 'path' => $path, 'token_estimate' => 10,
+    ]);
+}
+
+test('text files become fenced blocks that cannot be closed from inside', function () {
+    $file = (new MessageAttachment)->forceFill([
+        'kind' => 'text', 'original_name' => 'notes.md', 'extracted_text' => "a\n```\nb\n", 'token_estimate' => 5,
+    ]);
+
+    $request = app(ContextBuilder::class)->build(contextAlias(), collect([withFiles(turn(MessageRole::User, 'Özetle'), [$file])]));
+
+    expect($request->messages[0]->text)->toBe("Özetle\n\n````notes.md\na\n```\nb\n````")
+        ->and($request->messages[0]->parts)->toBe([]);
+});
+
+test('older images beyond the request limit are replaced by a note', function () {
+    Storage::fake('local');
+    config(['ada.attachments.max_request_mb' => 1]);
+    $mb = 1024 * 1024;
+
+    $history = collect([
+        withFiles(turn(MessageRole::User, 'eski'), [imageFile('old.png', (int) (0.6 * $mb))]),
+        turn(MessageRole::Assistant, 'tamam'),
+        withFiles(turn(MessageRole::User, 'yeni'), [imageFile('new.png', (int) (0.6 * $mb))]),
+    ]);
+
+    $alias = contextAlias();
+    $alias->aiModel->context_window = 100000;
+    $request = app(ContextBuilder::class)->build($alias, $history);
+
+    expect($request->messages[0]->parts)->toBe([])
+        ->and($request->messages[0]->text)->toBe("eski\n\n[Image not sent again with this request: old.png]")
+        ->and($request->messages[2]->parts)->toHaveCount(1)
+        ->and($request->messages[2]->parts[0]->base64)->toBe(base64_encode(str_repeat('x', (int) (0.6 * $mb))));
+});

@@ -6,6 +6,7 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Exceptions\ProviderUnavailable;
@@ -39,10 +40,7 @@ final class OpenAICompatibleChatProvider extends HttpChatProvider
 
     protected function payload(ChatRequest $request): array
     {
-        $messages = array_map(
-            static fn (ChatMessage $message): array => ['role' => $message->role->value, 'content' => $message->text],
-            $request->messages,
-        );
+        $messages = array_map(self::message(...), $request->messages);
 
         if ($request->systemPrompt !== null && $request->systemPrompt !== '') {
             array_unshift($messages, ['role' => 'system', 'content' => $request->systemPrompt]);
@@ -56,6 +54,27 @@ final class OpenAICompatibleChatProvider extends HttpChatProvider
             'stream' => true,
             'stream_options' => ['include_usage' => true],
         ], static fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function message(ChatMessage $message): array
+    {
+        if (! $message->hasParts()) {
+            return ['role' => $message->role->value, 'content' => $message->text];
+        }
+
+        $content = array_map(
+            static fn (ImagePart $image): array => ['type' => 'image_url', 'image_url' => ['url' => $image->dataUrl()]],
+            $message->parts,
+        );
+
+        if ($message->text !== '') {
+            $content[] = ['type' => 'text', 'text' => $message->text];
+        }
+
+        return ['role' => $message->role->value, 'content' => $content];
     }
 
     protected function streamUrl(ChatRequest $request): string
