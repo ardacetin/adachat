@@ -156,7 +156,9 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 - Audited actions: budget policy/override/adjustment changes, user disabled/
   enabled, role changed, group changed, provider created/updated,
   credential rotated, model/alias enabled/disabled/changed, prices changed,
-  institution settings changed, auth settings changed, CLI promotions.
+  institution settings changed, auth settings changed, CLI promotions,
+  cap alerts (v1.1) and report CSV exports (v1.1: per-user exports contain
+  names and e-mail addresses; the filters are recorded).
 - Redaction: models declare redacted attributes; values of keys matching
   `secret|key|token|password` are replaced with `[redacted]`.
 - Append-only (application guard + optional DB triggers). Actor, IP and user

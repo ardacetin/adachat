@@ -150,7 +150,9 @@ logrotate is needed. Prompts, answers and API keys are never logged.
 ### 3.5 E-mail
 
 Ada e-mails the cap alerts (80 % and 100 % of the institution's monthly cap)
-and, from v1.1, the monthly report to the addresses in Admin → Institution →
+and the monthly usage report (after each month, with CSV attachments; send
+one by hand with `php artisan ada:reports:monthly --month=2026-09
+--to=you@example.edu`) to the addresses in Admin → Institution →
 Notification e-mails. Set an SMTP server in `.env`:
 
 ```dotenv

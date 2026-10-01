@@ -369,7 +369,14 @@
         "methods": {
             "provider_endpoint": "Provider counter",
             "estimated": "Estimate"
-        }
+        },
+        "download": "Download CSV",
+        "download_model": "Breakdown by model",
+        "download_group": "Breakdown by group",
+        "download_provider": "Breakdown by provider",
+        "download_user": "Breakdown by user (all users)",
+        "downloadDaily": "Spending per day",
+        "downloadMonthly": "Spending per month"
     },
     "dashboard": {
         "spend": "Spending this month",
