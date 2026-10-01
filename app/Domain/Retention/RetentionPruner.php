@@ -157,7 +157,7 @@ final class RetentionPruner
     }
 
     /**
-     * @param  (callable(list<mixed>): void)|null  $beforeDelete
+     * @param  (callable(array<mixed>): void)|null  $beforeDelete
      */
     private function deleteInChunks(Builder $query, ?callable $beforeDelete = null): int
     {

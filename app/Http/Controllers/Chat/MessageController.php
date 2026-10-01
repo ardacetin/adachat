@@ -131,13 +131,13 @@ class MessageController extends Controller
             return new EloquentCollection;
         }
 
-        $found = MessageAttachment::query()->whereKey($ids)->where('user_id', $user->id)->pending()->get()->keyBy('id');
+        $found = MessageAttachment::query()->whereKey($ids)->where('user_id', $user->id)->pending()->get();
 
         if ($found->count() !== count($ids)) {
             throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.invalid')]);
         }
 
-        $attachments = new EloquentCollection(array_map(fn (string $id) => $found->get($id), $ids));
+        $attachments = $found->sortBy(fn (MessageAttachment $file) => array_search($file->id, $ids, true))->values();
 
         if (! $alias->aiModel->supports_vision && $attachments->contains(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Image)) {
             throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.vision_unsupported')]);
