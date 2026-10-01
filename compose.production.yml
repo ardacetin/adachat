@@ -50,8 +50,12 @@ services:
         environment:
             <<: *app-environment
             ADA_MIGRATE: 'false'
+        # The image's check asks nginx; this container runs the scheduler.
         healthcheck:
-            disable: true
+            test: ['CMD-SHELL', 'pgrep -f schedule:work > /dev/null']
+            interval: 30s
+            timeout: 5s
+            start_period: 30s
         depends_on:
             app:
                 condition: service_healthy
