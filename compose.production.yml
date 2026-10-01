@@ -62,7 +62,8 @@ services:
         environment:
             MYSQL_DATABASE: ${DB_DATABASE:-ada}
             MYSQL_USER: ${DB_USERNAME:-ada}
-            MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+            # From .env: DB_PASSWORD must be set, or no user is created.
+            MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
         command:
             - --character-set-server=utf8mb4
