@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Institution-wide monthly cap** (Admin → Institution): all users together
+  can spend at most this much per month, enforced by the budget engine as
+  strictly as a user's limit (the institution's month is kept under a row
+  lock in the same transactions). A request that only the institution cannot
+  afford is refused with its own message. The overview shows the month's use
+  of the cap.
+- E-mail alerts at 80 % and 100 % of the cap to the new notification
+  addresses (`ada:budget:cap-alerts`, every five minutes), a "Send a test
+  e-mail" button and an `ada:doctor` check for the mail settings.
+- `ada:budget:reconcile` also checks the institution totals.
+
 ## [1.0.0] - 2026-10-01
 
 First release: a self-hosted AI gateway and chat for one institution, with

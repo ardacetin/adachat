@@ -63,3 +63,36 @@ test('a used-up budget stops new messages and says when it renews', async ({
     await page.waitForURL('/usage');
     await expect(page.getByText('100% used').first()).toBeVisible();
 });
+
+function setInstitutionCap(cap: string | null): void {
+    execFileSync(
+        'php',
+        [
+            'artisan',
+            'tinker',
+            '--execute',
+            `$s = app(App\\Domain\\Institution\\Settings\\InstitutionSettings::class); $s->monthly_cap_usd = ${cap === null ? 'null' : `'${cap}'`}; $s->save();`,
+        ],
+        { stdio: 'ignore' },
+    );
+}
+
+test('a reached institution cap stops new messages with its own message', async ({
+    page,
+}) => {
+    setInstitutionCap('0');
+
+    try {
+        await signIn(page);
+        await page.getByLabel('Message').fill('Hello cap');
+        await page.keyboard.press('Enter');
+
+        await expect(
+            page.getByText("Your institution's monthly usage limit is reached"),
+        ).toBeVisible();
+        // The text is given back so that nothing is lost.
+        await expect(page.getByLabel('Message')).toHaveValue('Hello cap');
+    } finally {
+        setInstitutionCap(null);
+    }
+});

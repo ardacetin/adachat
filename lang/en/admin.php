@@ -3,6 +3,8 @@
 return [
 
     'saved' => 'Settings saved.',
+    'test_mail_sent' => 'Test e-mail sent to :to.',
+    'test_mail_failed' => 'The test e-mail could not be sent. Check the MAIL_* settings; the reason is in the log.',
     'policy_in_use' => 'This budget policy is used by a group and cannot be deleted.',
     'group_not_deletable' => 'The default group and groups with members cannot be deleted.',
     'last_super_admin' => 'The last active super administrator cannot be demoted or disabled.',

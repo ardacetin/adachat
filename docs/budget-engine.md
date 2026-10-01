@@ -274,12 +274,43 @@ deadlock. Therefore the period row is created by an auto-committed no-op upsert
 
 ### 7.3 Lock ordering
 
-Every transaction that touches both tables locks in the same order:
-`budget_periods` → `budget_reservations`. Deadlocks that still occur (error
+Every transaction that touches several tables locks in the same order:
+`budget_periods` → `institution_periods` → `budget_reservations` (§7.4). Deadlocks that still occur (error
 1213) are retried by `DB::transaction(..., attempts: 3)`; lock waits are
 bounded by `innodb_lock_wait_timeout = 5` for these sessions.
 
-### 7.4 Why not Redis locks
+### 7.4 Institution-wide cap (v1.1)
+
+An optional monthly cap for the whole institution
+(`InstitutionSettings::monthly_cap_usd`, Admin → Institution) sits on top of
+the users' budgets. It is enforced exactly like a user's limit:
+
+- `institution_periods` holds, per month, the sum of the users' periods
+  (`spent_usd`, `reserved_usd`). Every reserve, settle, release, expiry and
+  adjustment updates it in the **same transaction**, under a row lock taken
+  after the user's period. The row is created by the same auto-committed
+  upsert as the users' periods (§7.2); the migration backfilled existing
+  months.
+- `reserve` sizes the request against
+  `min(user limit − spent − reserved, cap − institution spent − reserved)`.
+  When the institution is the binding constraint and the request does not
+  fit, it fails with `InstitutionBudgetExhausted`
+  (`institution_budget_exhausted`, its own chat message).
+- The totals are kept even without a cap, so a cap set in the middle of a
+  month counts what was already spent; cap changes apply immediately (the
+  cap is not snapshotted).
+- One row per month is locked by every request: the transactions are short
+  and never wait on the network, so this is not a bottleneck at institution
+  scale. The multi-process test runs six processes for six users against
+  one cap (`tests/Concurrency`).
+- `ada:budget:reconcile` also compares each institution month with the sum
+  of its users' periods; `--fix-reserved` recomputes it (derived data).
+- `ada:budget:cap-alerts` (every five minutes) e-mails the notification
+  addresses once at 80 % and once at 100 % of the cap (spent + reserved),
+  stamps `alerted_80_at` / `alerted_100_at` and writes `budget.cap_alert` to
+  the audit log. Changing the cap clears the stamps.
+
+### 7.5 Why not Redis locks
 
 A Redis lock would add a second source of truth and fail open or closed when
 Redis restarts. The database row is already the thing we must update

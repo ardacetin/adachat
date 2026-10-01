@@ -36,6 +36,7 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
         Route::get('institution', [InstitutionSettingsController::class, 'edit'])->name('institution.edit');
         // POST (not PUT): the form carries file uploads.
         Route::post('institution', [InstitutionSettingsController::class, 'update'])->name('institution.update');
+        Route::post('institution/test-mail', [InstitutionSettingsController::class, 'testMail'])->name('institution.test-mail');
 
         Route::get('authentication', [AuthSettingsController::class, 'edit'])->name('authentication.edit');
         Route::put('authentication', [AuthSettingsController::class, 'update'])->name('authentication.update');

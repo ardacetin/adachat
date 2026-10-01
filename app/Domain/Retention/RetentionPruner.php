@@ -28,7 +28,7 @@ final class RetentionPruner
     ) {}
 
     /**
-     * @return array{deleted_conversations: int, expired_conversations: int, usage_events: int, reservations: int, periods: int}
+     * @return array{deleted_conversations: int, expired_conversations: int, usage_events: int, reservations: int, periods: int, institution_periods: int}
      */
     public function prune(bool $dryRun = false, ?CarbonImmutable $now = null): array
     {
@@ -44,6 +44,7 @@ final class RetentionPruner
             'usage_events' => 0,
             'reservations' => 0,
             'periods' => 0,
+            'institution_periods' => 0,
         ];
 
         if ($this->privacy->conversation_retention_days !== null) {
@@ -65,11 +66,13 @@ final class RetentionPruner
             ->where('created_at', '<', $usageCutoff)
             ->where('status', '!=', ReservationStatus::Active->value);
         $periods = DB::table('budget_periods')->where('period_end', '<=', $usageCutoff);
+        $institutionPeriods = DB::table('institution_periods')->where('period_end', '<=', $usageCutoff);
 
         if ($dryRun) {
             $counts['usage_events'] = $events->count();
             $counts['reservations'] = $reservations->count();
             $counts['periods'] = $periods->count();
+            $counts['institution_periods'] = $institutionPeriods->count();
         } else {
             // Children first: events reference reservations and periods.
             $counts['usage_events'] = $this->deleteInChunks($events);
@@ -78,6 +81,7 @@ final class RetentionPruner
             $counts['periods'] = $this->deleteInChunks($periods
                 ->whereNotExists(fn ($query) => $query->from('usage_events')->whereColumn('usage_events.budget_period_id', 'budget_periods.id'))
                 ->whereNotExists(fn ($query) => $query->from('budget_reservations')->whereColumn('budget_reservations.budget_period_id', 'budget_periods.id')));
+            $counts['institution_periods'] = $this->deleteInChunks($institutionPeriods);
         }
 
         if (! $dryRun && array_sum($counts) > 0) {

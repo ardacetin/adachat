@@ -46,6 +46,7 @@
     },
     "errors": {
         "budget_exhausted": "Aylık bütçeniz doldu. Gelecek ayın başında yenilenir.",
+        "institution_budget_exhausted": "Kurumunuzun aylık kullanım sınırına ulaşıldı. Ay yenilendiğinde yeniden istek gönderebilirsiniz; sınırı yöneticiniz yükseltebilir.",
         "too_many_concurrent_requests": "Şu anda oluşturulan yanıtlarınız var. Lütfen bitmelerini bekleyin.",
         "rate_limited": "Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar deneyin.",
         "context_too_long": "Mesaj bu model için çok uzun.",

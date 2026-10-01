@@ -48,7 +48,14 @@
         "budgetDisplay": "Kullanıcılara gösterilen bütçe",
         "budgetDisplayAmount": "Tutar (ABD doları) ve yüzde",
         "budgetDisplayPercent": "Yalnızca yüzde",
-        "budgetDisplayHelp": "“Yalnızca yüzde” seçilirse kullanıcılar dolar tutarı görmez; yöneticiler görmeye devam eder."
+        "budgetDisplayHelp": "“Yalnızca yüzde” seçilirse kullanıcılar dolar tutarı görmez; yöneticiler görmeye devam eder.",
+        "spending": "Harcama ve bildirimler",
+        "cap": "Kurumun tamamı için aylık tavan (USD)",
+        "capHelp": "Kişisel bütçelerinden bağımsız olarak tüm kullanıcılar birlikte ayda en fazla bu kadar harcayabilir. Boş = tavan yok.",
+        "notificationEmails": "Bildirim e-postaları",
+        "notificationEmailsHelp": "Her satıra bir adres. Tavan uyarılarını (%80 ve %100) ve aylık raporu alırlar.",
+        "testMail": "Deneme e-postası gönder",
+        "mailNotConfigured": "Bu sunucuda e-posta yapılandırılmamış (MAIL_MAILER log): iletiler yalnızca log kaydına yazılır. Kurulum rehberine bakın."
     },
     "authentication": {
         "title": "Giriş",
@@ -377,7 +384,11 @@
         "overshoots": "Bu ay {{count}} istek rezervasyonundan pahalıya geldi.",
         "details": "Ayrıntılar",
         "allReports": "Tüm raporlar",
-        "noUsage": "Bu ay henüz kullanım yok."
+        "noUsage": "Bu ay henüz kullanım yok.",
+        "cap": "Bu ay kurum tavanı",
+        "capUsed": "{{cap}} tutarın {{used}} kadarı (%{{percent}})",
+        "capResets": "{{date}} tarihinde yenilenir. %80 ve %100'de e-posta ile uyarı gönderilir.",
+        "capReached": "Tavana ulaşıldı: yeni istekler {{date}} tarihine kadar reddediliyor. Kurum ayarlarından yükseltebilirsiniz."
     },
     "privacy": {
         "title": "Gizlilik",

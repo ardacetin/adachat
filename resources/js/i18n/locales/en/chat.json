@@ -46,6 +46,7 @@
     },
     "errors": {
         "budget_exhausted": "Your monthly budget is used up. It renews at the start of next month.",
+        "institution_budget_exhausted": "Your institution's monthly usage limit is reached. New requests are possible again when the month renews; your administrator can raise the limit.",
         "too_many_concurrent_requests": "You already have answers being generated. Please wait for them to finish.",
         "rate_limited": "Too many requests. Please wait a moment and try again.",
         "context_too_long": "The message is too long for this model.",

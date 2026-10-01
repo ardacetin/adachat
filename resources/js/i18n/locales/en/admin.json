@@ -48,7 +48,14 @@
         "budgetDisplay": "Budget shown to users",
         "budgetDisplayAmount": "Amounts (US dollars) and percentage",
         "budgetDisplayPercent": "Percentage only",
-        "budgetDisplayHelp": "With “percentage only”, users never see dollar amounts; administrators still do."
+        "budgetDisplayHelp": "With “percentage only”, users never see dollar amounts; administrators still do.",
+        "spending": "Spending and notifications",
+        "cap": "Monthly cap for the whole institution (USD)",
+        "capHelp": "All users together can spend at most this much per month, whatever their own budgets. Empty = no cap.",
+        "notificationEmails": "Notification e-mails",
+        "notificationEmailsHelp": "One address per line. They receive the cap alerts (80 % and 100 %) and the monthly report.",
+        "testMail": "Send a test e-mail",
+        "mailNotConfigured": "E-mail is not configured on this server (MAIL_MAILER is log): messages are only written to the log. See the deployment guide."
     },
     "authentication": {
         "title": "Sign-in",
@@ -377,7 +384,11 @@
         "overshoots": "{{count}} requests cost more than their reservation this month.",
         "details": "Details",
         "allReports": "All reports",
-        "noUsage": "No usage yet this month."
+        "noUsage": "No usage yet this month.",
+        "cap": "Institution cap this month",
+        "capUsed": "{{used}} of {{cap}} ({{percent}} %)",
+        "capResets": "Renews on {{date}}. Alerts are e-mailed at 80 % and 100 %.",
+        "capReached": "The cap is reached: new requests are refused until {{date}}. Raise it in Institution settings."
     },
     "privacy": {
         "title": "Privacy",

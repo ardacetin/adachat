@@ -153,11 +153,22 @@ generation, voice/STT/TTS, workflow builder, multi-tenant SaaS, file uploads,
 OpenAI-compatible external API (V2), CSV export, AI-generated conversation
 titles, conversation branching UI beyond "regenerate last answer".
 
-## Candidates for v1.1 / V2
+## v1.1
 
-- Institution-wide monthly spending cap.
+Chosen from the candidates below, one pull request per step:
+
+| Step | Scope | Status |
+|---|---|---|
+| N1 | Institution-wide monthly cap (hard, enforced by the budget engine), alerts at 80 % / 100 % by e-mail, mail settings and test e-mail | ✅ |
+| N2 | CSV export of reports; monthly summary report by e-mail | |
+| N3 | Generic OpenAI-compatible provider (Chat Completions: OpenRouter, Ollama, vLLM, Groq, LM Studio), optional API key | |
+| N4 | Attachments part 1: content parts in the provider layer, uploads, images (vision models), text and code files | |
+| N5 | Attachments part 2: PDF (native or extracted text), Word, Excel and PowerPoint text extraction | |
+
+Then the v1.1.0 release notes.
+
+## Candidates for V2
+
 - OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).
-- Generic OIDC / Entra ID, SAML, LDAP.
-- File attachments and vision.
-- CSV export, scheduled reports.
-- Additional providers (OpenRouter, Azure OpenAI, Bedrock, local endpoints).
+- Generic OIDC / Entra ID, LDAP.
+- Azure OpenAI, AWS Bedrock as dedicated drivers.

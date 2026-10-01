@@ -3,6 +3,8 @@
 return [
 
     'saved' => 'Ayarlar kaydedildi.',
+    'test_mail_sent' => 'Deneme e-postası gönderildi: :to.',
+    'test_mail_failed' => 'Deneme e-postası gönderilemedi. MAIL_* ayarlarını kontrol edin; nedeni log kaydında.',
     'policy_in_use' => 'Bu bütçe politikası bir grup tarafından kullanılıyor, silinemez.',
     'group_not_deletable' => 'Varsayılan grup ve üyesi olan gruplar silinemez.',
     'last_super_admin' => 'Son etkin süper yönetici düşürülemez veya devre dışı bırakılamaz.',

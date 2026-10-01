@@ -154,6 +154,29 @@ istek sınırları) ve https bilgisi (güvenli çerezler, HSTS) ancak o zaman
 gün saklar; logrotate gerekmez. İstemler, yanıtlar ve API anahtarları asla
 loglanmaz.
 
+### 3.5 E-posta
+
+Ada, tavan uyarılarını (kurumun aylık tavanının %80'i ve %100'ü) ve v1.1'den
+itibaren aylık raporu Yönetim → Kurum → Bildirim e-postaları alanındaki
+adreslere gönderir. `.env` içinde bir SMTP sunucusu tanımlayın:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.kurum.edu.tr
+MAIL_PORT=587
+MAIL_USERNAME=…
+MAIL_PASSWORD=…
+MAIL_FROM_ADDRESS="ada@kurum.edu.tr"
+MAIL_FROM_NAME="Ada Chat"
+```
+
+Google Workspace: `smtp-relay.gmail.com` (Google Admin'deki SMTP geçiş
+hizmeti) veya uygulama şifresiyle `smtp.gmail.com`. Değişikliği uygulayın
+(`php artisan optimize`), sonra aynı yönetim sayfasındaki **Deneme e-postası
+gönder** düğmesini kullanın. İletileri kuyruk işçisi değil zamanlayıcı
+gönderir. `MAIL_MAILER=log` iken iletiler yalnızca log kaydına yazılır;
+adresler tanımlı ama e-posta yapılandırılmamışsa `ada:doctor` uyarır.
+
 ## 4. Güvenlik kontrol listesi
 
 - [ ] `php artisan ada:doctor` geçiyor (debug kapalı, https, geliştirici

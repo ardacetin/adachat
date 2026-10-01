@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\Group;
 use App\Models\Provider;
 use Carbon\CarbonImmutable;
@@ -57,6 +58,11 @@ class DoctorCommand extends Command
         $heartbeat = Cache::get('ada:scheduler:heartbeat');
         $recent = is_string($heartbeat) && CarbonImmutable::parse($heartbeat)->greaterThan(now()->subMinutes(5));
         $this->check('Scheduler ran in the last 5 minutes', $recent, hint: 'Add a cron entry: * * * * * php artisan schedule:run');
+
+        $this->components->info('E-mail');
+        $mailer = (string) config('mail.default');
+        $notified = app(InstitutionSettings::class)->notification_emails !== [];
+        $this->check("Mail is sent ({$mailer})", ! in_array($mailer, ['log', 'array'], true) || ! $notified, warnOnly: true, hint: 'Notification e-mails are set but MAIL_MAILER only writes to the log: set the MAIL_* settings (docs/deployment.md).');
 
         $this->components->info('Sign-in');
         $this->check('An identity provider is configured', $providers->enabledKeys() !== [], hint: 'Set SAML_IDP_* (docs/authentication.md).');
