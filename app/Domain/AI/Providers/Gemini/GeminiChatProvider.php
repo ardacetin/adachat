@@ -4,6 +4,7 @@ namespace App\Domain\AI\Providers\Gemini;
 
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\ImagePart;
@@ -63,7 +64,7 @@ final class GeminiChatProvider extends HttpChatProvider
     private static function parts(ChatMessage $message): array
     {
         $parts = array_map(
-            static fn (ImagePart $image): array => ['inline_data' => ['mime_type' => $image->mime, 'data' => $image->base64]],
+            static fn (ImagePart|DocumentPart $part): array => ['inline_data' => ['mime_type' => $part->mime, 'data' => $part->base64]],
             $message->parts,
         );
 

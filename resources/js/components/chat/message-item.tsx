@@ -1,6 +1,7 @@
-import { Check, Copy, FileText, RefreshCw } from 'lucide-react';
+import { Check, Copy, RefreshCw } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import FileIcon from '@/components/chat/file-icon';
 import Markdown from '@/components/chat/markdown';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -150,7 +151,7 @@ function Attachments({ files }: { files: AttachmentInfo[] }) {
                             download={file.name}
                             className="flex items-center gap-2 rounded-xl border bg-muted/50 px-3 py-2 text-sm hover:bg-muted"
                         >
-                            <FileText className="size-4 text-muted-foreground" />
+                            <FileIcon mime={file.mime} />
                             <span className="max-w-48 truncate">
                                 {file.name}
                             </span>

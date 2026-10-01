@@ -72,3 +72,29 @@ test('a rejected file is explained and not sent', async ({ page }) => {
     await page.getByRole('button', { name: 'Remove logo.svg' }).click();
     await expect(chip).toHaveCount(0);
 });
+
+test('a PDF goes as a file, a Word document as text', async ({ page }) => {
+    await signIn(page);
+
+    await page
+        .getByTestId('attachment-input')
+        .setInputFiles([path.join(files, 'sample.pdf')]);
+    await expect(page.getByTestId('attachment-chip')).toContainText(
+        '2 pages · about 3,000 tokens',
+    );
+    await page.getByLabel('Message').fill('Summarise the report');
+    await page.keyboard.press('Enter');
+    await page.waitForURL(/\/c\/[0-9a-z-]+$/);
+    await expect(page.getByText('PDF alındı: 1.')).toBeVisible();
+
+    await page
+        .getByTestId('attachment-input')
+        .setInputFiles([path.join(files, 'sample.docx')]);
+    await expect(page.getByTestId('attachment-chip')).toContainText(
+        /about \d+ tokens/,
+    );
+    await page.getByLabel('Message').fill('And these notes?');
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Dosyayı okudum.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'sample.docx' })).toBeVisible();
+});

@@ -5,6 +5,7 @@ namespace App\Domain\AI\Counters;
 use App\Domain\AI\Contracts\InputTokenCounter;
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\ImagePart;
 
 /**
@@ -27,7 +28,7 @@ final class EstimatedInputTokenCounter implements InputTokenCounter
         ));
 
         $images = array_sum(array_map(
-            static fn (ChatMessage $message): int => array_sum(array_map(static fn (ImagePart $image): int => $image->tokenEstimate, $message->parts)),
+            static fn (ChatMessage $message): int => array_sum(array_map(static fn (ImagePart|DocumentPart $part): int => $part->tokenEstimate, $message->parts)),
             $request->messages,
         ));
 

@@ -4,6 +4,7 @@ namespace App\Domain\AI\Providers\OpenAI;
 
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\ImagePart;
@@ -57,7 +58,9 @@ final class OpenAIChatProvider extends HttpChatProvider
         }
 
         $content = array_map(
-            static fn (ImagePart $image): array => ['type' => 'input_image', 'image_url' => $image->dataUrl()],
+            static fn (ImagePart|DocumentPart $part): array => $part instanceof ImagePart
+                ? ['type' => 'input_image', 'image_url' => $part->dataUrl()]
+                : ['type' => 'input_file', 'filename' => $part->name, 'file_data' => $part->dataUrl()],
             $message->parts,
         );
 

@@ -104,7 +104,7 @@ test('older images beyond the request limit are replaced by a note', function ()
     $request = app(ContextBuilder::class)->build($alias, $history);
 
     expect($request->messages[0]->parts)->toBe([])
-        ->and($request->messages[0]->text)->toBe("eski\n\n[Image not sent again with this request: old.png]")
+        ->and($request->messages[0]->text)->toBe("eski\n\n[File not sent again with this request: old.png]")
         ->and($request->messages[2]->parts)->toHaveCount(1)
         ->and($request->messages[2]->parts[0]->base64)->toBe(base64_encode(str_repeat('x', (int) (0.6 * $mb))));
 });

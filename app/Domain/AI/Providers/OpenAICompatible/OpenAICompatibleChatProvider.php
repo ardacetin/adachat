@@ -65,10 +65,11 @@ final class OpenAICompatibleChatProvider extends HttpChatProvider
             return ['role' => $message->role->value, 'content' => $message->text];
         }
 
-        $content = array_map(
+        // Documents never reach this driver (ProviderDriver::sendsDocuments()).
+        $content = array_values(array_map(
             static fn (ImagePart $image): array => ['type' => 'image_url', 'image_url' => ['url' => $image->dataUrl()]],
-            $message->parts,
-        );
+            array_filter($message->parts, static fn (object $part): bool => $part instanceof ImagePart),
+        ));
 
         if ($message->text !== '') {
             $content[] = ['type' => 'text', 'text' => $message->text];

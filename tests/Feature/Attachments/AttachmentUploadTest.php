@@ -54,7 +54,7 @@ test('the type comes from the content, not the name', function (string $name, st
     'svg' => ['logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>', 'not supported'],
     'binary named .txt' => ['data.txt', "\x7FELF\x02\x01\x01\0\0\0\0\0", 'not supported'],
     'zip' => ['archive.zip', "PK\x03\x04".str_repeat("\0", 30), 'not supported'],
-    'pdf (later)' => ['report.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF", 'not supported yet'],
+    'legacy Word' => ['old.doc', "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1".str_repeat("\0", 504), 'not supported'],
 ]);
 
 test('HTML named .png is kept as text and never rendered', function () {

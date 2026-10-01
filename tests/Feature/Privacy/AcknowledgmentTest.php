@@ -2,6 +2,8 @@
 
 use App\Domain\Institution\Settings\PrivacySettings;
 use App\Models\AuditLog;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
 
 test('a first sign-in shows the usage notice before anything else', function () {
@@ -106,3 +108,20 @@ test('retention values are validated', function (array $overrides, string $error
     'negative days' => [['deleted_conversation_days' => '-1'], 'deleted_conversation_days'],
     'zero retention' => [['conversation_retention_days' => '0'], 'conversation_retention_days'],
 ]);
+
+test('chat requests do not use up the acknowledgment rate limit', function () {
+    $user = User::factory()->create();
+    $conversation = Conversation::factory()->create(['user_id' => $user->id]);
+    $message = Message::query()->forceCreate([
+        'conversation_id' => $conversation->id, 'role' => 'assistant', 'content' => 'x', 'status' => 'completed',
+    ]);
+
+    // More chat requests in a minute than the notice allows (10)...
+    for ($i = 0; $i < 12; $i++) {
+        $this->actingAs($user)->post(route('messages.cancel', $message))->assertNoContent();
+    }
+
+    // ...still leave the notice usable.
+    $user->forceFill(['acknowledged_version' => null, 'acknowledged_at' => null])->save();
+    $this->actingAs($user)->post(route('acknowledgment.store'))->assertRedirect(route('home'));
+});

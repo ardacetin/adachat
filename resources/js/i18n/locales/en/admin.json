@@ -150,7 +150,7 @@
         "contextWindow": "Context window (tokens)",
         "maxOutputTokens": "Maximum output tokens",
         "capabilities": "Capabilities",
-        "capabilitiesHelp": "With \"Images\" on, users can attach images for this model (the provider must support them). Text and code files work with every model.",
+        "capabilitiesHelp": "With \"Images\" on, users can attach images for this model. With \"Files\" on, PDFs are sent as files, so scanned pages and figures are read too; otherwise their text is sent. Word, Excel, PowerPoint, text and code files work with every model.",
         "vision": "Images",
         "files": "Files",
         "tools": "Tools",

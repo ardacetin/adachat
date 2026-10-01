@@ -163,7 +163,7 @@ Chosen from the candidates below, one pull request per step:
 | N2 | CSV export of reports; monthly summary report by e-mail | ✅ |
 | N3 | Generic OpenAI-compatible provider (Chat Completions: OpenRouter, Ollama, vLLM, Groq, LM Studio), optional API key | ✅ |
 | N4 | Attachments part 1: content parts in the provider layer, uploads, images (vision models), text and code files | ✅ |
-| N5 | Attachments part 2: PDF (native or extracted text), Word, Excel and PowerPoint text extraction | |
+| N5 | Attachments part 2: PDF (native or extracted text), Word, Excel and PowerPoint text extraction | ✅ |
 
 Then the v1.1.0 release notes.
 

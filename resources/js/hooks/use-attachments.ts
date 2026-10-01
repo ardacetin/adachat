@@ -6,15 +6,15 @@ import type { AttachmentInfo } from '@/types/chat';
 export type AttachmentItem = {
     key: string;
     name: string;
-    kind: 'image' | 'text';
+    kind: AttachmentInfo['kind'];
     status: 'uploading' | 'ready' | 'error';
     info?: AttachmentInfo;
     error?: string;
 };
 
-/** Files a text-only model can still read: sent as text in the message. */
+/** Files every model can read: documents, text and code. */
 export const TEXT_ACCEPT =
-    '.txt,.md,.csv,.tsv,.json,.xml,.yaml,.yml,.log,.ini,.toml,.py,.js,.ts,.tsx,.jsx,.php,.java,.c,.h,.cpp,.hpp,.cs,.go,.rs,.rb,.kt,.swift,.r,.m,.sql,.sh,.html,.css,.scss,.tex,.bib,text/*';
+    '.pdf,.docx,.xlsx,.pptx,.txt,.md,.csv,.tsv,.json,.xml,.yaml,.yml,.log,.ini,.toml,.py,.js,.ts,.tsx,.jsx,.php,.java,.c,.h,.cpp,.hpp,.cs,.go,.rs,.rb,.kt,.swift,.r,.m,.sql,.sh,.html,.css,.scss,.tex,.bib,text/*';
 
 export const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif';
 
@@ -80,7 +80,11 @@ export function useAttachments({
         (files: File[]) => {
             for (const file of files) {
                 const key = `file-${++counter}`;
-                const kind = file.type.startsWith('image/') ? 'image' : 'text';
+                const kind: AttachmentItem['kind'] = file.type.startsWith(
+                    'image/',
+                )
+                    ? 'image'
+                    : 'text';
                 const item: AttachmentItem = {
                     key,
                     name: file.name || 'file',

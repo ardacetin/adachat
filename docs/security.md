@@ -66,11 +66,21 @@ operators with server access (ultimately trusted); compromised dependencies.
   enum before it reaches the inline script.
 - Chat attachments (v1.1): the type is detected from the content (`finfo`),
   never from the name. Accepted: PNG, JPEG, WebP, GIF and text/code; SVG and
-  binary files are refused. Files live on the private disk and are served
+  binary files are refused; PDF and Office files (N5) are accepted and their
+  text is extracted on upload. Files live on the private disk and are served
   only to their owner (anyone else gets 404) with `nosniff`; images inline
   with their detected type, everything else as a `text/plain` download, so
   an uploaded HTML or SVG file is never rendered. Size, image dimensions and
   unsent uploads per user are limited (`config/ada.php` → `attachments`).
+- Document parsing runs on untrusted files. Office files (OOXML) are read
+  with `ZipArchive` and `XMLReader` only: the archive's entry count and
+  uncompressed size are checked before reading (zip bombs: at most 2000
+  entries, 100 MB in total, 20 MB per XML part), and XML containing a
+  document type declaration or entity is refused, so no entity is expanded
+  or fetched (XXE, billion laughs; `LIBXML_NONET`). PDFs are parsed by
+  `smalot/pdfparser` (pure PHP) with image content discarded; failures are
+  reported as unreadable. Parsing happens once, at upload, within the PHP
+  memory and time limits; macros and embedded objects are never run.
 - Content Security Policy (as built, M10: `App\Http\Middleware\SecurityHeaders`):
   `script-src 'self' 'nonce-…'` — Vite's tags and the inline appearance
   script carry a per-request nonce, nothing else runs (no `unsafe-eval`, no

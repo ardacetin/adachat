@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { FileText, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import FileIcon from '@/components/chat/file-icon';
 import { Spinner } from '@/components/ui/spinner';
 import type { AttachmentItem } from '@/hooks/use-attachments';
 import { formatNumber } from '@/lib/format';
@@ -47,7 +48,7 @@ export default function AttachmentChips({ items, onRemove }: Props) {
                                 {item.status === 'uploading' ? (
                                     <Spinner className="size-4" />
                                 ) : (
-                                    <FileText className="size-4 text-muted-foreground" />
+                                    <FileIcon mime={item.info?.mime} />
                                 )}
                             </span>
                         )}
@@ -71,13 +72,16 @@ export default function AttachmentChips({ items, onRemove }: Props) {
                                     t('attachments.uploading')}
                                 {item.status === 'ready' &&
                                     item.info &&
-                                    t('attachments.tokens', {
-                                        count: item.info.token_estimate,
-                                        formatted: formatNumber(
-                                            item.info.token_estimate,
-                                            locale.current,
-                                        ),
-                                    })}
+                                    (item.info.pages
+                                        ? `${t('attachments.pages', { count: item.info.pages })} · `
+                                        : '') +
+                                        t('attachments.tokens', {
+                                            count: item.info.token_estimate,
+                                            formatted: formatNumber(
+                                                item.info.token_estimate,
+                                                locale.current,
+                                            ),
+                                        })}
                                 {item.status === 'error' && item.error}
                             </span>
                         </span>

@@ -139,8 +139,18 @@ class MessageController extends Controller
 
         $attachments = $found->sortBy(fn (MessageAttachment $file) => array_search($file->id, $ids, true))->values();
 
-        if (! $alias->aiModel->supports_vision && $attachments->contains(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Image)) {
+        $model = $alias->aiModel;
+
+        if (! $model->supports_vision && $attachments->contains(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Image)) {
             throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.vision_unsupported')]);
+        }
+
+        // A PDF without text (scanned) can only be read by a model that takes the file itself.
+        $readsPdfs = $model->supports_files && $model->provider->driver->sendsDocuments();
+        $scanned = $attachments->contains(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Pdf && trim((string) $file->extracted_text) === '');
+
+        if ($scanned && ! $readsPdfs) {
+            throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.scanned_pdf_unsupported')]);
         }
 
         return $attachments;

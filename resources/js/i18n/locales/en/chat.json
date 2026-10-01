@@ -100,13 +100,15 @@
     "attachments": {
         "list": "Attached files",
         "add": "Attach images or files",
-        "addText": "Attach text or code files",
+        "addText": "Attach documents, text or code files",
         "remove": "Remove {{name}}",
         "uploading": "Uploading…",
         "tokens_one": "about {{formatted}} token",
         "tokens_other": "about {{formatted}} tokens",
         "imagesUnsupported": "This model cannot read images.",
         "tooLarge": "The file is too large.",
-        "resent": "Attached files are sent again with every message while they are in the conversation."
+        "resent": "Attached files are sent again with every message while they are in the conversation.",
+        "pages_one": "{{count}} page",
+        "pages_other": "{{count}} pages"
     }
 }
