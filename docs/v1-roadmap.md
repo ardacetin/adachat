@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M11 done** (the first rollout and v1.0.0 follow the pilot). Milestones are small and independently
+> Status: **M0–M11 done, v1.0.0 released** ([release notes](releases/v1.0.0.md)); the first rollout follows the deployment guide §10. Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -136,7 +136,7 @@ LICENSE (AGPL-3.0-or-later).
 - Open review items: JSON logs (F2), trusted proxies (F3). ✅
 - First institution rollout (Beykoz University): pilot group → wider rollout
   — checklist in the deployment guide §10; done by the institution.
-- v1.0.0 release after the pilot.
+- v1.0.0 release. ✅ ([release notes](releases/v1.0.0.md))
 
 ## Dependency graph
 
