@@ -7,7 +7,9 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.0.0** ([release notes](docs/releases/v1.0.0.md)). Milestones M0–M11 are done: foundation,
+> **Status: 1.1.0** ([release notes](docs/releases/v1.1.0.md)). Version 1.1 adds an
+> institution-wide spending cap, CSV exports and a monthly report,
+> OpenAI-compatible servers and chat attachments. Milestones M0–M11 of 1.0: foundation,
 > Google Workspace (SAML) sign-in, institution settings and branding, AI
 > providers and model aliases, the budget engine, streaming chat, groups,
 > budget policies and user usage, administration of users and the audit
@@ -34,7 +36,13 @@ offer controlled access to everyone:
   up, new requests are refused; it renews automatically every month.
 - Administrators see spending and usage — but not conversation content.
 
-## Planned V1 features
+**The name.** Ada is named after
+[Ada Lovelace](https://en.wikipedia.org/wiki/Ada_Lovelace) (1815–1852), who
+wrote what is regarded as the first computer program, for Charles Babbage's
+Analytical Engine, and foresaw that such machines could work with more than
+numbers.
+
+## Features
 
 - Google Workspace sign-in (SAML 2.0) restricted to allowed domains
 - Turkish and English UI, dark mode, institution branding
@@ -47,11 +55,12 @@ offer controlled access to everyone:
 - Monthly USD budgets with hard enforcement (provider token counting,
   reservations, output capping)
 - Usage accounting with pricing snapshots, usage reports and an admin dashboard
+- An institution-wide monthly spending cap, CSV exports and a monthly e-mail report
 - Encrypted provider credentials and audit logging
 - Deployment on Ubuntu + Nginx + PHP-FPM + MySQL + Redis, or with Docker
 
-Out of scope for V1: RAG, web search, agents, tools, image generation, voice,
-file uploads and multi-tenant SaaS.
+Not included: RAG, web search, agents, tools, image generation, voice and
+multi-tenant SaaS.
 
 ## Technology
 

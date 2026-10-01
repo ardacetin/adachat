@@ -165,7 +165,7 @@ Chosen from the candidates below, one pull request per step:
 | N4 | Attachments part 1: content parts in the provider layer, uploads, images (vision models), text and code files | ✅ |
 | N5 | Attachments part 2: PDF (native or extracted text), Word, Excel and PowerPoint text extraction | ✅ |
 
-Then the v1.1.0 release notes.
+Then the v1.1.0 release notes ✅ ([docs/releases/v1.1.0.md](releases/v1.1.0.md)).
 
 ## Candidates for V2
 

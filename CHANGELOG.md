@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-01
+
+An institution-wide spending cap with e-mail alerts, CSV exports and a
+monthly report, a provider for OpenAI-compatible servers, and attachments in
+the chat (images, PDF, Office, text and code files). Release notes:
+[docs/releases/v1.1.0.md](docs/releases/v1.1.0.md).
+
 ### Added
 
 - **Institution-wide monthly cap** (Admin → Institution): all users together
@@ -177,5 +184,6 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ardacetin/adachat/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ardacetin/adachat/releases/tag/v1.0.0
