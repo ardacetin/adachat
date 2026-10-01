@@ -1,8 +1,11 @@
 <?php
 
+use App\Domain\AI\Counters\EstimatedInputTokenCounter;
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Enums\InputCountMethod;
+use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\AI\Exceptions\TokenCountUnavailable;
 use App\Domain\AI\Services\CredentialVault;
@@ -76,4 +79,14 @@ test('OpenAI-compatible providers are estimated without a count call', function 
         ->and($count->reservedTokens())->toBe(778);
 
     Http::assertNothingSent();
+});
+
+test('the estimate includes the images of the request', function () {
+    $request = new ChatRequest('test-model', [new ChatMessage(MessageRole::User, 'abcd', [
+        new ImagePart('image/png', 'aW1n', 1600),
+        new ImagePart('image/png', 'aW1n', 1600),
+    ])], 1024);
+
+    // 4 bytes / 2 + 2 × 8 overhead + 2 × 1600.
+    expect((new EstimatedInputTokenCounter)->count($request))->toBe(3218);
 });

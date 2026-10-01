@@ -13,6 +13,20 @@ type Handlers = {
     onSettled?: () => void;
 };
 
+async function firstValidationError(
+    response: Response,
+): Promise<string | undefined> {
+    try {
+        const body = (await response.json()) as {
+            errors?: Record<string, string[]>;
+        };
+
+        return Object.values(body.errors ?? {})[0]?.[0];
+    } catch {
+        return undefined;
+    }
+}
+
 /** How long Stop waits for the server to finish before dropping the connection. */
 const STOP_GRACE_MS = 5000;
 
@@ -91,6 +105,16 @@ export function useChatStream() {
                 const isStream = (
                     response.headers.get('Content-Type') ?? ''
                 ).startsWith('text/event-stream');
+
+                if (response.status === 422) {
+                    handlers.onError?.({
+                        code: 'validation',
+                        retryable: false,
+                        message: await firstValidationError(response),
+                    });
+
+                    return;
+                }
 
                 if (!response.ok || !response.body || !isStream) {
                     handlers.onError?.({

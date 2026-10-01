@@ -7,6 +7,7 @@ use App\Domain\Conversations\Services\ConversationThread;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageAttachment;
 use App\Models\ModelAlias;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,7 @@ class ConversationController extends Controller
                 'error_code' => $message->error_code,
                 'finish_reason' => $message->finish_reason,
                 'output_capped' => (bool) ($message->metadata['output_capped'] ?? false),
+                'attachments' => $message->attachments->map(fn (MessageAttachment $attachment) => $attachment->toClient())->values(),
             ])->values(),
         ]);
     }
@@ -83,6 +85,7 @@ class ConversationController extends Controller
                 'id' => $alias->id,
                 'name' => $alias->localizedName($locale),
                 'description' => $alias->description[$locale] ?? $alias->description['en'] ?? null,
+                'supports_vision' => $alias->aiModel->supports_vision,
                 // The underlying model is shown only when the admin allows it.
                 'details' => $alias->show_model_details
                     ? "{$alias->aiModel->display_name} · {$alias->aiModel->provider->name}"

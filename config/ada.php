@@ -89,6 +89,31 @@ return [
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),
     ],
 
+    'attachments' => [
+        // Files per message and unsent ("pending") files per user.
+        'max_per_message' => 5,
+        'max_pending' => 20,
+
+        // Upload limits in MB. 5 MB is the strictest provider limit for images
+        // (Anthropic); the web server and PHP limits must allow the largest.
+        'max_image_mb' => (float) env('ADA_ATTACHMENT_MAX_IMAGE_MB', 5),
+        'max_text_mb' => (float) env('ADA_ATTACHMENT_MAX_TEXT_MB', 1),
+
+        // Images larger than this on either side are refused (Anthropic: 8000).
+        'max_image_side' => 8000,
+
+        // Input-token estimate per image, for trimming and for the estimate
+        // path; the provider count endpoints count images exactly.
+        'image_tokens' => 1600,
+
+        // Attachment bytes sent in one request (Gemini allows 20 MB inline).
+        // Older images beyond this are replaced by a short note.
+        'max_request_mb' => 15,
+
+        // Unsent attachments are deleted after this many hours.
+        'pending_hours' => 24,
+    ],
+
     'providers' => [
         // Maximum duration of one generation request (streaming), seconds.
         'timeout' => (int) env('ADA_PROVIDER_TIMEOUT', 300),

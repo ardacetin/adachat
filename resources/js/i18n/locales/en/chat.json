@@ -62,7 +62,9 @@
         "internal_error": "Something went wrong. Please try again.",
         "network": "The connection was lost.",
         "forbidden": "This model is not available to you.",
-        "unknown": "Something went wrong. Please try again."
+        "unknown": "Something went wrong. Please try again.",
+        "attachments_invalid": "An attached file is no longer available. Attach it again.",
+        "validation": "The message could not be sent."
     },
     "budget": {
         "title": "Monthly budget",
@@ -94,5 +96,17 @@
         "used": "Used",
         "empty": "No usage yet this month.",
         "note": "Costs are the providers’ prices at the time of each request. Adjustments made by administrators change your budget but are not listed here."
+    },
+    "attachments": {
+        "list": "Attached files",
+        "add": "Attach images or files",
+        "addText": "Attach text or code files",
+        "remove": "Remove {{name}}",
+        "uploading": "Uploading…",
+        "tokens_one": "about {{formatted}} token",
+        "tokens_other": "about {{formatted}} tokens",
+        "imagesUnsupported": "This model cannot read images.",
+        "tooLarge": "The file is too large.",
+        "resent": "Attached files are sent again with every message while they are in the conversation."
     }
 }

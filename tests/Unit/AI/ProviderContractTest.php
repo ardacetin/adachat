@@ -6,8 +6,10 @@ use App\Domain\AI\Data\Events\Finished;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\Events\UsageReported;
+use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
+use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Exceptions\ContextLengthExceeded;
 use App\Domain\AI\Exceptions\InvalidProviderRequest;
 use App\Domain\AI\Exceptions\ProviderAuthFailed;
@@ -48,6 +50,7 @@ dataset('providers', [
         'requestId' => 'req_openai',
         'reasoning' => false,
         'streamError' => ProviderRateLimited::class,
+        'imageMarker' => '"type":"input_image","image_url":"data:image/png;base64,',
     ]],
     'anthropic' => [[
         'class' => AnthropicChatProvider::class,
@@ -64,6 +67,7 @@ dataset('providers', [
         'requestId' => 'req_anthropic',
         'reasoning' => true,
         'streamError' => ProviderOverloaded::class,
+        'imageMarker' => '"source":{"type":"base64","media_type":"image/png","data":"',
     ]],
     'gemini' => [[
         'class' => GeminiChatProvider::class,
@@ -80,6 +84,7 @@ dataset('providers', [
         'requestId' => 'gem_1',
         'reasoning' => true,
         'streamError' => ProviderRateLimited::class,
+        'imageMarker' => '"inline_data":{"mime_type":"image/png","data":"',
     ]],
     'openai_compatible' => [[
         'class' => OpenAICompatibleChatProvider::class,
@@ -96,6 +101,7 @@ dataset('providers', [
         'requestId' => 'req_openai',
         'reasoning' => true,
         'streamError' => ProviderRateLimited::class,
+        'imageMarker' => '"type":"image_url","image_url":{"url":"data:image/png;base64,',
     ]],
 ]);
 
@@ -283,3 +289,37 @@ test('an OpenAI-compatible stream without a finish reason ends on [DONE]', funct
     expect($result->text)->toBe('Tamam')
         ->and($result->finishReason)->toBe(FinishReason::Stop);
 });
+
+test('images are sent inline before the text, and counted with it', function (array $provider) {
+    $stream = file_get_contents(base_path("tests/Fixtures/providers/{$provider['fixture']}-stream.sse"));
+    Http::fake(fn (Request $request) => $request->url() === $provider['countUrl']
+        ? Http::response($provider['countBody'])
+        : Http::response($stream, 200, ['Content-Type' => 'text/event-stream']));
+
+    $request = new ChatRequest(
+        model: 'test-model',
+        messages: [new ChatMessage(MessageRole::User, 'Bu ne?', [new ImagePart('image/png', 'aW1hZ2U=', 1600)])],
+        maxOutputTokens: 512,
+    );
+
+    iterator_to_array(adapter($provider)->stream($request));
+
+    if ($provider['countUrl'] !== null) {
+        adapter($provider)->count($request);
+    }
+
+    $sent = Http::recorded()->map(fn ($pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+    expect($sent)->toHaveCount($provider['countUrl'] === null ? 1 : 2)
+        ->each->toContain($provider['imageMarker'].'aW1hZ2U=');
+    expect(strpos($sent[0], 'aW1hZ2U='))->toBeLessThan(strpos($sent[0], 'Bu ne?'));
+})->with('providers');
+
+test('an image without text sends no empty text block', function (array $provider) {
+    fakeStream($provider);
+    $request = new ChatRequest('test-model', [new ChatMessage(MessageRole::User, '', [new ImagePart('image/png', 'aW1hZ2U=', 1600)])], 512);
+
+    iterator_to_array(adapter($provider)->stream($request));
+
+    Http::assertSent(fn (Request $request) => ! str_contains(json_encode($request->data()), '"text":""'));
+})->with('providers');

@@ -38,6 +38,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is recorded but costs nothing against budgets. Setup examples in
   [provider-architecture.md §9](docs/provider-architecture.md#9-openai-compatible-servers).
 
+- **Attachments in the chat**: images (PNG, JPEG, WebP, GIF) for models
+  with image support, and text and code files for every model. Attach with
+  the paperclip, by dragging or by pasting a screenshot; each file shows its
+  estimated token cost. Images go to the provider inline (OpenAI, Anthropic,
+  Gemini, OpenAI-compatible), text files as fenced blocks in the message.
+  Attachments are sent again while their message is in the context, up to
+  15 MB of images per request (older images are replaced by a note).
+  Uploads are checked by content (no SVG), stored privately and visible
+  only to their owner; they are deleted with their conversation by
+  `ada:retention:prune`, which also removes unsent uploads after a day.
+  PDF and Office files follow in the next milestone.
+
+### Upgrade notes
+
+- Attachments need larger request bodies. Docker images include the new
+  limits; for the host nginx in front of Docker
+  (`deploy/nginx/ada-docker-proxy.conf`) and for installations without
+  Docker, set `client_max_body_size 8m;` in nginx and
+  `upload_max_filesize = 6M` in PHP-FPM (`deploy/php-fpm/ada.conf`), then
+  reload both.
+
 ## [1.0.0] - 2026-10-01
 
 First release: a self-hosted AI gateway and chat for one institution, with

@@ -65,10 +65,27 @@ const server = createServer(async (request, response) => {
     if (request.method === 'POST' && url.pathname === '/v1/responses') {
         const body = await readBody(request);
         const last = body.input?.at(-1)?.content ?? '';
-        const long = String(last).includes('long');
+        // With attachments the content is a list of input_text/input_image parts.
+        const parts = Array.isArray(last)
+            ? last
+            : [{ type: 'input_text', text: last }];
+        const text = parts
+            .filter((part) => part.type === 'input_text')
+            .map((part) => part.text)
+            .join('');
+        const images = parts.filter(
+            (part) =>
+                part.type === 'input_image' &&
+                String(part.image_url).startsWith('data:image/'),
+        ).length;
+        const long = text.includes('long');
         const chunks = long
             ? Array.from({ length: 80 }, (_, i) => `Kelime ${i + 1}. `)
-            : ANSWER;
+            : images > 0
+              ? [`Görsel sayısı: ${images}. `, ...ANSWER]
+              : text.includes('```')
+                ? ['Dosyayı okudum. ', ...ANSWER]
+                : ANSWER;
 
         let closed = false;
         request.on('close', () => (closed = true));

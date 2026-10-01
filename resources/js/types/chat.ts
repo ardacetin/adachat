@@ -8,6 +8,17 @@ export type ChatMessage = {
     error_code: string | null;
     finish_reason: string | null;
     output_capped: boolean;
+    attachments?: AttachmentInfo[];
+};
+
+export type AttachmentInfo = {
+    id: string;
+    kind: 'image' | 'text';
+    name: string;
+    size: number;
+    mime: string;
+    token_estimate: number;
+    url: string;
 };
 
 export type AliasOption = {
@@ -15,6 +26,7 @@ export type AliasOption = {
     name: string;
     description: string | null;
     details: string | null;
+    supports_vision: boolean;
 };
 
 export type ConversationSummary = {
@@ -46,4 +58,6 @@ export type ErrorEvent = {
     code: string;
     retryable: boolean;
     assistant_message_id?: string;
+    /** A validation message from the server, already translated. */
+    message?: string;
 };

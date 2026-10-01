@@ -4,19 +4,23 @@ namespace App\Http\Controllers\Chat;
 
 use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Services\AliasAccess;
+use App\Domain\Attachments\Enums\AttachmentKind;
 use App\Domain\Conversations\Data\ChatStreamEvent;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Services\ChatGenerationService;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageAttachment;
 use App\Models\ModelAlias;
 use App\Models\User;
 use Generator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -35,9 +39,13 @@ class MessageController extends Controller
     {
         $user = $this->user($request);
         $validated = $request->validate([
-            'content' => ['required', 'string', 'max:'.(int) config('ada.chat.max_message_chars', 32000)],
+            'content' => ['required_without:attachment_ids', 'nullable', 'string', 'max:'.(int) config('ada.chat.max_message_chars', 32000)],
             'model_alias_id' => ['required', 'integer'],
             'conversation_id' => ['nullable', 'uuid'],
+            'attachment_ids' => ['nullable', 'array', 'max:'.(int) config('ada.attachments.max_per_message')],
+            'attachment_ids.*' => ['uuid', 'distinct'],
+        ], [
+            'attachment_ids.max' => __('chat.attachments.too_many', ['max' => (int) config('ada.attachments.max_per_message')]),
         ]);
 
         $conversation = null;
@@ -48,9 +56,14 @@ class MessageController extends Controller
         }
 
         $alias = $this->alias($user, $validated['model_alias_id']);
-        $content = trim($validated['content']);
+        $content = trim((string) ($validated['content'] ?? ''));
+        $attachments = $this->attachments($user, $alias, $validated['attachment_ids'] ?? []);
 
-        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...)));
+        if ($content === '' && $attachments->isEmpty()) {
+            throw ValidationException::withMessages(['content' => __('validation.required', ['attribute' => 'content'])]);
+        }
+
+        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments));
     }
 
     public function regenerate(Request $request, Message $message): StreamedResponse
@@ -104,6 +117,33 @@ class MessageController extends Controller
             'Cache-Control' => 'no-cache, no-store',
             'X-Accel-Buffering' => 'no',
         ]);
+    }
+
+    /**
+     * The user's own unsent uploads, in the order given, that the model can read.
+     *
+     * @param  list<string>  $ids
+     * @return EloquentCollection<int, MessageAttachment>
+     */
+    private function attachments(User $user, ModelAlias $alias, array $ids): EloquentCollection
+    {
+        if ($ids === []) {
+            return new EloquentCollection;
+        }
+
+        $found = MessageAttachment::query()->whereKey($ids)->where('user_id', $user->id)->pending()->get();
+
+        if ($found->count() !== count($ids)) {
+            throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.invalid')]);
+        }
+
+        $attachments = $found->sortBy(fn (MessageAttachment $file) => array_search($file->id, $ids, true))->values();
+
+        if (! $alias->aiModel->supports_vision && $attachments->contains(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Image)) {
+            throw ValidationException::withMessages(['attachment_ids' => __('chat.attachments.vision_unsupported')]);
+        }
+
+        return $attachments;
     }
 
     private function alias(User $user, mixed $aliasId): ModelAlias

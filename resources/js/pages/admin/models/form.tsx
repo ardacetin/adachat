@@ -373,6 +373,9 @@ export default function ModelForm({
                     <h3 className="text-sm font-medium">
                         {t('models.capabilities')}
                     </h3>
+                    <p className="text-sm text-muted-foreground">
+                        {t('models.capabilitiesHelp')}
+                    </p>
                     {capabilities.map(({ field, label }) => (
                         <CheckboxField
                             key={field}
