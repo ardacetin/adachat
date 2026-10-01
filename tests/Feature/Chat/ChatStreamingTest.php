@@ -4,6 +4,7 @@ use App\Domain\AI\Services\CredentialVault;
 use App\Domain\Budget\Enums\ReservationStatus;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Services\ChatGenerationService;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\AiModel;
 use App\Models\BudgetPeriod;
 use App\Models\BudgetPolicy;
@@ -129,6 +130,16 @@ test('an exhausted budget refuses before anything is stored', function () {
 
     expect($events)->toBe([['event' => 'error', 'data' => ['code' => 'budget_exhausted', 'retryable' => false]]])
         ->and(Conversation::query()->count())->toBe(0)
+        ->and(Message::query()->count())->toBe(0);
+});
+
+test('a reached institution cap refuses with its own error', function () {
+    updateSettings(InstitutionSettings::class, ['monthly_cap_usd' => '0']);
+    fakeOpenAi();
+
+    $events = sendMessage(['content' => 'Selam', 'model_alias_id' => $this->alias->id]);
+
+    expect($events)->toBe([['event' => 'error', 'data' => ['code' => 'institution_budget_exhausted', 'retryable' => false]]])
         ->and(Message::query()->count())->toBe(0);
 });
 

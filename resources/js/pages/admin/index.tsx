@@ -21,6 +21,12 @@ type Props = {
     topModels: BreakdownRow[];
     topGroups: BreakdownRow[];
     overshoots: number;
+    cap: {
+        cap_usd: string;
+        used_usd: string;
+        percent: number;
+        resets_on: string;
+    } | null;
 };
 
 function Ranked({ title, rows }: { title: string; rows: BreakdownRow[] }) {
@@ -75,6 +81,7 @@ export default function AdminDashboard({
     topModels,
     topGroups,
     overshoots,
+    cap,
 }: Props) {
     const { t } = useTranslation('admin');
     const { locale } = usePage().props;
@@ -143,6 +150,35 @@ export default function AdminDashboard({
                         </Card>
                     ))}
                 </div>
+
+                {cap !== null && (
+                    <Card data-test="institution-cap">
+                        <CardHeader>
+                            <CardDescription>
+                                {t('dashboard.cap')}
+                            </CardDescription>
+                            <CardTitle className="tabular-nums">
+                                {t('dashboard.capUsed', {
+                                    used: formatUsd(cap.used_usd, lang),
+                                    cap: formatUsd(cap.cap_usd, lang),
+                                    percent: cap.percent,
+                                })}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <ShareBar share={cap.percent} />
+                            <p className="text-xs text-muted-foreground">
+                                {cap.percent >= 100
+                                    ? t('dashboard.capReached', {
+                                          date: formatDate(cap.resets_on, lang),
+                                      })
+                                    : t('dashboard.capResets', {
+                                          date: formatDate(cap.resets_on, lang),
+                                      })}
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {kpis.users_at_limit > 0 && (
                     <Alert>

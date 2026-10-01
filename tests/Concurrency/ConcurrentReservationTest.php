@@ -1,12 +1,15 @@
 <?php
 
 use App\Domain\Budget\Enums\ReservationStatus;
+use App\Domain\Budget\Money\Usd;
 use App\Domain\Budget\Services\Reconciler;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\AiModel;
 use App\Models\BudgetPeriod;
 use App\Models\BudgetPolicy;
 use App\Models\BudgetReservation;
 use App\Models\Group;
+use App\Models\InstitutionPeriod;
 use App\Models\UsageEvent;
 use App\Models\User;
 use Symfony\Component\Process\Process;
@@ -21,10 +24,12 @@ beforeEach(fn () => $this->artisan('migrate:fresh')->assertSuccessful());
 afterEach(fn () => $this->artisan('migrate:fresh')->assertSuccessful());
 
 /**
+ * @param  User|list<User>  $users  one user for all workers, or one per worker (round robin)
  * @return list<array{reserved: int, refused: int, settled: int, released: int, errors: list<string>}>
  */
-function runWorkers(User $user, AiModel $model, int $workers, int $iterations, string $mode): array
+function runWorkers(User|array $users, AiModel $model, int $workers, int $iterations, string $mode): array
 {
+    $users = is_array($users) ? $users : [$users];
     $connection = config('database.connections.mysql');
     $env = [
         'APP_ENV' => 'testing',
@@ -39,7 +44,8 @@ function runWorkers(User $user, AiModel $model, int $workers, int $iterations, s
 
     $processes = [];
 
-    foreach (range(1, $workers) as $ignored) {
+    foreach (range(0, $workers - 1) as $index) {
+        $user = $users[$index % count($users)];
         $process = new Process(
             [PHP_BINARY, base_path('tests/Support/budget-worker.php'), (string) $user->id, (string) $model->id, (string) $iterations, $mode],
             base_path(),
@@ -97,4 +103,22 @@ test('parallel requests respect the concurrent stream limit', function () {
         ->and(array_sum(array_column($results, 'reserved')))->toBe(3)
         ->and(BudgetReservation::query()->where('status', ReservationStatus::Active)->count())->toBe(3)
         ->and(app(Reconciler::class)->check())->toBe([]);
+});
+
+test('parallel requests of many users never exceed the institution cap', function () {
+    [$first, $model] = concurrencySetup(limit: '100', maxConcurrent: 100);
+    $users = [$first, ...User::factory()->count(5)->create(['group_id' => $first->group_id])->all()];
+    updateSettings(InstitutionSettings::class, ['monthly_cap_usd' => '0.05']);
+
+    $results = runWorkers($users, $model, workers: 6, iterations: 12, mode: 'settle');
+
+    $month = InstitutionPeriod::query()->sole();
+    $errors = array_merge(...array_column($results, 'errors'));
+
+    expect($errors)->toBe([])
+        ->and(array_sum(array_column($results, 'reserved')))->toBeGreaterThan(0)
+        ->and(array_sum(array_column($results, 'refused')))->toBeGreaterThan(0)
+        ->and($month->spent_usd->plus($month->reserved_usd)->isGreaterThan(Usd::of('0.05')))->toBeFalse()
+        ->and(app(Reconciler::class)->check())->toBe([])
+        ->and(app(Reconciler::class)->checkInstitution())->toBe([]);
 });

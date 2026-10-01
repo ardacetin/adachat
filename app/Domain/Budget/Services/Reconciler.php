@@ -7,6 +7,7 @@ use App\Domain\Budget\Data\Discrepancy;
 use App\Domain\Budget\Enums\ReservationStatus;
 use App\Domain\Budget\Money\Usd;
 use App\Models\BudgetPeriod;
+use App\Models\InstitutionPeriod;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\DB;
  *   spent_usd    == SUM(usage_events.total_cost_usd)
  *   reserved_usd == SUM(active budget_reservations.amount_usd)
  *
- * Differences are reported, never silently corrected.
+ * and each institution month against the sum of the users' periods of
+ * that month. Differences are reported, never silently corrected.
  */
 final class Reconciler
 {
@@ -58,6 +60,71 @@ final class Reconciler
         }
 
         return $discrepancies;
+    }
+
+    /**
+     * Institution months whose totals differ from the sum of the users'
+     * periods. The period id is the institution_periods id, the user 0.
+     *
+     * @return list<Discrepancy>
+     */
+    public function checkInstitution(): array
+    {
+        $rows = DB::select(<<<'SQL'
+            SELECT i.id, i.spent_usd, i.reserved_usd,
+                   COALESCE(SUM(p.spent_usd), 0) AS expected_spent,
+                   COALESCE(SUM(p.reserved_usd), 0) AS expected_reserved
+            FROM institution_periods i
+            LEFT JOIN budget_periods p ON p.period_start = i.period_start
+            GROUP BY i.id, i.spent_usd, i.reserved_usd
+            HAVING i.spent_usd <> expected_spent OR i.reserved_usd <> expected_reserved
+            ORDER BY i.id
+            SQL);
+
+        $discrepancies = [];
+
+        foreach ($rows as $row) {
+            foreach (['spent_usd' => 'expected_spent', 'reserved_usd' => 'expected_reserved'] as $column => $expectedKey) {
+                $stored = Usd::of((string) $row->{$column});
+                $expected = Usd::of((string) $row->{$expectedKey});
+
+                if (! $stored->equals($expected)) {
+                    $discrepancies[] = new Discrepancy((int) $row->id, 0, 'institution_'.$column, $stored, $expected);
+                }
+            }
+        }
+
+        return $discrepancies;
+    }
+
+    /**
+     * Recompute an institution month from the users' periods (derived data,
+     * so both totals are safe to rewrite). Takes the same lock order as the
+     * budget engine: the users' periods first.
+     */
+    public function fixInstitution(int $institutionPeriodId): void
+    {
+        DB::transaction(function () use ($institutionPeriodId): void {
+            $start = InstitutionPeriod::query()->whereKey($institutionPeriodId)->value('period_start');
+
+            $sums = DB::table('budget_periods')
+                ->where('period_start', $start)
+                ->lockForUpdate()
+                ->selectRaw('COALESCE(SUM(spent_usd), 0) AS spent, COALESCE(SUM(reserved_usd), 0) AS reserved')
+                ->first();
+
+            $institution = InstitutionPeriod::query()->whereKey($institutionPeriodId)->lockForUpdate()->firstOrFail();
+            $old = ['spent_usd' => $institution->spent_usd->toString(), 'reserved_usd' => $institution->reserved_usd->toString()];
+
+            $institution->spent_usd = Usd::of((string) ($sums->spent ?? '0'));
+            $institution->reserved_usd = Usd::of((string) ($sums->reserved ?? '0'));
+            $institution->save();
+
+            $this->audit->record('budget.institution_recomputed', $institution, $old, [
+                'spent_usd' => $institution->spent_usd->toString(),
+                'reserved_usd' => $institution->reserved_usd->toString(),
+            ]);
+        }, 3);
     }
 
     /**

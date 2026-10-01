@@ -8,13 +8,13 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-#[Signature('ada:budget:reconcile {--fix-reserved : Recompute reserved amounts from active reservations}')]
+#[Signature('ada:budget:reconcile {--fix-reserved : Recompute reserved amounts from active reservations and institution months from the users\' periods}')]
 #[Description('Compare budget period totals with the usage ledger and active reservations')]
 class ReconcileBudgetsCommand extends Command
 {
     public function handle(Reconciler $reconciler): int
     {
-        $discrepancies = $reconciler->check();
+        $discrepancies = [...$reconciler->check(), ...$reconciler->checkInstitution()];
 
         if ($discrepancies === []) {
             $this->components->info('Budget periods match the ledger.');
@@ -40,10 +40,20 @@ class ReconcileBudgetsCommand extends Command
             return self::FAILURE;
         }
 
-        $fixable = array_filter($discrepancies, fn ($d) => $d->column === 'reserved_usd');
+        $fixable = array_filter($discrepancies, fn ($d) => $d->column === 'reserved_usd' || str_starts_with($d->column, 'institution_'));
+        $institutionIds = [];
 
         foreach ($fixable as $discrepancy) {
-            $reconciler->fixReserved($discrepancy->periodId);
+            if (str_starts_with($discrepancy->column, 'institution_')) {
+                $institutionIds[$discrepancy->periodId] = true;
+            } else {
+                $reconciler->fixReserved($discrepancy->periodId);
+            }
+        }
+
+        // After the users' periods: institution months are their sums.
+        foreach (array_keys($institutionIds) as $id) {
+            $reconciler->fixInstitution($id);
         }
 
         $this->components->info(count($fixable).' reserved amount(s) recomputed.');

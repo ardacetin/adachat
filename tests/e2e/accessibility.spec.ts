@@ -68,6 +68,7 @@ test('administration screens are accessible', async ({ page }) => {
         '/admin/groups',
         '/admin/audit-log',
         '/admin/privacy',
+        '/admin/institution',
         '/admin/models/create',
     ]) {
         await page.goto(path);

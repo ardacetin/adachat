@@ -147,6 +147,29 @@ and https (secure cookies, HSTS) taken from its `X-Forwarded-*` headers.
 `storage/logs/ada-YYYY-MM-DD.log` and keeps `LOG_DAILY_DAYS` (14) days; no
 logrotate is needed. Prompts, answers and API keys are never logged.
 
+### 3.5 E-mail
+
+Ada e-mails the cap alerts (80 % and 100 % of the institution's monthly cap)
+and, from v1.1, the monthly report to the addresses in Admin → Institution →
+Notification e-mails. Set an SMTP server in `.env`:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.edu
+MAIL_PORT=587
+MAIL_USERNAME=…
+MAIL_PASSWORD=…
+MAIL_FROM_ADDRESS="ada@example.edu"
+MAIL_FROM_NAME="Ada Chat"
+```
+
+Google Workspace: `smtp-relay.gmail.com` (SMTP relay service in Google Admin)
+or `smtp.gmail.com` with an app password. Apply the change
+(`php artisan optimize`), then use **Send a test e-mail** on the same admin
+page. Messages are sent by the scheduler, not by a queue worker. With
+`MAIL_MAILER=log` they are only written to the log; `ada:doctor` warns when
+addresses are set but mail is not configured.
+
 ## 4. Security checklist
 
 - [ ] `php artisan ada:doctor` passes (debug off, https, development login

@@ -1,8 +1,9 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/admin/form-field';
 import ImageUploadField from '@/components/admin/image-upload-field';
 import Heading from '@/components/heading';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +14,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { edit, update } from '@/routes/admin/institution';
+import { Textarea } from '@/components/ui/textarea';
+import { edit, testMail, update } from '@/routes/admin/institution';
 import type { Locale } from '@/types/global';
 
 type Settings = {
@@ -27,6 +29,8 @@ type Settings = {
     terms_url: string | null;
     primary_color: string | null;
     budget_display: BudgetDisplay;
+    monthly_cap_usd: string | null;
+    notification_emails: string[];
     has_logo: boolean;
     has_logo_dark: boolean;
     has_favicon: boolean;
@@ -35,6 +39,7 @@ type Settings = {
 type Props = {
     settings: Settings;
     timezones: string[];
+    mailConfigured: boolean;
 };
 
 type InstitutionForm = {
@@ -48,6 +53,8 @@ type InstitutionForm = {
     terms_url: string;
     primary_color: string;
     budget_display: BudgetDisplay;
+    monthly_cap_usd: string;
+    notification_emails: string;
     logo: File | null;
     logo_dark: File | null;
     favicon: File | null;
@@ -68,7 +75,11 @@ type BudgetDisplay = 'amount' | 'percent';
 
 const DEFAULT_PICKER_COLOR = '#171717';
 
-export default function Institution({ settings, timezones }: Props) {
+export default function Institution({
+    settings,
+    timezones,
+    mailConfigured,
+}: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
     const { institution, locale } = usePage().props;
@@ -84,6 +95,8 @@ export default function Institution({ settings, timezones }: Props) {
         terms_url: settings.terms_url ?? '',
         primary_color: settings.primary_color ?? '',
         budget_display: settings.budget_display,
+        monthly_cap_usd: settings.monthly_cap_usd ?? '',
+        notification_emails: settings.notification_emails.join('\n'),
         logo: null,
         logo_dark: null,
         favicon: null,
@@ -274,6 +287,82 @@ export default function Institution({ settings, timezones }: Props) {
                             </SelectContent>
                         </Select>
                     </FormField>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-4">
+                    <h3 className="text-sm font-medium">
+                        {t('institution.spending')}
+                    </h3>
+                    <FormField
+                        id="monthly_cap_usd"
+                        label={t('institution.cap')}
+                        help={t('institution.capHelp')}
+                        error={form.errors.monthly_cap_usd}
+                    >
+                        <Input
+                            id="monthly_cap_usd"
+                            inputMode="decimal"
+                            className="w-40 tabular-nums"
+                            value={form.data.monthly_cap_usd}
+                            aria-describedby="monthly_cap_usd-help"
+                            aria-invalid={
+                                form.errors.monthly_cap_usd !== undefined
+                            }
+                            onChange={(event) =>
+                                form.setData(
+                                    'monthly_cap_usd',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </FormField>
+                    <FormField
+                        id="notification_emails"
+                        label={t('institution.notificationEmails')}
+                        help={t('institution.notificationEmailsHelp')}
+                        error={
+                            form.errors.notification_emails ??
+                            Object.entries(form.errors).find(([key]) =>
+                                key.startsWith('notification_emails.'),
+                            )?.[1]
+                        }
+                    >
+                        <Textarea
+                            id="notification_emails"
+                            rows={3}
+                            value={form.data.notification_emails}
+                            aria-describedby="notification_emails-help"
+                            onChange={(event) =>
+                                form.setData(
+                                    'notification_emails',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </FormField>
+                    {!mailConfigured && (
+                        <Alert>
+                            <AlertDescription>
+                                {t('institution.mailNotConfigured')}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                            router.post(
+                                testMail.url(),
+                                {},
+                                { preserveScroll: true },
+                            )
+                        }
+                    >
+                        {t('institution.testMail')}
+                    </Button>
                 </section>
 
                 <Separator />

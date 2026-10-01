@@ -7,6 +7,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Domain\Budget\Data\Settlement;
 use App\Domain\Budget\Enums\ReservationStatus;
 use App\Domain\Budget\Exceptions\BudgetExhausted;
+use App\Domain\Budget\Exceptions\InstitutionBudgetExhausted;
 use App\Domain\Budget\Exceptions\TooManyConcurrentRequests;
 use App\Domain\Budget\Money\Usd;
 use App\Domain\Usage\CostCalculator;
@@ -16,6 +17,7 @@ use App\Domain\Usage\Pricing\PricingSnapshot;
 use App\Models\AiModel;
 use App\Models\BudgetPeriod;
 use App\Models\BudgetReservation;
+use App\Models\InstitutionPeriod;
 use App\Models\UsageEvent;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -29,9 +31,12 @@ use LogicException;
  * Hard budget enforcement:  available = limit − spent − reserved.
  *
  * Every change to a user's money happens in a short transaction holding a
- * row lock on the user's budget_periods row (SELECT … FOR UPDATE). Locks
- * are always taken in the order budget_periods → budget_reservations, no
- * lock is held during network calls, and deadlocks are retried.
+ * row lock on the user's budget_periods row (SELECT … FOR UPDATE). The
+ * institution's month (institution_periods) is kept in the same
+ * transactions, so an institution-wide cap holds as strictly as a user's
+ * limit. Locks are always taken in the order budget_periods →
+ * institution_periods → budget_reservations, no lock is held during
+ * network calls, and deadlocks are retried.
  */
 final class BudgetEngine
 {
@@ -39,6 +44,7 @@ final class BudgetEngine
 
     public function __construct(
         private readonly BudgetPeriods $periods,
+        private readonly InstitutionPeriods $institutionPeriods,
         private readonly AuditLogger $audit,
     ) {}
 
@@ -49,15 +55,18 @@ final class BudgetEngine
      * @param  int  $maxOutputTokens  the alias/model output cap; may be lowered to fit the budget
      *
      * @throws BudgetExhausted
+     * @throws InstitutionBudgetExhausted when the institution cap, not the user's budget, is the limit
      * @throws TooManyConcurrentRequests
      */
     public function reserve(User $user, AiModel $model, InputTokenCount $input, int $maxOutputTokens, ?CarbonImmutable $now = null): BudgetReservation
     {
         $now ??= CarbonImmutable::now();
         $period = $this->periods->current($user, $now);
+        $institution = $this->institutionPeriods->forMonth($period->period_start, $period->period_end);
+        $cap = $this->institutionPeriods->cap();
         $maxConcurrent = $user->group->max_concurrent_streams;
 
-        return $this->locked(function () use ($user, $model, $input, $maxOutputTokens, $now, $period, $maxConcurrent): BudgetReservation {
+        return $this->locked(function () use ($user, $model, $input, $maxOutputTokens, $now, $period, $institution, $cap, $maxConcurrent): BudgetReservation {
             $period = $this->lockPeriod($period->id);
 
             // Evaluated under the period lock, so parallel requests of the
@@ -71,10 +80,31 @@ final class BudgetEngine
                 throw new TooManyConcurrentRequests("{$active} requests are already running.");
             }
 
-            $size = ReservationSizer::fit($input, $model, $maxOutputTokens, $period->available());
+            $institution = $this->lockInstitution($institution->id);
+
+            // The smaller of what the user and the institution have left.
+            $available = $period->available();
+            $institutionAvailable = $cap === null ? null : $institution->available($cap);
+            $institutionLimits = false;
+
+            if ($institutionAvailable !== null && $institutionAvailable->isLessThan($available)) {
+                $available = $institutionAvailable;
+                $institutionLimits = true;
+            }
+
+            try {
+                $size = ReservationSizer::fit($input, $model, $maxOutputTokens, $available);
+            } catch (BudgetExhausted $exhausted) {
+                throw $institutionLimits
+                    ? new InstitutionBudgetExhausted('The institution\'s monthly cap is reached.', previous: $exhausted)
+                    : $exhausted;
+            }
 
             $period->reserved_usd = $period->reserved_usd->plus($size->amount);
             $period->save();
+
+            $institution->reserved_usd = $institution->reserved_usd->plus($size->amount);
+            $institution->save();
 
             $reservation = new BudgetReservation;
             $reservation->forceFill([
@@ -114,6 +144,7 @@ final class BudgetEngine
 
         return $this->locked(function () use ($id, $periodId, $settlement): UsageEvent {
             $period = $this->lockPeriod($periodId);
+            $institution = $this->lockInstitutionOf($period);
             $reservation = $this->lockReservation($id);
 
             if ($reservation->status === ReservationStatus::Settled) {
@@ -138,6 +169,15 @@ final class BudgetEngine
 
             $period->spent_usd = $period->spent_usd->plus($total);
             $period->save();
+
+            if ($institution !== null) {
+                if ($reservation->status === ReservationStatus::Active) {
+                    $institution->reserved_usd = $institution->reserved_usd->minus($reservation->amount_usd)->max(Usd::zero());
+                }
+
+                $institution->spent_usd = $institution->spent_usd->plus($total);
+                $institution->save();
+            }
 
             if ($total->isGreaterThan($reservation->amount_usd)) {
                 // Accounting never lies: the full cost is recorded. The margin
@@ -248,6 +288,7 @@ final class BudgetEngine
         }
 
         $period = $this->periods->current($user, $now);
+        $this->institutionPeriods->forMonth($period->period_start, $period->period_end);
 
         $event = $this->locked(function () use ($user, $amount, $reason, $actor, $period): UsageEvent {
             $period = $this->lockPeriod($period->id);
@@ -259,6 +300,13 @@ final class BudgetEngine
 
             $period->spent_usd = $spent;
             $period->save();
+
+            $institution = $this->lockInstitutionOf($period);
+
+            if ($institution !== null) {
+                $institution->spent_usd = $institution->spent_usd->plus($amount)->max(Usd::zero());
+                $institution->save();
+            }
 
             $event = new UsageEvent;
             $event->forceFill([
@@ -298,6 +346,7 @@ final class BudgetEngine
 
         $this->locked(function () use ($id, $periodId, $status, $reason): void {
             $period = $this->lockPeriod($periodId);
+            $institution = $this->lockInstitutionOf($period);
             $reservation = $this->lockReservation($id);
 
             if ($reservation->status !== ReservationStatus::Active) {
@@ -306,6 +355,11 @@ final class BudgetEngine
 
             $period->reserved_usd = $period->reserved_usd->minus($reservation->amount_usd);
             $period->save();
+
+            if ($institution !== null) {
+                $institution->reserved_usd = $institution->reserved_usd->minus($reservation->amount_usd)->max(Usd::zero());
+                $institution->save();
+            }
 
             $reservation->forceFill(['status' => $status, 'status_reason' => $reason])->save();
         });
@@ -328,6 +382,21 @@ final class BudgetEngine
     private function lockPeriod(int $id): BudgetPeriod
     {
         return BudgetPeriod::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+    }
+
+    private function lockInstitution(int $id): InstitutionPeriod
+    {
+        return InstitutionPeriod::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+    }
+
+    /**
+     * The institution month of a user period. It exists for every period
+     * created since the table was introduced (reserve creates it, the
+     * migration backfilled older ones); null only if it was removed.
+     */
+    private function lockInstitutionOf(BudgetPeriod $period): ?InstitutionPeriod
+    {
+        return InstitutionPeriod::query()->where('period_start', $period->period_start)->lockForUpdate()->first();
     }
 
     private function lockReservation(string $id): BudgetReservation

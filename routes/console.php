@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schedule;
 // reservations only hold money longer, and reconciliation only reports.
 Schedule::command('ada:budget:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('ada:budget:reconcile')->dailyAt('03:17');
+Schedule::command('ada:budget:cap-alerts')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('ada:retention:prune')->dailyAt('03:41')->withoutOverlapping();
 
 // Lets `ada:doctor` tell whether the scheduler runs at all.

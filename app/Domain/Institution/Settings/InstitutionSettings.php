@@ -39,6 +39,16 @@ class InstitutionSettings extends Settings
     /** How users see their budget: "amount" (USD and percentage) or "percent" only. */
     public string $budget_display;
 
+    /** Institution-wide monthly spending cap in USD (decimal string); null = none. */
+    public ?string $monthly_cap_usd;
+
+    /**
+     * Who receives the cap alerts and the monthly report.
+     *
+     * @var list<string>
+     */
+    public array $notification_emails;
+
     public static function group(): string
     {
         return 'institution';

@@ -422,6 +422,26 @@ Purpose: money held for in-flight requests; state machine
   `ai_model_id → ai_models.id ON DELETE RESTRICT`.
 - Constraints: `CHECK (amount_usd >= 0)`, status `CHECK`.
 
+### 5.11a `institution_periods` (v1.1)
+
+Purpose: the institution's spending per month, the sum of the users'
+`budget_periods`, kept by the budget engine so that the institution-wide cap
+can be enforced under a row lock ([budget-engine.md](budget-engine.md) §7.4).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| id | BIGINT UNSIGNED PK | | |
+| period_start | DATETIME | | UTC, same month bounds as `budget_periods`; unique |
+| period_end | DATETIME | | exclusive |
+| spent_usd | DECIMAL(20,10) | | sum of the users' `spent_usd` |
+| reserved_usd | DECIMAL(20,10) | | sum of the users' `reserved_usd` |
+| alerted_80_at, alerted_100_at | DATETIME | yes | when the cap alerts were e-mailed |
+| created_at, updated_at | DATETIME | | |
+
+- `CHECK (spent_usd >= 0 AND reserved_usd >= 0 AND period_end > period_start)`.
+- The cap itself is a setting (`institution.monthly_cap_usd`), not stored per
+  month. Pruned with the usage records (`ada:retention:prune`).
+
 ### 5.12 `conversations`
 
 | Column | Type | Null | Notes |
