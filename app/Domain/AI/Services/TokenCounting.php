@@ -29,6 +29,16 @@ final class TokenCounting
     {
         $driver = $model->provider->driver->value;
 
+        // No count endpoint (OpenAI-compatible servers): estimate with the
+        // driver's margin; nothing failed, so nothing is logged or refused.
+        if (! $model->provider->driver->countsTokens()) {
+            return new InputTokenCount(
+                $this->estimator->count($request),
+                InputCountMethod::Estimated,
+                $this->margin($driver),
+            );
+        }
+
         try {
             return new InputTokenCount(
                 $this->providers->forModel($model)->count($request),

@@ -63,3 +63,17 @@ test('the reject policy refuses instead of estimating', function () {
     expect(fn () => app(TokenCounting::class)->count(countingModel(ProviderDriver::OpenAI), countingRequest()))
         ->toThrow(TokenCountUnavailable::class);
 });
+
+test('OpenAI-compatible providers are estimated without a count call', function () {
+    config(['ada.budget.on_counter_failure' => 'reject']);
+    Http::fake();
+
+    $count = app(TokenCounting::class)->count(countingModel(ProviderDriver::OpenAICompatible), countingRequest());
+
+    expect($count->method)->toBe(InputCountMethod::Estimated)
+        ->and($count->marginRatio)->toBe(0.25)
+        ->and($count->tokens)->toBe(622)
+        ->and($count->reservedTokens())->toBe(778);
+
+    Http::assertNothingSent();
+});

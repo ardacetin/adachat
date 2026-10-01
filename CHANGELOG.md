@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   users, top groups and models, users at their limit, overshoots, the cap)
   with the per-user and per-day CSV attached. `ada:reports:monthly`
   (hourly, sends each month once; `--month=YYYY-MM --to=…` on demand).
+- **OpenAI-compatible provider** (Chat Completions): connect OpenRouter,
+  Groq, Ollama, vLLM, LM Studio and other servers that speak the OpenAI Chat
+  Completions API. The base URL is required, the API key optional (no
+  `Authorization` header without one). These servers have no token count
+  endpoint, so input is estimated with a 25 % margin and settled with the
+  usage the server reports. Self-hosted models can be priced at 0: their use
+  is recorded but costs nothing against budgets. Setup examples in
+  [provider-architecture.md §9](docs/provider-architecture.md#9-openai-compatible-servers).
 
 ## [1.0.0] - 2026-10-01
 

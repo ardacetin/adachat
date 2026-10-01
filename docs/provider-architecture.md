@@ -107,7 +107,7 @@ parser (`Http\SseParser`). Reasons:
   output-cap parameter, and the providers' token-count endpoints built from
   the *same* payload as generation.
 - Cancellation must close the upstream connection immediately.
-- Three adapters are small (≈ 150 lines each) and fully covered by fixture
+- The adapters are small (≈ 150 lines each) and fully covered by fixture
   contract tests; there is no third-party upgrade cadence to track.
 
 Everything stays behind Ada's own contracts, so adopting a library later for
@@ -118,29 +118,31 @@ timeouts, error mapping, streaming, `complete()` on top of `stream()`,
 `count()`, and a `checkConnection()` model-listing call). Each adapter only
 supplies its payload, URLs, count body and event translation.
 
-| | OpenAI | Anthropic | Gemini |
-|---|---|---|---|
-| Default base URL | `https://api.openai.com/v1` | `https://api.anthropic.com/v1` | `https://generativelanguage.googleapis.com/v1beta` |
-| Generation | `POST /responses` (`stream: true`, `store: false`) | `POST /messages` (`stream: true`) | `POST /models/{m}:streamGenerateContent?alt=sse` |
-| Auth header | `Authorization: Bearer` | `x-api-key` + `anthropic-version` | `x-goog-api-key` |
-| System prompt | `instructions` | `system` | `systemInstruction` |
-| Output cap | `max_output_tokens` | `max_tokens` | `generationConfig.maxOutputTokens` |
-| Token count | `POST /responses/input_tokens` | `POST /messages/count_tokens` | `POST /models/{m}:countTokens` (`generateContentRequest`) |
-| Connection check | `GET /models` | `GET /models` | `GET /models` |
+| | OpenAI | Anthropic | Gemini | OpenAI-compatible |
+|---|---|---|---|---|
+| Default base URL | `https://api.openai.com/v1` | `https://api.anthropic.com/v1` | `https://generativelanguage.googleapis.com/v1beta` | none (required) |
+| Generation | `POST /responses` (`stream: true`, `store: false`) | `POST /messages` (`stream: true`) | `POST /models/{m}:streamGenerateContent?alt=sse` | `POST /chat/completions` (`stream: true`, `stream_options.include_usage`) |
+| Auth header | `Authorization: Bearer` | `x-api-key` + `anthropic-version` | `x-goog-api-key` | `Authorization: Bearer`, only when a key is set |
+| System prompt | `instructions` | `system` | `systemInstruction` | first message, role `system` |
+| Output cap | `max_output_tokens` | `max_tokens` | `generationConfig.maxOutputTokens` | `max_tokens` |
+| Token count | `POST /responses/input_tokens` | `POST /messages/count_tokens` | `POST /models/{m}:countTokens` (`generateContentRequest`) | none: estimated (§6) |
+| Connection check | `GET /models` | `GET /models` | `GET /models` | `GET /models` |
 
-The base URL is per provider row (`providers.base_url`), so OpenAI-compatible
-gateways or regional endpoints can be configured without code changes.
+The base URL is per provider row (`providers.base_url`), so regional
+endpoints or proxies can be configured without code changes. Gateways and
+local servers that speak Chat Completions use the OpenAI-compatible driver
+(§9).
 
 ### 2.2 Per-provider notes
 
-| Topic | OpenAI | Anthropic | Gemini |
-|---|---|---|---|
-| Output cap | `max_output_tokens` — includes reasoning | `max_tokens` — includes thinking | `maxOutputTokens` — includes thinking |
-| Usage in stream | `response.completed` / `response.incomplete` | `message_start` (input, cache) + `message_delta` (output) | `usageMetadata` on chunks (last wins) |
-| Finish reason | `completed` → stop; `incomplete_details.reason` `max_output_tokens` → length, `content_filter` → content_filter | `stop_reason` `end_turn`/`stop_sequence`/`tool_use` → stop, `max_tokens` → length, `refusal` → content_filter | `STOP` → stop, `MAX_TOKENS` → length, `SAFETY`/`RECITATION`/`BLOCKLIST`/`PROHIBITED_CONTENT`/`SPII` → content_filter |
-| Cached input | `cached_tokens` is a **subset** of input → adapter subtracts | cache read/write reported **separately** | `cachedContentTokenCount` subset → subtract |
-| Reasoning | `reasoning_tokens` subset of output → adapter splits | thinking billed as output (not split) | `thoughtsTokenCount` (separate) |
-| Request id | `x-request-id` header | `request-id` header | `responseId` |
+| Topic | OpenAI | Anthropic | Gemini | OpenAI-compatible |
+|---|---|---|---|---|
+| Output cap | `max_output_tokens` — includes reasoning | `max_tokens` — includes thinking | `maxOutputTokens` — includes thinking | `max_tokens` — server-dependent |
+| Usage in stream | `response.completed` / `response.incomplete` | `message_start` (input, cache) + `message_delta` (output) | `usageMetadata` on chunks (last wins) | `usage` on the last chunk (`include_usage`) |
+| Finish reason | `completed` → stop; `incomplete_details.reason` `max_output_tokens` → length, `content_filter` → content_filter | `stop_reason` `end_turn`/`stop_sequence`/`tool_use` → stop, `max_tokens` → length, `refusal` → content_filter | `STOP` → stop, `MAX_TOKENS` → length, `SAFETY`/`RECITATION`/`BLOCKLIST`/`PROHIBITED_CONTENT`/`SPII` → content_filter | `finish_reason` `length` → length, `content_filter` → content_filter, others → stop; `[DONE]` without a reason → stop |
+| Cached input | `cached_tokens` is a **subset** of input → adapter subtracts | cache read/write reported **separately** | `cachedContentTokenCount` subset → subtract | `prompt_tokens_details.cached_tokens` subset → subtract |
+| Reasoning | `reasoning_tokens` subset of output → adapter splits | thinking billed as output (not split) | `thoughtsTokenCount` (separate) | `completion_tokens_details.reasoning_tokens` subset → split; text from `delta.reasoning_content` / `delta.reasoning` |
+| Request id | `x-request-id` header | `request-id` header | `responseId` | `x-request-id` header, else the chunk `id` |
 
 The adapter's job is to turn each provider's conventions into the disjoint
 `TokenUsage` fields.
@@ -167,7 +169,9 @@ The adapter's job is to turn each provider's conventions into the disjoint
   and timeouts (`ada.providers.timeout`, `ada.providers.counter_timeout`).
 - Credentials: active row in `provider_credentials` (Laravel `encrypted`
   cast) → fallback to `.env` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GEMINI_API_KEY`). Decrypted secrets live only in memory for the request.
+  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`). Decrypted secrets live only
+  in memory for the request. The OpenAI-compatible driver alone may have no
+  key at all (local servers); then no `Authorization` header is sent.
 - `Services\CredentialVault` stores and rotates keys: the new row stores
   `last_four`, the previous active row is deactivated (history kept), and
   `provider.credential_rotated` is audit-logged without the value.
@@ -220,25 +224,30 @@ failure.
 `generateContentRequest` (`model`, `contents`, `systemInstruction`). Default
 margin 0.
 
-**`EstimatedInputTokenCounter`** (fallback only) —
-`ceil(utf8_bytes / 2) + 8 per message`, a deliberately pessimistic floor,
-with a 50 % margin. Used only when the provider counter failed and
-`on_counter_failure = estimate`; never the primary path.
+**OpenAI-compatible** — Chat Completions has no count endpoint. Input is
+estimated with `EstimatedInputTokenCounter` (below) and a 25 % margin; this
+is the normal path for the driver, so nothing is logged and the
+`on_counter_failure` policy does not apply. The estimate only sizes the
+reservation: the request is settled with the usage the server reports in its
+last chunk.
+
+**`EstimatedInputTokenCounter`** —
+`ceil(utf8_bytes / 2) + 8 per message`, a deliberately pessimistic floor.
+For providers with a count endpoint it is a fallback only (50 % margin), used
+when the counter failed and `on_counter_failure = estimate`.
 
 Margins: `config/ada.php` → `budget.input_count_margins`
-(`openai`, `anthropic`, `gemini`, `estimated`).
+(`openai`, `anthropic`, `gemini`, `openai_compatible`, `estimated`).
 
 ### 6.2 Resolution chain
 
 ```
 TokenCounting::count(model, request):
+    driver without a count endpoint (OpenAI-compatible)  → method Estimated (driver margin, not logged)
     provider endpoint (adapter->count)                   → method ProviderEndpoint
     on failure, if ADA_ON_COUNTER_FAILURE = estimate     → method Estimated (warning logged, no content)
     otherwise throw TokenCountUnavailable                → request refused, retryable
 ```
-
-A local tokenizer path (for OpenAI-compatible endpoints without a count
-endpoint) is deferred until such a deployment needs it.
 
 ### 6.3 Operational concerns
 
@@ -281,23 +290,60 @@ them; Ada ships **no** hard-coded prices, only an optional seeder with example
 models that admins must confirm. At settlement the prices are snapshotted onto
 the usage event.
 
-## 9. Adding a provider (future)
+## 9. OpenAI-compatible servers
 
-1. Add a `driver` value.
+The `openai_compatible` driver speaks the OpenAI **Chat Completions** dialect
+(`POST {base}/chat/completions`), which most gateways and self-hosted
+servers offer. Add it under Admin → Providers with the type
+"OpenAI-compatible (Chat Completions)". The base URL is required and ends in
+`/v1`; the API key is optional. Then add the server's models under Models
+with the model name exactly as the server expects it.
+
+| Service | Base URL | API key | Notes |
+|---|---|---|---|
+| OpenRouter | `https://openrouter.ai/api/v1` | required | Model names such as `meta-llama/llama-3.3-70b-instruct`; enter OpenRouter's prices. |
+| Groq | `https://api.groq.com/openai/v1` | required | |
+| Ollama | `http://<host>:11434/v1` | none | Models as in `ollama list`, e.g. `llama3.1:8b`. |
+| vLLM | `http://<host>:8000/v1` | optional (`--api-key`) | The model name given to `vllm serve`. |
+| LM Studio | `http://<host>:1234/v1` | none | |
+
+- **Network:** Ada must reach the server. From the production Docker image,
+  `localhost` is the container itself: use the host's address or a service
+  on the same Docker network. Prefer HTTPS when the server is not on the same
+  host or a private network: prompts and answers travel to it.
+- **Prices:** enter the price per million tokens the service charges. For
+  your own servers enter `0`: requests are still reserved, settled and
+  recorded, but cost nothing against budgets.
+- **Token counting:** estimated before the request, settled with the reported
+  usage (§6). A server that reports no usage is settled with Ada's estimate
+  (flagged in the usage records).
+- **Context window and output cap:** set them on the model as the server is
+  configured (for Ollama, the `num_ctx` of the model), so that history
+  truncation and output capping are correct.
+- **Errors:** HTTP errors and `{"error": …}` chunks inside the stream are
+  mapped like the other providers (§5); numeric codes such as OpenRouter's
+  `429` count as rate limits.
+- **Reasoning:** `reasoning_content` (DeepSeek, vLLM) and `reasoning`
+  (OpenRouter) deltas are shown as reasoning.
+
+## 10. Adding a provider
+
+1. Add a `driver` value (and to the `providers_driver_check` constraint).
 2. Extend `HttpChatProvider` (payload, URLs, count body, event translation),
    or implement `ChatProvider` + `InputTokenCounter` directly; declare a
    margin.
 3. Implement usage normalization to disjoint `TokenUsage`.
 4. Add contract tests with recorded fixtures.
 
-Candidates: OpenRouter, Azure OpenAI, AWS Bedrock, Mistral, Groq,
-OpenAI-compatible local endpoints (vLLM, Ollama). For endpoints without a
-counter, the local tokenizer or the `reject` policy applies.
+Candidates for native drivers: Azure OpenAI, AWS Bedrock, Mistral. Services
+with a Chat Completions endpoint need no new driver (§9). A driver without a
+count endpoint declares it with `ProviderDriver::countsTokens()` and gets the
+estimate path of §6.
 
-## 10. Tests
+## 11. Tests
 
 - `tests/Unit/AI/ProviderContractTest.php` runs one contract suite against all
-  three adapters with SSE fixtures (`tests/Fixtures/providers`) written from
+  four adapters with SSE fixtures (`tests/Fixtures/providers`) written from
   the providers' documented formats: delta order, disjoint usage, finish
   reasons, cancellation, error mapping (401/429/503/529/400/500/timeout),
   outgoing request shape, and count-body parity.

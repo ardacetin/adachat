@@ -45,6 +45,9 @@ export default function ProviderForm({ provider, drivers }: Props) {
     const defaultUrl =
         drivers.find((driver) => driver.value === form.data.driver)?.base_url ??
         '';
+    // OpenAI-compatible endpoints (OpenRouter, Ollama, vLLM…) have no
+    // default address, and local servers need no key.
+    const compatible = form.data.driver === 'openai_compatible';
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -140,14 +143,23 @@ export default function ProviderForm({ provider, drivers }: Props) {
                 <FormField
                     id="base_url"
                     label={t('providers.baseUrl')}
-                    help={t('providers.baseUrlHelp', { url: defaultUrl })}
+                    help={
+                        compatible
+                            ? t('providers.baseUrlCompatibleHelp')
+                            : t('providers.baseUrlHelp', { url: defaultUrl })
+                    }
                     error={form.errors.base_url}
                 >
                     <Input
                         id="base_url"
                         type="url"
                         value={form.data.base_url}
-                        placeholder={defaultUrl}
+                        placeholder={
+                            compatible
+                                ? 'https://openrouter.ai/api/v1'
+                                : defaultUrl
+                        }
+                        required={compatible}
                         aria-describedby="base_url-help"
                         onChange={(event) =>
                             form.setData('base_url', event.target.value)
@@ -158,7 +170,11 @@ export default function ProviderForm({ provider, drivers }: Props) {
                 <FormField
                     id="api_key"
                     label={t('providers.apiKey')}
-                    help={t('providers.apiKeyHelp')}
+                    help={
+                        compatible
+                            ? `${t('providers.apiKeyHelp')} ${t('providers.apiKeyOptional')}`
+                            : t('providers.apiKeyHelp')
+                    }
                     error={form.errors.api_key}
                 >
                     {provider?.masked_key && (

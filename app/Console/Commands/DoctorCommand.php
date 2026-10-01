@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
@@ -76,7 +77,10 @@ class DoctorCommand extends Command
         }
 
         $this->components->info('AI');
-        $this->check('An enabled provider has an API key', Provider::query()->where('enabled', true)->whereHas('activeCredential')->exists(), hint: 'Admin > Providers.');
+        $usable = Provider::query()->where('enabled', true)
+            ->where(fn ($query) => $query->whereHas('activeCredential')->orWhere('driver', ProviderDriver::OpenAICompatible->value))
+            ->exists();
+        $this->check('An enabled provider can be used (API key, or a keyless OpenAI-compatible server)', $usable, hint: 'Admin > Providers.');
         $this->check('The default group can use a model', Group::default()->modelAliases()->where('enabled', true)->exists(), warnOnly: true, hint: 'Admin > Model aliases: assign an alias to the Default group.');
 
         $this->newLine();

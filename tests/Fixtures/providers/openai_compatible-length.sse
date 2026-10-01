@@ -1,0 +1,8 @@
+data: {"id":"chatcmpl-2","choices":[{"index":0,"delta":{"reasoning_content":"Düşünüyorum"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-2","choices":[{"index":0,"delta":{"content":"Uzun bir"},"finish_reason":"length"}]}
+
+data: {"id":"chatcmpl-2","choices":[],"usage":{"prompt_tokens":10,"completion_tokens":16,"total_tokens":26}}
+
+data: [DONE]
+

@@ -14,7 +14,7 @@ budget or accounting logic.
 User ─► Authentication ─► Authorization ─► Budget Engine (reserve)
                                                │
                                                ▼
-                                     AI Provider Layer ─► OpenAI / Anthropic / Gemini
+                                     AI Provider Layer ─► OpenAI / Anthropic / Gemini / OpenAI-compatible
                                                │
                                                ▼
                          Usage Accounting (settle) ─► Streaming response to user
@@ -342,7 +342,7 @@ Streaming does **not** use the queue.
 |---|---|---|
 | Secrets needed before anyone can log in | `.env` only | `APP_KEY`, DB credentials, SAML IdP settings |
 | Institution & product settings | Database (typed settings), seeded from `.env` by `ada:install` | name, logo, colours, allowed domains, default locale, timezone |
-| Provider API keys | Database (encrypted) with `.env` fallback | OpenAI, Anthropic, Gemini keys |
+| Provider API keys | Database (encrypted) with `.env` fallback | OpenAI, Anthropic, Gemini, OpenAI-compatible keys |
 | Operational tuning | `config/ada.php` backed by `.env` | stream max duration, reservation TTL, per-provider token-count safety margins, counter failure policy |
 
 After installation, **the database is the source of truth** for institution

@@ -243,6 +243,9 @@ export default function ModelForm({
                     <h3 className="text-sm font-medium">
                         {t('models.pricing')}
                     </h3>
+                    <p className="text-sm text-muted-foreground">
+                        {t('models.pricingHelp')}
+                    </p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         {priceInput(
                             'input_price_per_million',

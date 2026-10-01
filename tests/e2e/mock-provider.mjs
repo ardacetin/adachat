@@ -1,10 +1,13 @@
 /**
- * A stand-in for the OpenAI Responses API, used by the Playwright tests.
+ * A stand-in for the OpenAI Responses API and for an OpenAI-compatible
+ * Chat Completions server (Ollama, vLLM…), used by the Playwright tests.
  * Ada talks to it exactly as to the real API (the provider's base URL points
  * here), so no test-only code exists in the application.
  *
  *   POST /v1/responses/input_tokens  → token count
  *   POST /v1/responses               → SSE stream (slow when the prompt contains "long")
+ *   POST /v1/chat/completions        → SSE stream, data-only chunks ending in [DONE];
+ *                                       refuses a request with credentials (keyless server)
  *   GET  /v1/models                  → connection check
  */
 import { createServer } from 'node:http';
@@ -21,6 +24,8 @@ const ANSWER = [
     "echo 'Ada';\n",
     '```\n',
 ];
+
+const COMPATIBLE_ANSWER = ['Yerel modelden ', '**merhaba**', '!'];
 
 function readBody(request) {
     return new Promise((resolve) => {
@@ -101,6 +106,55 @@ const server = createServer(async (request, response) => {
             },
         });
         response.end();
+
+        return;
+    }
+
+    if (request.method === 'POST' && url.pathname === '/v1/chat/completions') {
+        const body = await readBody(request);
+
+        // The e2e provider is keyless: a key here would be a bug in Ada.
+        if (
+            request.headers.authorization ||
+            !body.stream_options?.include_usage
+        ) {
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(
+                JSON.stringify({
+                    error: { message: 'unexpected request', code: 400 },
+                }),
+            );
+
+            return;
+        }
+
+        const chunk = (choices, extra = {}) =>
+            response.write(
+                `data: ${JSON.stringify({ id: 'chatcmpl-mock', object: 'chat.completion.chunk', model: body.model, choices, ...extra })}\n\n`,
+            );
+
+        response.writeHead(200, { 'Content-Type': 'text/event-stream' });
+        chunk([
+            {
+                index: 0,
+                delta: { role: 'assistant', reasoning_content: 'Kısa düşün.' },
+            },
+        ]);
+
+        for (const content of COMPATIBLE_ANSWER) {
+            await sleep(40);
+            chunk([{ index: 0, delta: { content }, finish_reason: null }]);
+        }
+
+        chunk([{ index: 0, delta: {}, finish_reason: 'stop' }]);
+        chunk([], {
+            usage: {
+                prompt_tokens: 42,
+                completion_tokens: 12,
+                total_tokens: 54,
+            },
+        });
+        response.end('data: [DONE]\n\n');
 
         return;
     }
