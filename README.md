@@ -7,13 +7,13 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: release candidate.** Milestones M0–M11 are done: foundation,
+> **Status: 1.0.0** ([release notes](docs/releases/v1.0.0.md)). Milestones M0–M11 are done: foundation,
 > Google Workspace (SAML) sign-in, institution settings and branding, AI
 > providers and model aliases, the budget engine, streaming chat, groups,
 > budget policies and user usage, administration of users and the audit
 > log, the dashboard and reports, hardening and production deployment
-> (Docker image, server guide). Next: the pilot at the first institution and
-> v1.0.0. The
+> (Docker image, server guide). Installation:
+> [docs/deployment.md](docs/deployment.md). The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
 

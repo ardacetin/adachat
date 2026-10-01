@@ -7,12 +7,12 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: sürüm adayı.** M0–M11 kilometre taşları tamamlandı: temel
+> **Durum: 1.0.0** ([sürüm notları](docs/releases/v1.0.0.md#türkçe-özet)). M0–M11 kilometre taşları tamamlandı: temel
 > altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
 > sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
 > bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
 > kaydı, gösterge paneli ve raporlar, sağlamlaştırma ve üretim kurulumu
-> (Docker imajı, sunucu rehberi). Sıradaki: ilk kurumdaki pilot ve v1.0.0.
+> (Docker imajı, sunucu rehberi).
 > Kurulum: [docs/deployment.tr.md](docs/deployment.tr.md). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
 > [yol haritası](docs/v1-roadmap.md).
 

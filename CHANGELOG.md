@@ -7,156 +7,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+## [1.0.0] - 2026-10-01
 
-- The model menu in the chat opens upwards; below the composer it was
-  squeezed into a few pixels.
-- Provider errors (e.g. an unknown model or an unsupported parameter) are
-  logged with the provider's reason, so administrators can see why the chat
-  showed "The AI service rejected the request".
-- The audit log no longer hides `max_output_tokens` (it is not a secret).
-- Provider streams are read line by line, so answers are shown as they are
-  generated instead of arriving in 8 KiB blocks.
-
-### Changed
-
-- Sign-in uses **SAML 2.0** with a custom SAML app in Google Workspace
-  instead of Google OAuth: SP-initiated flow (`/auth/saml/redirect`, ACS
-  `/auth/saml/acs`, SP metadata and entity ID `/auth/saml/metadata`),
-  strict response validation with onelogin/php-saml, single-use request IDs
-  against replay, IdP-initiated responses restarted as SP-initiated. IdP
-  settings come from `.env` (`SAML_IDP_*`); the admin Sign-in page and
-  `ada:install` show the ACS URL and Entity ID to enter in Google Admin.
-  `laravel/socialite` and the `GOOGLE_CLIENT_*` settings were removed.
+First release: a self-hosted AI gateway and chat for one institution, with
+institutional sign-in, several AI providers behind one interface, per-user
+budgets that cannot be overspent, and administration without access to
+anyone's conversations. Release notes:
+[docs/releases/v1.0.0.md](docs/releases/v1.0.0.md).
 
 ### Added
 
-- M11 production deployment: a production Docker image (nginx + PHP-FPM as
-  `www-data`, migrations on start) and `compose.production.yml` with the
-  scheduler, MySQL 8.4 and Redis, built and smoke-tested in CI; deployment
-  guide in English and Turkish (`docs/deployment.md`, `docs/deployment.tr.md`)
-  with sizing, server installation, backups, restore, upgrades and a rollout
-  checklist; example files in `deploy/` (nginx, PHP-FPM pool, cron, backup
-  script, production `.env`).
-- JSON logs for production (`LOG_CHANNEL=json`, daily files) and
-  `ada:doctor` warns when the log file never rotates.
-- `TRUSTED_PROXIES`: `X-Forwarded-*` headers are believed only from the
-  listed proxies (client address in the audit log and rate limits, https).
-- `php artisan ada:credentials:reencrypt` re-encrypts stored provider API
-  keys after an `APP_KEY` rotation.
-- A cost calculator on the model form: input and output tokens per message,
-  number of messages and a budget; the cost per message, the total and the
-  messages that fit are recalculated as you type.
-- M10 hardening (part 2): axe-core accessibility checks (WCAG 2.1 AA) in
-  Playwright on the main user and admin screens (light and dark); a bundle
-  size budget (`npm run bundle:check`, in CI); an absolute session lifetime
-  (`SESSION_MAX_LIFETIME`, default 7 days); the internal OWASP ASVS Level 2
-  review (`docs/security-review.md`).
-- M10 hardening (part 1): security headers and a nonce-based Content
-  Security Policy; per-user rate limits for all signed-in and admin routes;
-  a first-sign-in usage notice (built-in or the institution's own text,
-  asked again when it changes); data retention settings with a nightly
-  `ada:retention:prune` (deleted conversations after 30 days, optional
-  conversation expiry, usage records 24 months); `ada:doctor` to check an
-  installation; Admin → Privacy.
-- Cost and size hints on the model form: what 1,000 input / 500 output
-  tokens cost, example messages, how many messages a monthly budget covers,
-  and the context window and output limit in words.
-- M9 dashboard and reports: the admin overview shows this month's
-  spending, requests, active users and average per user against last month,
-  daily spending, top models and groups, users at their limit and an
-  overshoot alert. `/admin/reports` filters by date range, group, provider,
-  model and user, breaks spending down by model, group, provider or user,
-  charts it per day or month and lists budget overshoots and token counter
-  deviation.
-- M8 administration: a **users** screen (search; filters by group, role and
-  status; this month's budget and spending; last activity) and a user page
-  to change the group, set an individual budget, disable or enable the
-  account (signs the user out everywhere), change the role and record manual
-  adjustments, with the user's usage. An **audit log** viewer with filters.
-  Administrators manage users and groups; super administrators also roles,
-  adjustments and system settings. The last active super administrator
-  cannot be demoted or disabled.
-- Last activity is recorded (at most every five minutes).
-- Playwright: administration flow (budget policy, group, alias, user group
-  and budget, adjustment, audit log) and the administrator role matrix.
-- Admin screens for **groups** (budget policy, requests per minute, parallel
-  answers, available model aliases; empty non-default groups can be
-  deleted) and **budget policies** (monthly limit; unused policies can be
-  deleted). Changing a limit or a group's policy can be applied to the
-  current month. All changes are audited.
-- `php artisan ada:user:budget <email> --limit=<USD> | --clear` for an
-  individual monthly limit.
-- Users see their budget: a sidebar indicator, a budget-exhausted state in
-  the chat with the renewal date, and a usage page (this month by model and
-  by day, previous months).
-- Institution setting *Budget shown to users*: amounts and percentage, or
-  percentage only (no dollar amounts are sent to the browser).
-- Playwright: budget indicator, usage page, exhausted budget.
-- M6 streaming chat: conversations and messages (UUIDv7, soft-deleted
-  conversations, regenerate as sibling answers), `ChatGenerationService`
-  (context trimming → token count → budget reserve → provider stream →
-  settle/release in `finally`), Server-Sent Events over `fetch` POST
-  (`message.started`, `delta`, `message.completed`, `error`), stop via a
-  cancel endpoint, partial answers flushed to the database every second and
-  settled by the reservation cleanup job if the process dies, per-group
-  requests-per-minute limit.
-- Chat UI: conversation sidebar (rename, delete), composer, model selector,
-  Markdown rendering without raw HTML, lazily highlighted code blocks (Shiki)
-  with copy, copy/regenerate actions, TR/EN.
-- Aliases are available only to the groups they are assigned to; the alias
-  form has a group checklist (new aliases start with the Default group) and
-  group changes are audited.
-- Playwright end-to-end tests against a mock OpenAI server and a CI `e2e`
-  job.
-- Architecture documents (M0): architecture, database design, budget engine,
-  authentication, provider architecture, frontend architecture, security and
-  V1 roadmap.
-- README (English and Turkish), security policy, contributing guide.
-- License: GNU Affero General Public License v3.0 or later.
-- M1 foundation: Laravel 13 + Inertia v3 + React + TypeScript + shadcn/ui based
-  on the Laravel React starter kit, without password authentication.
-- MySQL 8.4 as the only supported database (UTC, `utf8mb4_0900_ai_ci`,
-  `DATETIME` columns), `config/ada.php`, `app/Domain` skeleton.
-- English and Turkish UI (i18next) and backend translations, locale
-  resolution and a language setting; translation key parity tests and a
-  hard-coded UI text check.
-- Development-only login, sample seeders, Pest test suite on MySQL, CI
-  workflow and a development `docker-compose.yml`.
-- M2 identity: Google Workspace sign-in via Socialite behind a
-  `RedirectIdentityProvider` abstraction; server-side checks of state,
-  `email_verified`, hosted domain (`hd`) and e-mail domain; `user_identities`
-  keyed by provider subject; just-in-time provisioning into the default group
-  (optional); translated rejection reasons incl. account conflicts.
-- Groups table with an always-present default group; `users.group_id`.
-- Role gates (`access-admin`, `manage-system`) and shared `can` UI hints.
-- `ada:install` (configuration check) and `ada:user:promote` (break-glass
-  role assignment).
-- M3 institution & branding: typed settings (spatie/laravel-settings) for
-  institution and sign-in policy, seeded from `.env` once; admin area
-  (super admin) for institution details, language/time zone, primary colour,
-  logos and favicon, and allowed domains; WCAG-checked OKLCH theme tokens for
-  light and dark mode; institution logo in the sidebar and on sign-in;
-  appearance preference saved per user; append-only audit log with
-  redaction, recording settings changes and CLI role assignments.
-- M4 providers & models: `providers`, `provider_credentials` (encrypted,
-  masked, rotation history, `.env` fallback), `ai_models` (exact DECIMAL
-  prices, capabilities), `model_aliases` (localized names, per-alias output
-  cap) and the `group_model_alias` pivot; direct-HTTP adapters for OpenAI
-  (Responses API), Anthropic (Messages API) and Gemini with a shared SSE
-  parser, cancellation, disjoint token usage and error mapping; input token
-  counting through each provider's count endpoint with configurable margins
-  and an `estimate`/`reject` fallback policy; admin screens (super admin,
-  audited) for providers, models and aliases with a "Test connection" check;
-  `ada:provider:check`; opt-in live provider tests.
-- M5 budget engine: `budget_policies` (Default policy on install),
-  per-user monthly `budget_periods` in the institution time zone (created
-  lazily, limit snapshot), `budget_reservations` (UUIDv7) and the append-only
-  `usage_events` ledger with price snapshots; group policy, concurrent stream
-  limit and personal limit override columns. Exact USD arithmetic (`Usd`,
-  brick/math, 10 decimals, rounded up), tiered pricing, cost calculation,
-  reservation sizing (counted input + margin + maximum output, output capped
-  to the remaining budget, context-window cap), row-locked reserve / settle /
-  release / expire, idempotent and late settlement, overshoot logging,
-  adjustments, "apply to current period", `ada:budget:expire-reservations`
-  and `ada:budget:reconcile` (scheduled); multi-process concurrency tests.
+**Sign-in and accounts**
+
+- SAML 2.0 sign-in with a custom SAML app in Google Workspace
+  (SP-initiated; strict response validation with onelogin/php-saml,
+  single-use request IDs against replay). No passwords in Ada.
+- Allowed e-mail domains, optional automatic account creation on first
+  sign-in into the default group, disabled accounts, an absolute session
+  lifetime (`SESSION_MAX_LIFETIME`, default 7 days) next to the idle timeout.
+- Roles: user, administrator, super administrator; `ada:user:promote` for
+  break-glass role assignment.
+
+**Chat**
+
+- Streaming answers (Server-Sent Events) with stop, regenerate and copy;
+  conversations with rename and delete; Markdown without raw HTML; code
+  highlighting loaded on demand.
+- Users choose among the institution's model aliases ("Fast", "Advanced");
+  aliases are available only to the groups they are assigned to.
+- Long conversations are trimmed to fit the model's context window.
+- A usage notice before first use (built-in or the institution's text,
+  asked again when it changes).
+- English and Turkish user interface; light and dark mode.
+
+**AI providers**
+
+- OpenAI (Responses API), Anthropic (Messages API) and Google Gemini through
+  direct HTTP adapters with streaming, cancellation and normalised token
+  usage.
+- Input tokens counted with each provider's count endpoint before every
+  request, with safety margins and a configurable fallback.
+- Provider API keys encrypted with `APP_KEY`, shown only masked, rotated
+  with history; "Test connection" and `ada:provider:check`.
+- Models with exact prices (input, output, cached input, cache write),
+  context window and output limit; cost hints and a live cost calculator on
+  the model form.
+
+**Budgets**
+
+- Monthly budgets per user from budget policies, set per group, with
+  individual limits and manual adjustments; periods in the institution's
+  time zone.
+- Every request reserves its maximum cost under a row lock before it is
+  sent and is settled with the actual usage afterwards: parallel requests
+  cannot overspend a budget (tested with multiple processes). Answers are
+  capped to the remaining budget.
+- Exact decimal money arithmetic, price snapshots in an append-only usage
+  ledger, nightly reconciliation, expiry of abandoned reservations.
+- Per-group requests per minute and parallel answers per user.
+- Users see their budget (amounts and percentage, or percentage only) and a
+  usage page; an exhausted budget shows when it renews.
+
+**Administration**
+
+- Institution settings and branding: name, logos, favicon, primary colour
+  (WCAG-checked theme), default language and time zone.
+- Providers, models, model aliases, groups, budget policies and users
+  (search and filters, group, individual budget, disable, role,
+  adjustments). Administrators never see conversation content.
+- Dashboard (spending, requests, active users, top models and groups, users
+  at their limit) and reports by date range, group, provider, model and
+  user, with budget overshoots and token-count deviation.
+- An append-only audit log of every administrative change, with secrets
+  redacted, and a viewer with filters.
+- Privacy settings: usage notice, retention of deleted conversations,
+  optional expiry of conversations, retention of usage records; a nightly
+  `ada:retention:prune`.
+
+**Security**
+
+- Security headers and a nonce-based Content Security Policy, per-user rate
+  limits, CSRF protection on every state-changing request, trusted proxies
+  (`TRUSTED_PROXIES`).
+- Prompts, answers and API keys are never logged; JSON logs in production.
+- Internal OWASP ASVS 4.0.3 Level 2 review
+  ([docs/security-review.md](docs/security-review.md)).
+
+**Operations**
+
+- Production Docker image and `compose.production.yml` (application,
+  scheduler, MySQL 8.4, Redis), built and smoke-tested in CI.
+- Deployment guide in English and Turkish: sizing, Docker and Ubuntu 24.04
+  installation, nginx settings for streamed answers, backups, restore,
+  upgrades, `APP_KEY` handling and an institution rollout checklist;
+  example nginx, PHP-FPM, cron and backup files in `deploy/`.
+- `ada:install`, `ada:doctor` (configuration and health check, also for
+  monitoring), `ada:credentials:reencrypt` (after an `APP_KEY` rotation),
+  `ada:user:budget`.
+
+**Quality**
+
+- Pest test suite on MySQL (391 tests), Playwright end-to-end tests against
+  a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
+  level 7, a JavaScript bundle size budget and dependency audits in CI.
+
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ardacetin/adachat/releases/tag/v1.0.0
