@@ -1,7 +1,8 @@
 # Development services for Ada Chat.
 #
 # Runs the backing services only; the application itself runs on the host
-# with `composer dev`. A production image and compose file follow in M11.
+# with `composer dev`. Production: Dockerfile and compose.production.yml
+# (docs/deployment.md).
 #
 #   docker compose up -d
 #

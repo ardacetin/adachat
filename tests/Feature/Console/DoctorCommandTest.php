@@ -36,3 +36,14 @@ test('a healthy installation passes', function () {
 
     $this->artisan('ada:doctor')->assertSuccessful();
 });
+
+test('in production the doctor warns about a log file that never rotates', function () {
+    app()->detectEnvironment(fn () => 'production');
+    config(['logging.default' => 'stack', 'logging.channels.stack.channels' => ['single']]);
+
+    $this->artisan('ada:doctor')->expectsOutputToContain('Set LOG_CHANNEL=json');
+
+    config(['logging.default' => 'json']);
+
+    $this->artisan('ada:doctor')->doesntExpectOutputToContain('Set LOG_CHANNEL=json');
+});

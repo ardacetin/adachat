@@ -158,6 +158,14 @@
             "exampleTypical": "Biraz geçmişi olan tipik mesaj (2.000 girdi / 500 çıktı)",
             "exampleLong": "Uzun sohbet veya belge (20.000 girdi / 1.000 çıktı)",
             "perBudget": "{{budget}} aylık bütçeyle bir kullanıcı yaklaşık {{count}} tipik mesaj gönderebilir.",
+            "calculatorTitle": "Kendi senaryonuzu hesaplayın",
+            "calculatorInput": "Mesaj başına girdi token",
+            "calculatorOutput": "Mesaj başına çıktı token",
+            "calculatorMessages": "Mesaj sayısı",
+            "calculatorBudget": "Bütçe (USD)",
+            "calculatorPerMessage": "Bir mesaj (toplam ≈ {{words}} kelime)",
+            "calculatorTotal": "{{count}} mesaj",
+            "calculatorFits": "{{budget}} bütçeye sığan mesaj",
             "tokensNote": "Pratik kural: 1 token ≈ ¾ İngilizce kelime; Türkçe metin aynı uzunluk için yaklaşık %30–50 daha fazla token gerektirir."
         }
     },

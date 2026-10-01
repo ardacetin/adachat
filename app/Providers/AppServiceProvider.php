@@ -5,10 +5,12 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +30,28 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimits();
+        $this->configureProxies();
+    }
+
+    /**
+     * Behind a reverse proxy the client address and the scheme come from
+     * X-Forwarded-* headers, which are believed only from the configured
+     * proxies (docs/deployment.md). They decide the IP in the audit log and
+     * the rate limits, secure cookies and HSTS.
+     */
+    protected function configureProxies(): void
+    {
+        $proxies = trim((string) config('ada.http.trusted_proxies'));
+
+        if ($proxies !== '') {
+            TrustProxies::at($proxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
+        }
+
+        // Links and redirects use https whenever the site is served over
+        // https, even if a proxy in front forgets to say so.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceHttps();
+        }
     }
 
     /**

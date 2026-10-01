@@ -38,6 +38,7 @@ class DoctorCommand extends Command
         $this->check('APP_DEBUG is off', ! config('app.debug') || ! $production, hint: 'APP_DEBUG=true shows stack traces and settings to anyone.');
         $this->check('APP_URL uses HTTPS', str_starts_with((string) config('app.url'), 'https://') || ! $production, hint: 'SAML and secure cookies need https.');
         $this->check('Development login is off', ! config('ada.auth.dev_login') || ! $production, hint: 'Set ADA_DEV_LOGIN=false.');
+        $this->check('Log files rotate', ! $production || $this->logsRotate(), warnOnly: true, hint: 'Set LOG_CHANNEL=json (JSON, a file per day) or stderr in Docker.');
         $this->check('Secure session cookies', (bool) config('session.secure') || ! $production, warnOnly: true, hint: 'Set SESSION_SECURE_COOKIE=true behind https.');
 
         $this->components->info('Database and storage');
@@ -99,6 +100,26 @@ class DoctorCommand extends Command
                 $this->line("    <fg=gray>{$hint}</>");
             }
         }
+    }
+
+    /**
+     * The single file driver grows forever; daily files, stderr and syslog
+     * are rotated by Laravel or by the system.
+     */
+    private function logsRotate(): bool
+    {
+        $default = (string) config('logging.default');
+        $channels = config("logging.channels.{$default}.driver") === 'stack'
+            ? (array) config("logging.channels.{$default}.channels", [])
+            : [$default];
+
+        foreach ($channels as $channel) {
+            if (config('logging.channels.'.$channel.'.driver') === 'single') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function databaseVersion(): ?string

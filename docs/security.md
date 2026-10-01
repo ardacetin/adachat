@@ -164,7 +164,8 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 
 ## 11. API and application logging
 
-- Log channel: structured JSON in production; request id propagated.
+- Log channel: structured JSON in production (as built in M11: the `json`
+  channel, daily files kept `LOG_DAILY_DAYS`; `stderr` JSON in Docker).
 - Logged: request metadata (route, user id, status, duration), provider
   request ids, error codes, budget decisions (amounts, not content).
 - Never logged: prompts, completions, API keys, OAuth tokens, session ids,
@@ -182,6 +183,9 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   `Referrer-Policy`, `Permissions-Policy` (camera, microphone, geolocation,
   payment, usb off), `Cross-Origin-Opener-Policy: same-origin`, and HSTS
   (one year) on https requests.
+- Behind a reverse proxy, `X-Forwarded-*` headers are trusted only from
+  `TRUSTED_PROXIES` (M11); otherwise a client could fake its address in the
+  audit log and rate limits, or the https flag.
 - `APP_DEBUG=false` and `APP_ENV=production` verified by `ada:doctor`;
   debug tools (e.g. Telescope) not installed in production.
 

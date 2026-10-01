@@ -1,6 +1,6 @@
 # V1 Roadmap
 
-> Status: **M0–M10 done**, M11 next. Milestones are small and independently
+> Status: **M0–M11 done** (the first rollout and v1.0.0 follow the pilot). Milestones are small and independently
 > reviewable. Each milestone ends with green CI, updated docs and a demo.
 
 ## Changes compared to the initial brief
@@ -126,13 +126,17 @@ LICENSE (AGPL-3.0-or-later).
 - Internal security review (OWASP ASVS L2 core). ✅
   ([security-review.md](security-review.md); open items go to M11)
 
-### M11 — Production deployment
-- Production Docker image and compose file; bare-metal guide (Ubuntu 24.04,
-  Nginx SSE config, PHP-FPM sizing, Supervisor, cron, backups) in English and
-  Turkish.
-- Upgrade/backup/restore procedures, `APP_KEY` handling.
-- First institution rollout (Beykoz University): pilot group → wider rollout.
-- v1.0.0 release.
+### M11 — Production deployment ✅
+- Production Docker image and compose file (built and smoke-tested in CI);
+  bare-metal guide (Ubuntu 24.04, Nginx SSE config, PHP-FPM sizing, cron,
+  backups) in English and Turkish. ✅ ([deployment.md](deployment.md),
+  [deployment.tr.md](deployment.tr.md); no Supervisor: V1 has no queue jobs)
+- Upgrade/backup/restore procedures, `APP_KEY` handling
+  (`ada:credentials:reencrypt`). ✅
+- Open review items: JSON logs (F2), trusted proxies (F3). ✅
+- First institution rollout (Beykoz University): pilot group → wider rollout
+  — checklist in the deployment guide §10; done by the institution.
+- v1.0.0 release after the pilot.
 
 ## Dependency graph
 

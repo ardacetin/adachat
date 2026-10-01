@@ -5,7 +5,7 @@
 > open items. It is not a substitute for an independent review, which
 > institutions should commission before production use if they can.
 >
-> Reviewed: 2026-09-30, on `main` after M10. Threat model and controls:
+> Reviewed: 2026-09-30, on `main` after M10; open items closed in M11. Threat model and controls:
 > [security.md](security.md).
 
 Legend: **Met** · **Partly** (met with a documented limitation or an open
@@ -16,14 +16,14 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
 | Chapter | Status | Open items |
 |---|---|---|
 | V1 Architecture | Met | — |
-| V2 Authentication | Met (delegated) | Enforce 2-step verification at the IdP (D1) |
+| V2 Authentication | Met (delegated) | 2-step verification at the IdP: deployment checklist (D1) |
 | V3 Session management | Met | — |
 | V4 Access control | Met | — |
 | V5 Validation, sanitization, encoding | Met | — |
-| V6 Stored cryptography | Met | Key rotation procedure documented (D2) |
-| V7 Errors and logging | Partly | Structured JSON logs in production (F2) |
+| V6 Stored cryptography | Met | — (rotation: `ada:credentials:reencrypt`, D2) |
+| V7 Errors and logging | Met | — (F2 fixed in M11) |
 | V8 Data protection | Met | Content at rest is not encrypted by the app (accepted, see §V8) |
-| V9 Communications | Deployment | HTTPS and proxy trust in the M11 deployment (F3) |
+| V9 Communications | Met (deployment) | — (F3 fixed in M11; HTTPS is configured by the operator) |
 | V10 Malicious code | Met | — |
 | V11 Business logic | Met | — |
 | V12 Files and resources | Met | — |
@@ -51,7 +51,8 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
 - The development login exists only in `local`/`testing` and only when
   `ADA_DEV_LOGIN=true`; `ada:doctor` fails if it is on in production.
 - **D1 (deployment):** multi-factor authentication is the IdP's job; require
-  2-step verification in Google Admin for the users of the SAML app.
+  2-step verification in Google Admin for the users of the SAML app (item of
+  the deployment checklist, [deployment.md](deployment.md) §4).
 
 ## V3 Session management — Met
 
@@ -100,12 +101,13 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
   encryption, AES-256-CBC + HMAC), never sent to the browser, shown only
   masked, never logged or audited (`CredentialVault`, `AuditLogger`
   redaction).
-- **D2 (documented):** rotating `APP_KEY`: set the old key in
-  `APP_PREVIOUS_KEYS`, deploy the new `APP_KEY`, then re-save each provider
-  key (Admin → Providers) so it is encrypted with the new key; remove the
-  previous key afterwards. Sessions are invalidated by the rotation.
+- **D2 (fixed in M11):** rotating `APP_KEY`: the old key goes in
+  `APP_PREVIOUS_KEYS`, `php artisan ada:credentials:reencrypt` re-encrypts the
+  stored provider keys with the new one (tested), then the old key is removed
+  ([deployment.md](deployment.md) §7). Sessions are invalidated by the
+  rotation.
 
-## V7 Error handling and logging — Partly
+## V7 Error handling and logging — Met
 
 - `APP_DEBUG=false` in production (`ada:doctor`); errors shown to users are
   generic and translated, with stable codes.
@@ -114,9 +116,10 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
   redacted by key name.
 - Prompts, answers and API keys are never logged; provider failures are
   logged with the provider's error code and message only (tested).
-- **F2 (open, M11):** production logs use the plain `single` channel.
-  Proposed: a JSON formatter and daily rotation in the production
-  configuration shipped with M11.
+- **F2 (fixed in M11):** production logs are JSON lines: the `json` channel
+  (daily files, `LOG_DAILY_DAYS` kept) on servers, `stderr` with the JSON
+  formatter in Docker (`tests/Feature/Logging/JsonLogTest.php`); `ada:doctor`
+  warns in production when the log file never rotates.
 
 ## V8 Data protection — Met
 
@@ -131,14 +134,17 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
   database; operators with database access can read it
   ([security.md](security.md) §9). Protect backups accordingly.
 
-## V9 Communications — Deployment
+## V9 Communications — Met (deployment)
 
 - HSTS on https requests; secure cookies behind https; `ada:doctor`
   requires an https `APP_URL` in production.
-- **F3 (open, M11):** TLS termination and trusted proxies are part of the
-  production deployment (reverse proxy configuration,
-  `TrustProxies`/`trustProxies()` for the proxy's address, redirect http to
-  https at the proxy).
+- **F3 (fixed in M11):** `X-Forwarded-*` headers are trusted only from the
+  proxies in `TRUSTED_PROXIES` (empty by default), which decides the client
+  address in the audit log and rate limits and the https detection for secure
+  cookies and HSTS (`tests/Feature/Security/TrustedProxiesTest.php`); URLs
+  are generated with https when `APP_URL` is https. The nginx examples
+  redirect http to https and terminate TLS 1.2/1.3
+  ([deployment.md](deployment.md) §3).
 
 ## V10 Malicious code — Met
 
@@ -181,7 +187,7 @@ item) · **Deployment** (the operator's configuration decides) · **N/A**.
 | ID | Item | Plan |
 |---|---|---|
 | F1 | Absolute session lifetime | Fixed in M10 (`SESSION_MAX_LIFETIME`) |
-| F2 | JSON logs with rotation in production | M11 production configuration |
-| F3 | TLS termination and trusted proxies | M11 deployment |
-| D1 | 2-step verification at the IdP | Deployment guide (M11) |
-| D2 | `APP_KEY` rotation | Documented above |
+| F2 | JSON logs with rotation in production | Fixed in M11 (`LOG_CHANNEL=json` / stderr JSON) |
+| F3 | TLS termination and trusted proxies | Fixed in M11 (`TRUSTED_PROXIES`, nginx examples) |
+| D1 | 2-step verification at the IdP | Deployment checklist ([deployment.md](deployment.md) §4) |
+| D2 | `APP_KEY` rotation | `ada:credentials:reencrypt` ([deployment.md](deployment.md) §7) |

@@ -74,6 +74,16 @@ return [
         'max_session_minutes' => (int) env('SESSION_MAX_LIFETIME', 10080),
     ],
 
+    'http' => [
+        // Reverse proxies (load balancer, TLS terminator, the nginx of the
+        // Docker image) whose X-Forwarded-* headers are believed: a
+        // comma-separated list of addresses or CIDR ranges, or * for any
+        // (only when the application cannot be reached except through the
+        // proxy). Empty: no proxy is trusted, which is right when nginx
+        // passes requests to PHP-FPM directly on the same server.
+        'trusted_proxies' => env('TRUSTED_PROXIES'),
+    ],
+
     'chat' => [
         // Longest message a user can send, in characters.
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),

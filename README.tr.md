@@ -7,12 +7,13 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: erken geliştirme.** M0–M7 kilometre taşları tamamlandı: temel
+> **Durum: sürüm adayı.** M0–M11 kilometre taşları tamamlandı: temel
 > altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
 > sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
 > bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
-> kaydı, gösterge paneli ve raporlar ile sağlamlaştırma. Sıradaki: üretim
-> kurulumu (M11). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
+> kaydı, gösterge paneli ve raporlar, sağlamlaştırma ve üretim kurulumu
+> (Docker imajı, sunucu rehberi). Sıradaki: ilk kurumdaki pilot ve v1.0.0.
+> Kurulum: [docs/deployment.tr.md](docs/deployment.tr.md). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
 > [yol haritası](docs/v1-roadmap.md).
 
 ## Neden Ada?

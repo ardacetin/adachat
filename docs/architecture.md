@@ -352,24 +352,31 @@ silently reverts it.
 
 ## 11. Deployment
 
-Two supported paths, same application:
+Two supported paths, same application ([deployment.md](deployment.md),
+Turkish [deployment.tr.md](deployment.tr.md)):
 
 **Standard (bare metal / VM)** — Ubuntu 24.04 LTS, Nginx, PHP 8.4-FPM,
-MySQL 8.4, Redis, Node.js (build only), Supervisor (queue worker), cron
-(scheduler). Nginx needs SSE-friendly settings on the chat route
-(`fastcgi_buffering off` or honour `X-Accel-Buffering`, `fastcgi_read_timeout`
-above the maximum stream duration, gzip disabled for `text/event-stream`).
+MySQL 8.4, Redis, Node.js (build only), cron (scheduler). Nginx honours
+`X-Accel-Buffering: no` on the chat stream, `fastcgi_read_timeout` is above
+the maximum stream duration and `text/event-stream` is not gzipped. Example
+files in `deploy/` (nginx site, PHP-FPM pool, cron entry, backup script,
+production `.env`).
 
-**Docker** — one application image (multi-stage: Node build → PHP-FPM
-runtime) used by `app`, `worker` and `scheduler` services, plus `nginx`,
-`mysql:8.4` and `redis`. Docker is optional; nothing in the application assumes it.
+**Docker** — one image (`Dockerfile`, multi-stage: Composer → front-end build
+on Node → PHP-FPM + nginx under supervisord as `www-data` on port 8080) used
+by the `app` and `scheduler` services of `compose.production.yml`, plus
+`mysql:8.4` and `redis`. The container runs migrations and caches the
+configuration when it starts; TLS terminates at the host's reverse proxy.
+CI builds the image and smoke-tests the compose stack. Docker is optional;
+nothing in the application assumes it.
 
-Operational commands: `ada:install` (first-run setup, seeds settings from
-`.env`, creates default group/policy), `ada:user:promote` (break-glass role
-assignment), `ada:doctor` (checks `APP_DEBUG`, HTTPS, scheduler heartbeat,
-queue, provider connectivity).
+There is no queue worker in V1: nothing is dispatched to a queue.
 
-A detailed deployment guide (English and Turkish) is produced in M11.
+Operational commands: `ada:install` (first-run setup), `ada:user:promote`
+(break-glass role assignment), `ada:doctor` (checks debug mode, HTTPS, log
+rotation, database, scheduler heartbeat, sign-in, providers),
+`ada:credentials:reencrypt` (after an `APP_KEY` rotation),
+`ada:retention:prune`.
 
 ## 12. Extensibility points (not V1)
 
