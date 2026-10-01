@@ -7,7 +7,9 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.0.0** ([sürüm notları](docs/releases/v1.0.0.md#türkçe-özet)). M0–M11 kilometre taşları tamamlandı: temel
+> **Durum: 1.1.0** ([sürüm notları](docs/releases/v1.1.0.md#türkçe-özet)). 1.1 sürümü kurum geneli
+> harcama tavanı, CSV dışa aktarma ve aylık rapor, OpenAI uyumlu sunucular ve
+> sohbette dosya ekleri getirdi. 1.0'ın M0–M11 kilometre taşları: temel
 > altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
 > sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
 > bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
@@ -32,22 +34,25 @@ herkese kontrollü erişim sağlar:
   bittiğinde yeni istek gönderilemez; her ay otomatik yenilenir.
 - Yöneticiler harcama ve kullanımı görür — konuşma içeriklerini görmez.
 
-## Planlanan V1 özellikleri
+## Özellikler
 
 - İzin verilen domainlerle sınırlı Google Workspace girişi (SAML 2.0)
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
 - Roller (super admin, admin, user) ve gruplar
-- Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini
+- Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini; ayrıca
+  OpenAI uyumlu sunucular (OpenRouter, Groq, Ollama, vLLM, LM Studio)
 - Model kaydı, model alias'ları ve grup bazlı model izinleri
 - Streaming sohbet, Markdown gösterimi, konuşma geçmişi
+- Dosya ekleri: görsel, PDF, Word, Excel, PowerPoint, metin ve kod dosyaları
 - Sert sınırlı aylık USD bütçeleri (provider token sayımı, rezervasyon,
   çıktı limitinin kalan bütçeye göre düşürülmesi)
 - Fiyat snapshot'lı kullanım muhasebesi, raporlar ve yönetim paneli
+- Kurum geneli aylık harcama tavanı, CSV dışa aktarma ve aylık e-posta raporu
 - Şifrelenmiş provider anahtarları ve audit log
 - Ubuntu + Nginx + PHP-FPM + MySQL + Redis ya da Docker ile kurulum
 
-V1 kapsamı dışında: RAG, web arama, agent'lar, araçlar, görsel üretimi, ses,
-dosya yükleme ve multi-tenant SaaS.
+Kapsam dışında: RAG, web arama, agent'lar, araçlar, görsel üretimi, ses ve
+multi-tenant SaaS.
 
 ## Teknoloji
 
