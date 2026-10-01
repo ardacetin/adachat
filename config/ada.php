@@ -98,6 +98,16 @@ return [
         // (Anthropic); the web server and PHP limits must allow the largest.
         'max_image_mb' => (float) env('ADA_ATTACHMENT_MAX_IMAGE_MB', 5),
         'max_text_mb' => (float) env('ADA_ATTACHMENT_MAX_TEXT_MB', 1),
+        'max_document_mb' => (float) env('ADA_ATTACHMENT_MAX_DOCUMENT_MB', 10),
+
+        // Text taken from one PDF or Office file (longer text is cut, with a
+        // note to the model), and rows read per spreadsheet sheet.
+        'max_text_chars' => 200000,
+        'max_sheet_rows' => 2000,
+
+        // Input-token estimate per PDF page when the PDF is sent natively
+        // (providers also look at each page as an image).
+        'pdf_page_tokens' => 1500,
 
         // Images larger than this on either side are refused (Anthropic: 8000).
         'max_image_side' => 8000,

@@ -43,6 +43,7 @@ offer controlled access to everyone:
   any OpenAI-compatible server (OpenRouter, Groq, Ollama, vLLM, LM Studio)
 - Model registry, model aliases and per-group model permissions
 - Streaming chat with Markdown rendering and conversation history
+- Attachments: images, PDF, Word, Excel, PowerPoint, text and code files
 - Monthly USD budgets with hard enforcement (provider token counting,
   reservations, output capping)
 - Usage accounting with pricing snapshots, usage reports and an admin dashboard

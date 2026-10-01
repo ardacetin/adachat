@@ -4,6 +4,7 @@ namespace App\Domain\AI\Providers\Anthropic;
 
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\ImagePart;
@@ -52,7 +53,7 @@ final class AnthropicChatProvider extends HttpChatProvider
     }
 
     /**
-     * Images come before the text, as Anthropic recommends.
+     * Images and documents come before the text, as Anthropic recommends.
      *
      * @return array<string, mixed>
      */
@@ -63,9 +64,9 @@ final class AnthropicChatProvider extends HttpChatProvider
         }
 
         $content = array_map(
-            static fn (ImagePart $image): array => [
-                'type' => 'image',
-                'source' => ['type' => 'base64', 'media_type' => $image->mime, 'data' => $image->base64],
+            static fn (ImagePart|DocumentPart $part): array => [
+                'type' => $part instanceof ImagePart ? 'image' : 'document',
+                'source' => ['type' => 'base64', 'media_type' => $part->mime, 'data' => $part->base64],
             ],
             $message->parts,
         );

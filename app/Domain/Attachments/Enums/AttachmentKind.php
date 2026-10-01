@@ -9,4 +9,10 @@ enum AttachmentKind: string
 
     /** Text or code, sent inline in the message text (every model). */
     case Text = 'text';
+
+    /** Sent natively to models that read PDFs, otherwise as its extracted text. */
+    case Pdf = 'pdf';
+
+    /** Word, Excel or PowerPoint (OOXML), always sent as extracted text. */
+    case Document = 'document';
 }

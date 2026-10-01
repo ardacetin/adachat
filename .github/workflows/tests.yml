@@ -209,9 +209,9 @@ jobs:
           curl -fsS -D asset-headers.txt "http://localhost:8080$asset" -o /dev/null
           grep -qi '^cache-control:.*immutable' asset-headers.txt
 
-          # A 6 MB upload passes nginx and PHP and is stopped by the CSRF check
-          # (419), not by a body size limit (413).
-          head -c 6000000 /dev/zero > upload.bin
+          # An 11 MB upload passes nginx and PHP and is stopped by the CSRF
+          # check (419), not by a body size limit (413).
+          head -c 11000000 /dev/zero > upload.bin
           status=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/octet-stream' --data-binary @upload.bin http://localhost:8080/chat/attachments)
           test "$status" = 419 || { echo "Large upload answered $status"; exit 1; }
 

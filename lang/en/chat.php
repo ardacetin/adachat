@@ -4,8 +4,9 @@ return [
     'alias_not_allowed' => 'This model is not available to you.',
 
     'attachments' => [
-        'unsupported_type' => 'This file type is not supported. Attach images (PNG, JPEG, WebP, GIF) or text and code files.',
-        'not_supported_yet' => 'PDF and Office files are not supported yet. Copy the text into the message or attach it as a text file.',
+        'unsupported_type' => 'This file type is not supported. Attach images (PNG, JPEG, WebP, GIF), PDF, Word, Excel or PowerPoint files (.docx, .xlsx, .pptx), or text and code files.',
+        'unreadable_document' => 'The document could not be read. It may be damaged or password-protected.',
+        'scanned_pdf_unsupported' => 'This PDF contains no text (it may be scanned), and this model cannot read PDFs directly. Choose a model that reads files.',
         'too_large' => 'The file is too large (at most :max MB).',
         'image_too_large' => 'The image is too large (at most :max pixels on each side).',
         'unreadable_image' => 'The image could not be read.',

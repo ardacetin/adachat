@@ -48,16 +48,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Uploads are checked by content (no SVG), stored privately and visible
   only to their owner; they are deleted with their conversation by
   `ada:retention:prune`, which also removes unsent uploads after a day.
-  PDF and Office files follow in the next milestone.
+- **PDF, Word, Excel and PowerPoint attachments** (.pdf, .docx, .xlsx,
+  .pptx, up to 10 MB). Their text is extracted once on upload (PDF with
+  smalot/pdfparser; Office files with Ada's own reader, which refuses zip
+  bombs and XML entity tricks) and cut at 200 000 characters. PDFs go to
+  models with "Files" support as the PDF itself (OpenAI, Anthropic,
+  Gemini), so scanned pages and figures are read too; other models and
+  OpenAI-compatible servers get the extracted text. A scanned PDF without
+  text needs a model with "Files" support. Legacy .doc/.xls/.ppt files and
+  OCR are not supported.
+
+### Fixed
+
+- Per-route rate limits no longer share one counter per user: sending
+  chat messages could make the usage notice ("I understand") answer
+  "Too many requests", and sign-in attempts counted against each other.
 
 ### Upgrade notes
 
 - Attachments need larger request bodies. Docker images include the new
   limits; for the host nginx in front of Docker
   (`deploy/nginx/ada-docker-proxy.conf`) and for installations without
-  Docker, set `client_max_body_size 8m;` in nginx and
-  `upload_max_filesize = 6M` in PHP-FPM (`deploy/php-fpm/ada.conf`), then
-  reload both.
+  Docker, set `client_max_body_size 12m;` in nginx and
+  `upload_max_filesize = 11M` and `post_max_size = 12M` in PHP-FPM
+  (`deploy/php-fpm/ada.conf`), then reload both.
 
 ## [1.0.0] - 2026-10-01
 

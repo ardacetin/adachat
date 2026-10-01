@@ -48,7 +48,7 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
 
         Route::resource('providers', ProviderController::class)->except(['show', 'destroy']);
         Route::post('providers/{provider}/check', [ProviderController::class, 'check'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,provider-check:')
             ->name('providers.check');
 
         Route::resource('models', AiModelController::class)->except(['show', 'destroy']);

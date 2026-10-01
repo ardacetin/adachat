@@ -41,6 +41,7 @@ $model->forceFill([
     'context_window' => 128000,
     'max_output_tokens' => 4096,
     'supports_vision' => true,
+    'supports_files' => true,
 ])->save();
 
 $alias = new ModelAlias;

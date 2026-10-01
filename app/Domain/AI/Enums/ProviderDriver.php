@@ -55,6 +55,15 @@ enum ProviderDriver: string
     }
 
     /**
+     * Whether PDFs can be sent as files. Chat Completions servers have no
+     * common format for it, so they get the PDF's text instead.
+     */
+    public function sendsDocuments(): bool
+    {
+        return $this !== self::OpenAICompatible;
+    }
+
+    /**
      * Whether the provider has an endpoint that counts input tokens. Without
      * one, input is estimated with the driver's (larger) safety margin.
      */

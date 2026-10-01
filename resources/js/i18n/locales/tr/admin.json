@@ -150,7 +150,7 @@
         "contextWindow": "Bağlam penceresi (token)",
         "maxOutputTokens": "En fazla çıktı token'ı",
         "capabilities": "Yetenekler",
-        "capabilitiesHelp": "\"Görseller\" açıkken kullanıcılar bu model için görsel ekleyebilir (sağlayıcının desteklemesi gerekir). Metin ve kod dosyaları her modelle çalışır.",
+        "capabilitiesHelp": "\"Görseller\" açıkken kullanıcılar bu model için görsel ekleyebilir. \"Dosyalar\" açıkken PDF'ler dosya olarak gönderilir; böylece taranmış sayfalar ve şekiller de okunur. Kapalıysa PDF'nin metni gönderilir. Word, Excel, PowerPoint, metin ve kod dosyaları her modelle çalışır.",
         "vision": "Görseller",
         "files": "Dosyalar",
         "tools": "Araçlar",

@@ -4,6 +4,7 @@ namespace App\Domain\Conversations\Services;
 
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Exceptions\ContextLengthExceeded;
@@ -21,11 +22,13 @@ use Illuminate\Support\Collection;
  * that it fits the model's context window next to the output cap. The exact
  * size is measured afterwards by the provider's token counter.
  *
- * Attachments: text files are appended to their message's text as fenced
- * blocks; images become image parts. Providers are stateless, so the images
- * of earlier turns are sent again while those turns are in the context, up
- * to ada.attachments.max_request_mb per request (newest first). Older
- * images beyond that are replaced by a short note.
+ * Attachments: images become image parts, and PDFs become document parts
+ * when the model reads files natively. Text and code files, Office files and
+ * the other PDFs are appended to their message's text as fenced blocks.
+ * Providers are stateless, so the files of earlier turns are sent again
+ * while those turns are in the context, up to ada.attachments.max_request_mb
+ * of files per request (newest first). Older ones beyond that fall back to
+ * their text, or are replaced by a short note.
  */
 final class ContextBuilder
 {
@@ -51,19 +54,42 @@ final class ContextBuilder
 
         $messages = [];
         $used = 0;
-        $imageBytes = (int) (config('ada.attachments.max_request_mb') * 1024 * 1024);
+        $bytesLeft = (int) (config('ada.attachments.max_request_mb') * 1024 * 1024);
+        $nativePdf = $model->supports_files && $model->provider->driver->sendsDocuments();
 
         foreach ($history->reverse() as $message) {
             if (! self::usable($message)) {
                 continue;
             }
 
-            $attachments = self::attachmentsOf($message);
-            $text = self::withTextFiles($message->content, $attachments);
-            $images = $attachments->filter(fn (MessageAttachment $file) => $file->kind === AttachmentKind::Image);
+            // Images and native PDFs share the request byte budget, newest
+            // first; the newest message always carries its own files.
+            $binary = [];
+            $asText = [];
+            $notes = [];
+
+            foreach (self::attachmentsOf($message) as $file) {
+                $sendable = $file->kind === AttachmentKind::Image || ($file->kind === AttachmentKind::Pdf && $nativePdf);
+                $fits = $messages === [] || $file->size <= $bytesLeft;
+
+                if ($sendable && $fits) {
+                    $bytesLeft -= $file->size;
+                    $binary[] = $file;
+                } elseif ($file->kind === AttachmentKind::Image || ($file->kind === AttachmentKind::Pdf && trim((string) $file->extracted_text) === '')) {
+                    $notes[] = "[File not sent again with this request: {$file->original_name}]";
+                } else {
+                    $asText[] = $file;
+                }
+            }
+
+            $text = self::withFiles($message->content, $asText);
+
+            foreach ($notes as $note) {
+                $text = ltrim($text."\n\n".$note, "\n");
+            }
 
             $cost = self::estimate($text) + self::PER_MESSAGE_OVERHEAD
-                + (int) $images->sum(fn (MessageAttachment $image) => $image->token_estimate);
+                + array_sum(array_map(fn (MessageAttachment $file) => $file->token_estimate, $binary));
 
             if ($used + $cost > $inputBudget) {
                 if ($messages === []) {
@@ -74,24 +100,7 @@ final class ContextBuilder
             }
 
             $used += $cost;
-            $parts = [];
-            $omitted = [];
-
-            foreach ($images as $image) {
-                // The newest message always carries its images.
-                if ($messages !== [] && $image->size > $imageBytes) {
-                    $omitted[] = $image->original_name;
-
-                    continue;
-                }
-
-                $imageBytes -= $image->size;
-                $parts[] = new ImagePart($image->mime, base64_encode($this->attachments->contents($image)), $image->token_estimate);
-            }
-
-            foreach ($omitted as $name) {
-                $text .= "\n\n[Image not sent again with this request: {$name}]";
-            }
+            $parts = array_map(fn (MessageAttachment $file) => $this->part($file), $binary);
 
             array_unshift($messages, new ChatMessage($message->role, $text, $parts));
         }
@@ -130,24 +139,33 @@ final class ContextBuilder
             : collect();
     }
 
+    private function part(MessageAttachment $file): ImagePart|DocumentPart
+    {
+        $base64 = base64_encode($this->attachments->contents($file));
+
+        return $file->kind === AttachmentKind::Image
+            ? new ImagePart($file->mime, $base64, $file->token_estimate)
+            : new DocumentPart($file->mime, $base64, $file->original_name, $file->token_estimate);
+    }
+
     /**
-     * The message text followed by its text files, each in a code fence
+     * The message text followed by the text of its files (text and code,
+     * and PDF or Office documents not sent as files), each in a code fence
      * longer than any backtick run inside it.
      *
-     * @param  Collection<int, MessageAttachment>  $attachments
+     * @param  list<MessageAttachment>  $files
      */
-    private static function withTextFiles(string $text, Collection $attachments): string
+    private static function withFiles(string $text, array $files): string
     {
-        foreach ($attachments as $file) {
-            if ($file->kind !== AttachmentKind::Text) {
-                continue;
-            }
-
+        foreach ($files as $file) {
             $body = rtrim((string) $file->extracted_text, "\n");
             preg_match_all('/`+/', $body, $runs);
             $fence = str_repeat('`', max(3, ...array_map(fn (string $run) => strlen($run) + 1, $runs[0] ?: [''])));
+            $label = $file->kind === AttachmentKind::Pdf && $file->page_count !== null
+                ? "{$file->original_name} ({$file->page_count} pages)"
+                : $file->original_name;
 
-            $text = ltrim($text."\n\n{$fence}{$file->original_name}\n{$body}\n{$fence}", "\n");
+            $text = ltrim($text."\n\n{$fence}{$label}\n{$body}\n{$fence}", "\n");
         }
 
         return $text;

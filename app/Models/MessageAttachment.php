@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $token_estimate
  * @property int|null $width
  * @property int|null $height
+ * @property int|null $page_count
  * @property CarbonImmutable|null $created_at
  * @property-read User $user
  * @property-read Message|null $message
@@ -77,7 +78,7 @@ class MessageAttachment extends Model
     /**
      * The fields the chat UI needs; never the path or content.
      *
-     * @return array{id: string, kind: string, name: string, size: int, mime: string, token_estimate: int, url: string}
+     * @return array{id: string, kind: string, name: string, size: int, mime: string, pages: int|null, token_estimate: int, url: string}
      */
     public function toClient(): array
     {
@@ -87,6 +88,7 @@ class MessageAttachment extends Model
             'name' => $this->original_name,
             'size' => $this->size,
             'mime' => $this->mime,
+            'pages' => $this->page_count,
             'token_estimate' => $this->token_estimate,
             'url' => route('attachments.show', $this),
         ];
@@ -103,6 +105,7 @@ class MessageAttachment extends Model
             'token_estimate' => 'integer',
             'width' => 'integer',
             'height' => 'integer',
+            'page_count' => 'integer',
         ];
     }
 }

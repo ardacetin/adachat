@@ -13,10 +13,11 @@ export type ChatMessage = {
 
 export type AttachmentInfo = {
     id: string;
-    kind: 'image' | 'text';
+    kind: 'image' | 'text' | 'pdf' | 'document';
     name: string;
     size: number;
     mime: string;
+    pages: number | null;
     token_estimate: number;
     url: string;
 };

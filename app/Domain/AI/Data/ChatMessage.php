@@ -7,7 +7,7 @@ use App\Domain\AI\Enums\MessageRole;
 final readonly class ChatMessage
 {
     /**
-     * @param  list<ImagePart>  $parts  images (user messages only); text files are part of $text
+     * @param  list<ImagePart|DocumentPart>  $parts  images and PDFs (user messages only); text files are part of $text
      */
     public function __construct(
         public MessageRole $role,

@@ -73,6 +73,13 @@ const server = createServer(async (request, response) => {
             .filter((part) => part.type === 'input_text')
             .map((part) => part.text)
             .join('');
+        const files = parts.filter(
+            (part) =>
+                part.type === 'input_file' &&
+                String(part.file_data).startsWith(
+                    'data:application/pdf;base64,',
+                ),
+        ).length;
         const images = parts.filter(
             (part) =>
                 part.type === 'input_image' &&
@@ -81,11 +88,13 @@ const server = createServer(async (request, response) => {
         const long = text.includes('long');
         const chunks = long
             ? Array.from({ length: 80 }, (_, i) => `Kelime ${i + 1}. `)
-            : images > 0
-              ? [`Görsel sayısı: ${images}. `, ...ANSWER]
-              : text.includes('```')
-                ? ['Dosyayı okudum. ', ...ANSWER]
-                : ANSWER;
+            : files > 0
+              ? [`PDF alındı: ${files}. `, ...ANSWER]
+              : images > 0
+                ? [`Görsel sayısı: ${images}. `, ...ANSWER]
+                : text.includes('```')
+                  ? ['Dosyayı okudum. ', ...ANSWER]
+                  : ANSWER;
 
         let closed = false;
         request.on('close', () => (closed = true));

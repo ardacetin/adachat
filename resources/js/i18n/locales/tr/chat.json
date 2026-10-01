@@ -100,13 +100,15 @@
     "attachments": {
         "list": "Eklenen dosyalar",
         "add": "Görsel veya dosya ekle",
-        "addText": "Metin veya kod dosyası ekle",
+        "addText": "Belge, metin veya kod dosyası ekle",
         "remove": "{{name}} dosyasını kaldır",
         "uploading": "Yükleniyor…",
         "tokens_one": "yaklaşık {{formatted}} token",
         "tokens_other": "yaklaşık {{formatted}} token",
         "imagesUnsupported": "Bu model görselleri okuyamaz.",
         "tooLarge": "Dosya çok büyük.",
-        "resent": "Eklenen dosyalar, sohbette kaldıkça her mesajla yeniden gönderilir."
+        "resent": "Eklenen dosyalar, sohbette kaldıkça her mesajla yeniden gönderilir.",
+        "pages_one": "{{count}} sayfa",
+        "pages_other": "{{count}} sayfa"
     }
 }

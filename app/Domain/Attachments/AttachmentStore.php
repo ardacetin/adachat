@@ -4,6 +4,9 @@ namespace App\Domain\Attachments;
 
 use App\Domain\Attachments\Enums\AttachmentKind;
 use App\Domain\Attachments\Exceptions\AttachmentRejected;
+use App\Domain\Attachments\Extractors\ExtractedText;
+use App\Domain\Attachments\Extractors\OfficeExtractor;
+use App\Domain\Attachments\Extractors\PdfExtractor;
 use App\Models\MessageAttachment;
 use App\Models\User;
 use finfo;
@@ -35,8 +38,20 @@ final class AttachmentStore
         'application/x-sh', 'application/x-httpd-php', 'application/x-tex',
     ];
 
+    /** The types Office files are stored with, whatever finfo reported. */
+    private const OFFICE_TYPES = [
+        OfficeExtractor::WORD => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        OfficeExtractor::EXCEL => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        OfficeExtractor::POWERPOINT => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ];
+
     /** Bytes per token in the conservative estimate (as EstimatedInputTokenCounter). */
     private const BYTES_PER_TOKEN = 2;
+
+    public function __construct(
+        private readonly PdfExtractor $pdf,
+        private readonly OfficeExtractor $office,
+    ) {}
 
     public static function disk(): Filesystem
     {
@@ -58,10 +73,20 @@ final class AttachmentStore
         $mime = $this->detectMime($path);
         $size = (int) $file->getSize();
 
+        // finfo may report an Office file as a plain archive; its parts decide.
+        $office = in_array($mime, ['application/zip', 'application/octet-stream', ...array_values(self::OFFICE_TYPES)], true)
+            ? OfficeExtractor::detect($path)
+            : null;
+
+        if ($office !== null) {
+            $mime = self::OFFICE_TYPES[$office];
+        }
+
         $attributes = match (true) {
             in_array($mime, self::IMAGE_TYPES, true) => $this->image($path, $mime, $size),
+            $office !== null => $this->document($path, $size, $this->office->extract($path), AttachmentKind::Document),
+            $mime === 'application/pdf' => $this->document($path, $size, $this->pdf->extract($path), AttachmentKind::Pdf),
             $this->isText($mime, $path) => $this->text($path, $size),
-            $mime === 'application/pdf' || str_starts_with($mime, 'application/vnd.openxmlformats') => throw new AttachmentRejected('not_supported_yet'),
             default => throw new AttachmentRejected('unsupported_type'),
         };
 
@@ -165,6 +190,38 @@ final class AttachmentStore
             'kind' => AttachmentKind::Text,
             'extracted_text' => $text,
             'token_estimate' => (int) ceil(strlen($text) / self::BYTES_PER_TOKEN),
+        ];
+    }
+
+    /**
+     * PDF and Office files: the text is extracted once, here, and cut to
+     * ada.attachments.max_text_chars with a note for the model.
+     *
+     * @return array{kind: AttachmentKind, extracted_text: string, page_count: int|null, token_estimate: int}
+     */
+    private function document(string $path, int $size, ExtractedText $extracted, AttachmentKind $kind): array
+    {
+        $this->assertSize($size, 'max_document_mb');
+
+        $limit = (int) config('ada.attachments.max_text_chars');
+        $text = $extracted->text;
+
+        if (mb_strlen($text) > $limit) {
+            $text = mb_substr($text, 0, $limit)."\n\n[… cut: only the first {$limit} characters of this file]";
+        }
+
+        $estimate = (int) ceil(strlen($text) / self::BYTES_PER_TOKEN);
+
+        // Sent natively, a PDF also costs its pages as images.
+        if ($kind === AttachmentKind::Pdf) {
+            $estimate = max($estimate, (int) $extracted->pages * (int) config('ada.attachments.pdf_page_tokens'));
+        }
+
+        return [
+            'kind' => $kind,
+            'extracted_text' => $text,
+            'page_count' => $extracted->pages,
+            'token_estimate' => $estimate,
         ];
     }
 

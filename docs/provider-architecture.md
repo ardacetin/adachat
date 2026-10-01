@@ -127,6 +127,7 @@ supplies its payload, URLs, count body and event translation.
 | Output cap | `max_output_tokens` | `max_tokens` | `generationConfig.maxOutputTokens` | `max_tokens` |
 | Token count | `POST /responses/input_tokens` | `POST /messages/count_tokens` | `POST /models/{m}:countTokens` (`generateContentRequest`) | none: estimated (§6) |
 | Images (v1.1) | `input_image` with a data URL | `image` block, base64 source | `inline_data` part | `image_url` with a data URL |
+| PDFs (v1.1, models with `supports_files`) | `input_file` with `file_data` | `document` block, base64 source | `inline_data` part | not sent as files: the extracted text goes in the message |
 | Connection check | `GET /models` | `GET /models` | `GET /models` | `GET /models` |
 
 The base URL is per provider row (`providers.base_url`), so regional

@@ -499,15 +499,16 @@ to touch financial records. Attachments live in `message_attachments`
 | id | CHAR(36) UUIDv7 PK | | |
 | user_id | BIGINT UNSIGNED | | owner; the only person who can read the file |
 | message_id | CHAR(36) | yes | null while uploaded but not sent ("pending") |
-| kind | VARCHAR(16) | | `image` \| `text` (CHECK; `pdf`, `document` planned) |
+| kind | VARCHAR(16) | | `image` \| `text` \| `pdf` \| `document` (Word, Excel, PowerPoint; CHECK) |
 | original_name | VARCHAR(255) | | as uploaded, without path or control characters |
 | mime | VARCHAR(127) | | detected from the content (finfo), not from the name |
 | size | INT UNSIGNED | | bytes |
 | sha256 | CHAR(64) | | |
 | path | VARCHAR(255) | | `attachments/{user_id}/{id}` on the private `local` disk |
-| extracted_text | MEDIUMTEXT | yes | UTF-8 text of text files (sent inline) |
-| token_estimate | INT UNSIGNED | | images: `ada.attachments.image_tokens`; text: bytes / 2 |
+| extracted_text | MEDIUMTEXT | yes | UTF-8 text of text, PDF and Office files, extracted once on upload, at most `ada.attachments.max_text_chars` |
+| token_estimate | INT UNSIGNED | | images: `ada.attachments.image_tokens`; text: bytes / 2; PDF: at least pages × `pdf_page_tokens` |
 | width, height | SMALLINT UNSIGNED | yes | images |
+| page_count | SMALLINT UNSIGNED | yes | PDF pages, PowerPoint slides |
 | created_at | DATETIME | | |
 
 - Indexes: `INDEX(message_id)`, `INDEX(user_id, message_id, created_at)`.

@@ -2,6 +2,7 @@
 
 use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
+use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\Finished;
 use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\TextDelta;
@@ -10,6 +11,7 @@ use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Enums\MessageRole;
+use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\AI\Exceptions\ContextLengthExceeded;
 use App\Domain\AI\Exceptions\InvalidProviderRequest;
 use App\Domain\AI\Exceptions\ProviderAuthFailed;
@@ -51,6 +53,7 @@ dataset('providers', [
         'reasoning' => false,
         'streamError' => ProviderRateLimited::class,
         'imageMarker' => '"type":"input_image","image_url":"data:image/png;base64,',
+        'documentMarker' => '"type":"input_file","filename":"rapor.pdf","file_data":"data:application/pdf;base64,',
     ]],
     'anthropic' => [[
         'class' => AnthropicChatProvider::class,
@@ -68,6 +71,7 @@ dataset('providers', [
         'reasoning' => true,
         'streamError' => ProviderOverloaded::class,
         'imageMarker' => '"source":{"type":"base64","media_type":"image/png","data":"',
+        'documentMarker' => '"type":"document","source":{"type":"base64","media_type":"application/pdf","data":"',
     ]],
     'gemini' => [[
         'class' => GeminiChatProvider::class,
@@ -85,6 +89,7 @@ dataset('providers', [
         'reasoning' => true,
         'streamError' => ProviderRateLimited::class,
         'imageMarker' => '"inline_data":{"mime_type":"image/png","data":"',
+        'documentMarker' => '"inline_data":{"mime_type":"application/pdf","data":"',
     ]],
     'openai_compatible' => [[
         'class' => OpenAICompatibleChatProvider::class,
@@ -102,6 +107,7 @@ dataset('providers', [
         'reasoning' => true,
         'streamError' => ProviderRateLimited::class,
         'imageMarker' => '"type":"image_url","image_url":{"url":"data:image/png;base64,',
+        'documentMarker' => null,
     ]],
 ]);
 
@@ -322,4 +328,27 @@ test('an image without text sends no empty text block', function (array $provide
     iterator_to_array(adapter($provider)->stream($request));
 
     Http::assertSent(fn (Request $request) => ! str_contains(json_encode($request->data()), '"text":""'));
+})->with('providers');
+
+test('PDFs are sent as documents and counted with the request', function (array $provider) {
+    if ($provider['documentMarker'] === null) {
+        // Chat Completions servers get the PDF's text instead (ContextBuilder).
+        expect(ProviderDriver::OpenAICompatible->sendsDocuments())->toBeFalse();
+
+        return;
+    }
+
+    $stream = file_get_contents(base_path("tests/Fixtures/providers/{$provider['fixture']}-stream.sse"));
+    Http::fake(fn (Request $request) => $request->url() === $provider['countUrl']
+        ? Http::response($provider['countBody'])
+        : Http::response($stream, 200, ['Content-Type' => 'text/event-stream']));
+
+    $request = new ChatRequest('test-model', [new ChatMessage(MessageRole::User, 'Özetle', [new DocumentPart('application/pdf', 'cGRm', 'rapor.pdf', 3000)])], 512);
+
+    iterator_to_array(adapter($provider)->stream($request));
+    adapter($provider)->count($request);
+
+    $sent = Http::recorded()->map(fn ($pair) => json_encode($pair[0]->data(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+    expect($sent)->toHaveCount(2)->each->toContain($provider['documentMarker'].'cGRm');
 })->with('providers');

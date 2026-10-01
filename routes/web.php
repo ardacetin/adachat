@@ -10,9 +10,12 @@ use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
+// Numeric throttles get a prefix each: without one, Laravel keys them all by
+// the user (or IP) alone, so one route's requests would count for the others.
+
 // Public: the IdP administrator (or the IdP) reads it; also the SP entity ID.
 Route::get('auth/saml/metadata', [ExternalLoginController::class, 'samlMetadata'])
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:60,1,saml-metadata:')
     ->name('auth.saml.metadata');
 
 Route::middleware('guest')->group(function () {
@@ -20,18 +23,18 @@ Route::middleware('guest')->group(function () {
 
     Route::get('auth/{provider}/redirect', [ExternalLoginController::class, 'redirect'])
         ->where('provider', '[a-z0-9-]+')
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,auth-redirect:')
         ->name('auth.redirect');
 
     // Assertion consumer service: the IdP posts the SAML response here.
     Route::post('auth/{provider}/acs', [ExternalLoginController::class, 'callback'])
         ->where('provider', '[a-z0-9-]+')
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,auth-acs:')
         ->name('auth.acs');
 
     if (DevLoginController::isEnabled()) {
         Route::post('dev/login', [DevLoginController::class, 'store'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:30,1,dev-login:')
             ->name('dev-login');
     }
 });
@@ -41,7 +44,7 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
 
     Route::get('acknowledgment', [AcknowledgmentController::class, 'show'])->name('acknowledgment.show');
     Route::post('acknowledgment', [AcknowledgmentController::class, 'store'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:10,1,acknowledgment:')
         ->name('acknowledgment.store');
 
     Route::get('/', [ConversationController::class, 'index'])->name('home');
@@ -51,10 +54,10 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::delete('c/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');
 
     Route::post('chat/messages', [MessageController::class, 'store'])
-        ->middleware('throttle:60,1')
+        ->middleware('throttle:60,1,messages:')
         ->name('messages.store');
     Route::post('chat/messages/{message}/regenerate', [MessageController::class, 'regenerate'])
-        ->middleware('throttle:60,1')
+        ->middleware('throttle:60,1,messages:')
         ->name('messages.regenerate');
     Route::post('chat/attachments', [AttachmentController::class, 'store'])
         ->middleware('throttle:uploads')
@@ -62,7 +65,7 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::get('chat/attachments/{attachment}', [AttachmentController::class, 'show'])->name('attachments.show');
     Route::delete('chat/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
     Route::post('chat/messages/{message}/cancel', [MessageController::class, 'cancel'])
-        ->middleware('throttle:120,1')
+        ->middleware('throttle:120,1,messages-cancel:')
         ->name('messages.cancel');
 });
 
