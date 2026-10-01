@@ -8,6 +8,7 @@ use App\Domain\AI\Providers\Anthropic\AnthropicChatProvider;
 use App\Domain\AI\Providers\Gemini\GeminiChatProvider;
 use App\Domain\AI\Providers\HttpChatProvider;
 use App\Domain\AI\Providers\OpenAI\OpenAIChatProvider;
+use App\Domain\AI\Providers\OpenAICompatible\OpenAICompatibleChatProvider;
 use App\Models\AiModel;
 use App\Models\Provider;
 use Illuminate\Http\Client\Factory as Http;
@@ -41,16 +42,22 @@ final class ProviderManager
             ProviderDriver::OpenAI => new OpenAIChatProvider(...$arguments),
             ProviderDriver::Anthropic => new AnthropicChatProvider(...$arguments),
             ProviderDriver::Gemini => new GeminiChatProvider(...$arguments),
+            ProviderDriver::OpenAICompatible => new OpenAICompatibleChatProvider(...$arguments),
         };
     }
 
     /**
-     * Active database credential, otherwise the .env fallback.
+     * Active database credential, otherwise the .env fallback. Empty for a
+     * keyless OpenAI-compatible endpoint.
      */
     private function apiKey(Provider $provider): string
     {
         $key = $provider->activeCredential->secret
             ?? config('ada.providers.env_keys.'.$provider->driver->value);
+
+        if (! $provider->driver->requiresApiKey()) {
+            return is_string($key) ? $key : '';
+        }
 
         if (! is_string($key) || $key === '') {
             throw new ProviderAuthFailed("{$provider->driver->value}: no API key configured");

@@ -39,7 +39,8 @@ offer controlled access to everyone:
 - Google Workspace sign-in (SAML 2.0) restricted to allowed domains
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
-- OpenAI, Anthropic and Google Gemini through a provider abstraction
+- OpenAI, Anthropic and Google Gemini through a provider abstraction, and
+  any OpenAI-compatible server (OpenRouter, Groq, Ollama, vLLM, LM Studio)
 - Model registry, model aliases and per-group model permissions
 - Streaming chat with Markdown rendering and conversation history
 - Monthly USD budgets with hard enforcement (provider token counting,

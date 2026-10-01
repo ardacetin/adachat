@@ -20,6 +20,7 @@ use App\Domain\AI\Providers\Anthropic\AnthropicChatProvider;
 use App\Domain\AI\Providers\Gemini\GeminiChatProvider;
 use App\Domain\AI\Providers\HttpChatProvider;
 use App\Domain\AI\Providers\OpenAI\OpenAIChatProvider;
+use App\Domain\AI\Providers\OpenAICompatible\OpenAICompatibleChatProvider;
 use App\Domain\AI\Services\CallbackCancellation;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
@@ -77,6 +78,22 @@ dataset('providers', [
         'messages' => fn (array $body) => $body['contents'],
         'usage' => new TokenUsage(input: 200, cachedInput: 1000, output: 50, reasoning: 250),
         'requestId' => 'gem_1',
+        'reasoning' => true,
+        'streamError' => ProviderRateLimited::class,
+    ]],
+    'openai_compatible' => [[
+        'class' => OpenAICompatibleChatProvider::class,
+        'fixture' => 'openai_compatible',
+        'base' => 'https://example.test/v1',
+        'streamUrl' => 'https://example.test/v1/chat/completions',
+        'countUrl' => null,
+        'countBody' => null,
+        'authHeader' => ['Authorization', 'Bearer '.TEST_API_KEY],
+        'maxTokens' => fn (array $body) => $body['max_tokens'],
+        'system' => fn (array $body) => $body['messages'][0]['content'],
+        'messages' => fn (array $body) => array_slice($body['messages'], 1),
+        'usage' => new TokenUsage(input: 200, cachedInput: 1000, output: 50, reasoning: 250),
+        'requestId' => 'req_openai',
         'reasoning' => true,
         'streamError' => ProviderRateLimited::class,
     ]],
@@ -154,6 +171,15 @@ test('the request carries the model, output cap, system prompt and credentials',
 })->with('providers');
 
 test('token counting sends the same messages as generation', function (array $provider) {
+    if ($provider['countUrl'] === null) {
+        Http::fake();
+
+        expect(fn () => adapter($provider)->count(chatRequest()))->toThrow(ProviderUnavailable::class);
+        Http::assertNothingSent();
+
+        return;
+    }
+
     Http::fake(['*' => Http::response($provider['countBody'])]);
 
     expect(adapter($provider)->count(chatRequest()))->toBe(321);
@@ -228,3 +254,32 @@ test('cancellation stops the stream and reports a cancelled finish', function (a
         ->and(end($events))->toBeInstanceOf(Finished::class)
         ->and(end($events)->reason)->toBe(FinishReason::Cancelled);
 })->with('providers');
+
+test('OpenAI-compatible requests without a key send no Authorization header', function () {
+    fakeStream(['fixture' => 'openai_compatible']);
+
+    $adapter = new OpenAICompatibleChatProvider(app(Factory::class), '', 'http://localhost:11434/v1', 30, 3);
+    $result = $adapter->complete(chatRequest());
+
+    expect($result->text)->toBe('Merhaba dünya!');
+
+    Http::assertSent(fn (Request $request) => $request->url() === 'http://localhost:11434/v1/chat/completions'
+        && ! $request->hasHeader('Authorization')
+        && $request->data()['stream'] === true
+        && $request->data()['stream_options'] === ['include_usage' => true]
+        && $request->data()['messages'][0] === ['role' => 'system', 'content' => 'You are Ada.']);
+});
+
+test('an OpenAI-compatible stream without a finish reason ends on [DONE]', function () {
+    Http::fake(['*' => Http::response(
+        "data: {\"choices\":[{\"delta\":{\"content\":\"Tamam\"}}]}\n\ndata: [DONE]\n\n",
+        200,
+        ['Content-Type' => 'text/event-stream'],
+    )]);
+
+    $adapter = new OpenAICompatibleChatProvider(app(Factory::class), '', 'http://localhost:8000/v1', 30, 3);
+    $result = $adapter->complete(chatRequest());
+
+    expect($result->text)->toBe('Tamam')
+        ->and($result->finishReason)->toBe(FinishReason::Stop);
+});

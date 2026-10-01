@@ -1,0 +1,4 @@
+data: {"id":"chatcmpl-3","choices":[{"index":0,"delta":{"content":"Par"},"finish_reason":null}]}
+
+data: {"error":{"message":"Rate limit exceeded: free-models-per-min","code":429}}
+

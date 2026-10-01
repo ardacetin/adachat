@@ -124,7 +124,9 @@
         "models": "Models",
         "check": "Test connection",
         "enabled": "Enabled",
-        "driverLocked": "The type cannot be changed after creation."
+        "driverLocked": "The type cannot be changed after creation.",
+        "baseUrlCompatibleHelp": "Required: the address that ends in /v1, e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) or http://your-server:8000/v1 (vLLM). Ada calls <address>/chat/completions.",
+        "apiKeyOptional": "Optional for servers without authentication (Ollama, vLLM)."
     },
     "models": {
         "title": "Models",
@@ -138,6 +140,7 @@
         "displayName": "Display name",
         "descriptionField": "Description",
         "pricing": "Pricing (USD per 1M tokens)",
+        "pricingHelp": "Enter 0 for self-hosted models (Ollama, vLLM): their use is recorded but does not count against budgets.",
         "inputPrice": "Input",
         "outputPrice": "Output",
         "cachedInputPrice": "Cached input",

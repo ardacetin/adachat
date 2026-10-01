@@ -128,3 +128,34 @@ test('connection check reports success and failure', function () {
 
     Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer '.DUMMY_KEY));
 });
+
+test('an OpenAI-compatible provider needs an address but no key', function () {
+    $this->actingAs(superAdmin());
+    $input = ['slug' => 'ollama', 'driver' => 'openai_compatible', 'name' => 'Ollama', 'base_url' => '', 'enabled' => true];
+
+    $this->post(route('admin.providers.store'), $input)->assertSessionHasErrors('base_url');
+
+    $this->post(route('admin.providers.store'), [...$input, 'base_url' => 'http://ollama:11434/v1'])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.providers.index'));
+
+    $provider = Provider::query()->sole();
+
+    expect($provider->driver->value)->toBe('openai_compatible')
+        ->and($provider->activeCredential)->toBeNull();
+
+    $this->put(route('admin.providers.update', $provider), [...$input, 'driver' => null, 'base_url' => ''])
+        ->assertSessionHasErrors('base_url');
+});
+
+test('a keyless OpenAI-compatible connection check sends no credentials', function () {
+    $provider = Provider::factory()->create(['driver' => 'openai_compatible', 'base_url' => 'http://ollama:11434/v1']);
+    Http::fake(['*' => Http::response(['data' => []])]);
+
+    $this->actingAs(superAdmin())
+        ->post(route('admin.providers.check', $provider))
+        ->assertInertiaFlash('toast.type', 'success');
+
+    Http::assertSent(fn ($request) => $request->url() === 'http://ollama:11434/v1/models'
+        && ! $request->hasHeader('Authorization'));
+});

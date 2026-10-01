@@ -101,6 +101,7 @@ return [
             'openai' => env('OPENAI_API_KEY'),
             'anthropic' => env('ANTHROPIC_API_KEY'),
             'gemini' => env('GEMINI_API_KEY'),
+            'openai_compatible' => env('OPENAI_COMPATIBLE_API_KEY'),
         ],
     ],
 
@@ -112,6 +113,8 @@ return [
             'openai' => 0.0,
             'anthropic' => 0.05,
             'gemini' => 0.0,
+            // No count endpoint: the conservative estimate plus this margin.
+            'openai_compatible' => 0.25,
             'estimated' => 0.5,
         ],
 

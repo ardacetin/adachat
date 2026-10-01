@@ -124,7 +124,9 @@
         "models": "Modeller",
         "check": "Bağlantıyı test et",
         "enabled": "Etkin",
-        "driverLocked": "Tür, oluşturulduktan sonra değiştirilemez."
+        "driverLocked": "Tür, oluşturulduktan sonra değiştirilemez.",
+        "baseUrlCompatibleHelp": "Zorunlu: /v1 ile biten adres, ör. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) veya http://sunucunuz:8000/v1 (vLLM). Ada <adres>/chat/completions adresini çağırır.",
+        "apiKeyOptional": "Kimlik doğrulaması olmayan sunucular (Ollama, vLLM) için isteğe bağlı."
     },
     "models": {
         "title": "Modeller",
@@ -138,6 +140,7 @@
         "displayName": "Görünen ad",
         "descriptionField": "Açıklama",
         "pricing": "Fiyatlandırma (1M token başına USD)",
+        "pricingHelp": "Kendi sunucunuzdaki modeller (Ollama, vLLM) için 0 girin: kullanımları kaydedilir ama bütçeden düşmez.",
         "inputPrice": "Girdi",
         "outputPrice": "Çıktı",
         "cachedInputPrice": "Önbellekten girdi",

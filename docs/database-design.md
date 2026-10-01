@@ -260,7 +260,7 @@ Purpose: configured AI provider accounts.
 |---|---|---|---|
 | id | BIGINT PK | | |
 | slug | VARCHAR(64) `utf8mb4_bin` | | e.g. `openai` |
-| driver | VARCHAR(32) | | `openai` \| `anthropic` \| `gemini` (later `openai_compatible`, `azure_openai`, …) |
+| driver | VARCHAR(32) | | `openai` \| `anthropic` \| `gemini` \| `openai_compatible` (v1.1) |
 | name | VARCHAR(255) | | admin display |
 | base_url | VARCHAR(2048) | yes | override for compatible endpoints |
 | options | JSON | yes | driver options (organization id, API version…) — no secrets |
@@ -268,7 +268,7 @@ Purpose: configured AI provider accounts.
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(slug)`.
-- Constraints (M4): `CHECK (driver IN ('openai', 'anthropic', 'gemini'))`,
+- Constraints (M4): `CHECK (driver IN ('openai', 'anthropic', 'gemini', 'openai_compatible'))`,
   widened when a driver is added. The driver cannot be changed after
   creation (admin validation).
 
