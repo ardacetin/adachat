@@ -34,6 +34,12 @@ herkese kontrollü erişim sağlar:
   bittiğinde yeni istek gönderilemez; her ay otomatik yenilenir.
 - Yöneticiler harcama ve kullanımı görür — konuşma içeriklerini görmez.
 
+**İsim.** Ada, adını
+[Ada Lovelace](https://tr.wikipedia.org/wiki/Ada_Lovelace)'tan (1815–1852)
+alır. Lovelace, Charles Babbage'ın Analitik Makinesi için ilk bilgisayar
+programı sayılan algoritmayı yazmış ve bu makinelerin sayıların ötesinde de
+iş görebileceğini öngörmüştür.
+
 ## Özellikler
 
 - İzin verilen domainlerle sınırlı Google Workspace girişi (SAML 2.0)

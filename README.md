@@ -36,6 +36,12 @@ offer controlled access to everyone:
   up, new requests are refused; it renews automatically every month.
 - Administrators see spending and usage — but not conversation content.
 
+**The name.** Ada is named after
+[Ada Lovelace](https://en.wikipedia.org/wiki/Ada_Lovelace) (1815–1852), who
+wrote what is regarded as the first computer program, for Charles Babbage's
+Analytical Engine, and foresaw that such machines could work with more than
+numbers.
+
 ## Features
 
 - Google Workspace sign-in (SAML 2.0) restricted to allowed domains
