@@ -19,4 +19,22 @@ return [
         'heading' => 'E-mail works',
         'body' => 'This test message from Ada Chat (:institution) arrived, so the mail settings are correct. Cap alerts and monthly reports will be sent to this address.',
     ],
+
+    'monthly' => [
+        'subject' => ':institution: AI usage report for :month',
+        'heading' => 'Usage report for :month',
+        'intro' => 'Here is how :institution used Ada Chat in :month. The figures are costs and counts only; message content is never included.',
+        'spend' => 'Spending',
+        'requests' => 'Requests',
+        'users' => 'Active users',
+        'adjustments' => 'Manual adjustments',
+        'users_at_limit' => 'Users who used up their budget',
+        'cap' => 'Institution cap used',
+        'overshoots' => ':count requests cost more than their reservation; see the reports for details.',
+        'top_groups' => 'Top groups',
+        'top_models' => 'Top models',
+        'name' => 'Name',
+        'attachments' => 'Attached: spending per user and per day as CSV (opens in Excel and other spreadsheets).',
+        'button' => 'Open the reports',
+    ],
 ];

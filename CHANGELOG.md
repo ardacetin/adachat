@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   addresses (`ada:budget:cap-alerts`, every five minutes), a "Send a test
   e-mail" button and an `ada:doctor` check for the mail settings.
 - `ada:budget:reconcile` also checks the institution totals.
+- **CSV export** on the reports page ("Download CSV"): the full breakdown by
+  user, group, provider or model (every row, not only the top 100) and the
+  spending per day or month, with the page's filters. UTF-8 with a BOM; in
+  Turkish with ";" and decimal commas for Turkish Excel. Exports are
+  audited; cells that a spreadsheet would run as formulas are defused.
+- **Monthly report by e-mail**: after each month (institution time zone) the
+  notification addresses receive a summary (spending, requests, active
+  users, top groups and models, users at their limit, overshoots, the cap)
+  with the per-user and per-day CSV attached. `ada:reports:monthly`
+  (hourly, sends each month once; `--month=YYYY-MM --to=…` on demand).
 
 ## [1.0.0] - 2026-10-01
 

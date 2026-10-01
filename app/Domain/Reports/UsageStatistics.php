@@ -60,11 +60,12 @@ final class UsageStatistics
     }
 
     /**
-     * The biggest spenders by user, group, provider or model.
+     * The biggest spenders by user, group, provider or model; every row
+     * when $limit is null (CSV export).
      *
      * @return list<array{id: int|null, label: string, detail: string|null, requests: int, input_tokens: int, output_tokens: int, cost_usd: string}>
      */
-    public function breakdown(ReportFilters $filters, string $dimension): array
+    public function breakdown(ReportFilters $filters, string $dimension, ?int $limit = self::TOP_ROWS): array
     {
         $query = $this->charges($filters);
 
@@ -98,7 +99,7 @@ final class UsageStatistics
             ->groupBy($key)
             ->orderByDesc('cost')
             ->orderBy($key)
-            ->limit(self::TOP_ROWS)
+            ->when($limit !== null, fn (Builder $query) => $query->limit((int) $limit))
             ->get()
             ->map(fn (stdClass $row) => [
                 'id' => $row->id === null ? null : (int) $row->id,

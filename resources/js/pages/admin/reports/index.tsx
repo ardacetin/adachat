@@ -1,4 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
+import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BarChart, { ShareBar } from '@/components/admin/bar-chart';
@@ -12,6 +13,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -31,7 +38,7 @@ import {
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDate, formatMonth, formatNumber, formatUsd } from '@/lib/format';
-import { index } from '@/routes/admin/reports';
+import { exportMethod, index } from '@/routes/admin/reports';
 import type {
     BreakdownRow,
     DeviationRow,
@@ -102,6 +109,19 @@ export default function Reports({
             { preserveState: true, preserveScroll: true, replace: true },
         );
 
+    // The CSV export takes the same filters as the page.
+    const exportUrl = (dataset: 'breakdown' | 'timeline') =>
+        exportMethod.url({
+            query: {
+                ...Object.fromEntries(
+                    Object.entries(filters).filter(
+                        ([, value]) => value !== null && value !== '',
+                    ),
+                ),
+                dataset,
+            },
+        });
+
     const pickId = (value: string) => (value === ALL ? null : Number(value));
     const total = Number(totals.cost_usd);
     const pointLabel = (date: string) =>
@@ -114,11 +134,37 @@ export default function Reports({
             <Head title={t('reports.title')} />
 
             <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title={t('reports.title')}
-                    description={t('reports.description')}
-                />
+                <div className="flex items-start justify-between gap-4">
+                    <Heading
+                        variant="small"
+                        title={t('reports.title')}
+                        description={t('reports.description')}
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Download aria-hidden />
+                                {t('reports.download')}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <a href={exportUrl('breakdown')} download>
+                                    {t(`reports.download_${filters.by}`)}
+                                </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <a href={exportUrl('timeline')} download>
+                                    {t(
+                                        filters.interval === 'month'
+                                            ? 'reports.downloadMonthly'
+                                            : 'reports.downloadDaily',
+                                    )}
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
 
                 <form
                     className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"

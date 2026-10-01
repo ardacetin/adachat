@@ -369,7 +369,14 @@
         "methods": {
             "provider_endpoint": "Sağlayıcı sayacı",
             "estimated": "Tahmin"
-        }
+        },
+        "download": "CSV indir",
+        "download_model": "Modele göre döküm",
+        "download_group": "Gruba göre döküm",
+        "download_provider": "Sağlayıcıya göre döküm",
+        "download_user": "Kullanıcıya göre döküm (tüm kullanıcılar)",
+        "downloadDaily": "Günlük harcama",
+        "downloadMonthly": "Aylık harcama"
     },
     "dashboard": {
         "spend": "Bu ayki harcama",

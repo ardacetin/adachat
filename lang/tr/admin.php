@@ -31,4 +31,19 @@ return [
         'token_count_unavailable' => 'token sayımı kullanılamıyor.',
     ],
 
+    'report_csv' => [
+        'user' => 'Kullanıcı',
+        'email' => 'E-posta',
+        'group' => 'Grup',
+        'provider' => 'Sağlayıcı',
+        'detail_provider' => 'Sürücü',
+        'model' => 'Model',
+        'detail_model' => 'Sağlayıcı',
+        'day' => 'Gün',
+        'month' => 'Ay',
+        'requests' => 'İstek',
+        'input_tokens' => 'Girdi token',
+        'output_tokens' => 'Çıktı token',
+        'cost' => 'Maliyet (USD)',
+    ],
 ];

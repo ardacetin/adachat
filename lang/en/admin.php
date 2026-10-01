@@ -31,4 +31,19 @@ return [
         'token_count_unavailable' => 'token counting is unavailable.',
     ],
 
+    'report_csv' => [
+        'user' => 'User',
+        'email' => 'E-mail',
+        'group' => 'Group',
+        'provider' => 'Provider',
+        'detail_provider' => 'Driver',
+        'model' => 'Model',
+        'detail_model' => 'Provider',
+        'day' => 'Day',
+        'month' => 'Month',
+        'requests' => 'Requests',
+        'input_tokens' => 'Input tokens',
+        'output_tokens' => 'Output tokens',
+        'cost' => 'Cost (USD)',
+    ],
 ];

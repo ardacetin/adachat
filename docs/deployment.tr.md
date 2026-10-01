@@ -156,9 +156,10 @@ loglanmaz.
 
 ### 3.5 E-posta
 
-Ada, tavan uyarılarını (kurumun aylık tavanının %80'i ve %100'ü) ve v1.1'den
-itibaren aylık raporu Yönetim → Kurum → Bildirim e-postaları alanındaki
-adreslere gönderir. `.env` içinde bir SMTP sunucusu tanımlayın:
+Ada, tavan uyarılarını (kurumun aylık tavanının %80'i ve %100'ü) ve aylık
+kullanım raporunu (her ayın sonunda, CSV ekleriyle; elle göndermek için
+`php artisan ada:reports:monthly --month=2026-09 --to=siz@kurum.edu.tr`)
+Yönetim → Kurum → Bildirim e-postaları alanındaki adreslere gönderir. `.env` içinde bir SMTP sunucusu tanımlayın:
 
 ```dotenv
 MAIL_MAILER=smtp

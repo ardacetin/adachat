@@ -19,4 +19,22 @@ return [
         'heading' => 'E-posta çalışıyor',
         'body' => 'Ada Chat\'ten (:institution) gönderilen bu deneme iletisi ulaştı; e-posta ayarları doğru. Tavan uyarıları ve aylık raporlar bu adrese gönderilecek.',
     ],
+
+    'monthly' => [
+        'subject' => ':institution: :month yapay zekâ kullanım raporu',
+        'heading' => ':month kullanım raporu',
+        'intro' => ':institution, :month ayında Ada Chat\'i şöyle kullandı. Rakamlar yalnızca maliyet ve sayılardır; mesaj içerikleri asla yer almaz.',
+        'spend' => 'Harcama',
+        'requests' => 'İstek',
+        'users' => 'Aktif kullanıcı',
+        'adjustments' => 'Elle düzeltmeler',
+        'users_at_limit' => 'Bütçesini bitiren kullanıcı',
+        'cap' => 'Kurum tavanı kullanımı',
+        'overshoots' => ':count istek rezervasyonundan fazlaya mal oldu; ayrıntılar raporlarda.',
+        'top_groups' => 'En çok harcayan gruplar',
+        'top_models' => 'En çok kullanılan modeller',
+        'name' => 'Ad',
+        'attachments' => 'Ekte: kullanıcıya ve güne göre harcama, CSV olarak (Excel ve diğer tablolama programlarında açılır).',
+        'button' => 'Raporları aç',
+    ],
 ];

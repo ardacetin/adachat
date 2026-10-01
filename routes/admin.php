@@ -11,12 +11,14 @@ use App\Http\Controllers\Admin\ModelAliasController;
 use App\Http\Controllers\Admin\PrivacySettingsController;
 use App\Http\Controllers\Admin\ProviderController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('index');
     Route::get('reports', ReportController::class)->name('reports.index');
+    Route::get('reports/export', ReportExportController::class)->name('reports.export');
 
     // Administrators and super administrators (docs/authentication.md §4);
     // UserPolicy decides per action.
