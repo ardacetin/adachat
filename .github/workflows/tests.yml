@@ -204,13 +204,15 @@ jobs:
           grep -qi '^content-security-policy:' headers.txt
           if grep -qi '^x-powered-by:' headers.txt; then echo 'X-Powered-By leaks the PHP version'; exit 1; fi
 
-          asset=$(grep -o '/build/assets/[^"]*\.js' login.html | head -1)
+          asset=$(grep -o '/build/assets/[^"]*\.js' login.html | sed -n 1p)
           test -n "$asset"
           curl -fsS -D asset-headers.txt "http://localhost:8080$asset" -o /dev/null
           grep -qi '^cache-control:.*immutable' asset-headers.txt
 
           $compose exec -T app php artisan ada:install
-          $compose exec -T app php artisan migrate:status | grep -q Ran
+          # Captured first: grep -q would close the pipe while artisan writes.
+          migrations=$($compose exec -T app php artisan migrate:status)
+          echo "$migrations" | grep -q Ran
 
           # The scheduler container leaves a heartbeat within about a minute.
           # (The doctor itself fails here: no identity provider is set up.)
