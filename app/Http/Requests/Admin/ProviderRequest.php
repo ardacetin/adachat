@@ -23,7 +23,7 @@ class ProviderRequest extends FormRequest
         /** @var Provider|null $provider */
         $provider = $this->route('provider');
         // OpenAI-compatible endpoints have no default address.
-        $driver = $provider?->driver ?? ProviderDriver::tryFrom((string) $this->input('driver'));
+        $driver = $provider !== null ? $provider->driver : ProviderDriver::tryFrom((string) $this->input('driver'));
         $needsUrl = $driver === ProviderDriver::OpenAICompatible;
 
         return [
