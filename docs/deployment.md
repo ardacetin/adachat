@@ -127,9 +127,12 @@ sudo cp deploy/cron/ada /etc/cron.d/ada
 sudo -u www-data php artisan ada:doctor                             # after a minute: scheduler OK
 ```
 
-Important nginx settings for streamed answers (already in the example):
-`fastcgi_read_timeout 420s`, and no buffering — Ada sends
-`X-Accel-Buffering: no`, which nginx honours. Anything else between the
+Important nginx settings (already in the example): `fastcgi_read_timeout
+420s` and no buffering for streamed answers — Ada sends
+`X-Accel-Buffering: no`, which nginx honours — and `fastcgi_buffer_size 32k`:
+Ada's response headers (asset preload links, security policy) are larger
+than nginx's default 4–8 KB, which otherwise ends in "502 Bad Gateway" and
+`upstream sent too big header` in the nginx error log. Anything else between the
 browser and nginx (a load balancer, a WAF, Cloudflare) must not buffer
 responses either, or answers appear all at once at the end.
 

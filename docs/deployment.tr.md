@@ -130,9 +130,13 @@ sudo cp deploy/cron/ada /etc/cron.d/ada
 sudo -u www-data php artisan ada:doctor                             # bir dakika sonra: zamanlayıcı OK
 ```
 
-Akan yanıtlar için önemli nginx ayarları (örnekte zaten var):
+Önemli nginx ayarları (örnekte zaten var): akan yanıtlar için
 `fastcgi_read_timeout 420s` ve arabellekleme olmaması — Ada
-`X-Accel-Buffering: no` başlığını gönderir, nginx buna uyar. Tarayıcı ile
+`X-Accel-Buffering: no` başlığını gönderir, nginx buna uyar — ve
+`fastcgi_buffer_size 32k`: Ada'nın yanıt başlıkları (varlık ön yükleme
+bağlantıları, güvenlik politikası) nginx'in varsayılan 4–8 KB'ından büyüktür;
+aksi halde "502 Bad Gateway" ve nginx hata kaydında
+`upstream sent too big header` görülür. Tarayıcı ile
 nginx arasındaki başka bir katman (yük dengeleyici, WAF, Cloudflare) da
 yanıtları arabelleğe almamalıdır; yoksa yanıtlar sonunda tek parça halinde
 görünür.
