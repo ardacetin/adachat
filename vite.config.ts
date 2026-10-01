@@ -20,6 +20,9 @@ export default defineConfig({
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            // The Docker build generates the route helpers with PHP first
+            // and builds the assets where PHP is not installed.
+            command: process.env.WAYFINDER_COMMAND,
         }),
     ]),
     server: {

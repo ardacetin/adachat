@@ -158,6 +158,14 @@
             "exampleTypical": "Typical message with some history (2,000 in / 500 out)",
             "exampleLong": "Long conversation or document (20,000 in / 1,000 out)",
             "perBudget": "With a monthly budget of {{budget}}, a user can send about {{count}} typical messages.",
+            "calculatorTitle": "Calculate your own scenario",
+            "calculatorInput": "Input tokens per message",
+            "calculatorOutput": "Output tokens per message",
+            "calculatorMessages": "Messages",
+            "calculatorBudget": "Budget (USD)",
+            "calculatorPerMessage": "One message (≈ {{words}} words in total)",
+            "calculatorTotal": "{{count}} messages",
+            "calculatorFits": "Messages that fit in {{budget}}",
             "tokensNote": "Rules of thumb: 1 token ≈ ¾ of an English word; Turkish text needs roughly 30–50 % more tokens for the same length."
         }
     },

@@ -169,3 +169,67 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  docker:
+    # Builds the production image and runs it with compose.production.yml
+    # the way an institution would (docs/deployment.md).
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure
+        run: |
+          cp deploy/env.production.example .env
+          sed -i \
+            -e "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" \
+            -e "s|^APP_URL=.*|APP_URL=http://localhost:8080|" \
+            -e "s|^DB_PASSWORD=.*|DB_PASSWORD=$(openssl rand -hex 16)|" \
+            -e "s|^SESSION_SECURE_COOKIE=.*|SESSION_SECURE_COOKIE=false|" \
+            .env
+
+      - name: Build and start
+        run: docker compose -f compose.production.yml up -d --build --wait --wait-timeout 300
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          compose="docker compose -f compose.production.yml"
+
+          curl -fsS http://localhost:8080/up > /dev/null
+          curl -fsS -D headers.txt http://localhost:8080/login -o login.html
+          grep -qi '^content-security-policy:' headers.txt
+          if grep -qi '^x-powered-by:' headers.txt; then echo 'X-Powered-By leaks the PHP version'; exit 1; fi
+
+          asset=$(grep -o '/build/assets/[^"]*\.js' login.html | head -1)
+          test -n "$asset"
+          curl -fsS -D asset-headers.txt "http://localhost:8080$asset" -o /dev/null
+          grep -qi '^cache-control:.*immutable' asset-headers.txt
+
+          $compose exec -T app php artisan ada:install
+          $compose exec -T app php artisan migrate:status | grep -q Ran
+
+          # The scheduler container leaves a heartbeat within about a minute.
+          # (The doctor itself fails here: no identity provider is set up.)
+          for i in $(seq 1 24); do
+            report=$($compose exec -T app php artisan ada:doctor --no-ansi || true)
+            if echo "$report" | grep -Eq 'Scheduler ran in the last 5 minutes.*OK'; then
+              echo 'Scheduler is running.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'The scheduler did not run.'
+          $compose exec -T app php artisan ada:doctor --no-ansi || true
+          exit 1
+
+      - name: Logs
+        if: failure()
+        run: docker compose -f compose.production.yml logs --no-color
+
+      - name: Stop
+        if: always()
+        run: docker compose -f compose.production.yml down -v

@@ -1,0 +1,3 @@
+# Ada Chat scheduler: budget housekeeping, retention, health heartbeat.
+# Copy to /etc/cron.d/ada (owned by root, mode 644).
+* * * * * www-data cd /var/www/ada && php artisan schedule:run >> /dev/null 2>&1

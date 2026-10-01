@@ -7,12 +7,13 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: early development.** Milestones M0–M7 are done: foundation,
+> **Status: release candidate.** Milestones M0–M11 are done: foundation,
 > Google Workspace (SAML) sign-in, institution settings and branding, AI
 > providers and model aliases, the budget engine, streaming chat, groups,
 > budget policies and user usage, administration of users and the audit
-> log, the dashboard and reports, and hardening. Next: production
-> deployment (M11). The
+> log, the dashboard and reports, hardening and production deployment
+> (Docker image, server guide). Next: the pilot at the first institution and
+> v1.0.0. The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
 
@@ -103,6 +104,7 @@ error when something needs fixing.
 | [Frontend architecture](docs/frontend-architecture.md) | React/Inertia structure, streaming state, i18n, theming |
 | [Security](docs/security.md) | Threats and controls |
 | [Security review](docs/security-review.md) | Internal OWASP ASVS Level 2 review |
+| [Deployment](docs/deployment.md) ([Türkçe](docs/deployment.tr.md)) | Docker and server installation, sizing, backups, upgrades, `APP_KEY`, rollout |
 | [V1 roadmap](docs/v1-roadmap.md) | Milestones |
 
 ## Institution-neutral by design

@@ -31,6 +31,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M11 production deployment: a production Docker image (nginx + PHP-FPM as
+  `www-data`, migrations on start) and `compose.production.yml` with the
+  scheduler, MySQL 8.4 and Redis, built and smoke-tested in CI; deployment
+  guide in English and Turkish (`docs/deployment.md`, `docs/deployment.tr.md`)
+  with sizing, server installation, backups, restore, upgrades and a rollout
+  checklist; example files in `deploy/` (nginx, PHP-FPM pool, cron, backup
+  script, production `.env`).
+- JSON logs for production (`LOG_CHANNEL=json`, daily files) and
+  `ada:doctor` warns when the log file never rotates.
+- `TRUSTED_PROXIES`: `X-Forwarded-*` headers are believed only from the
+  listed proxies (client address in the audit log and rate limits, https).
+- `php artisan ada:credentials:reencrypt` re-encrypts stored provider API
+  keys after an `APP_KEY` rotation.
+- A cost calculator on the model form: input and output tokens per message,
+  number of messages and a budget; the cost per message, the total and the
+  messages that fit are recalculated as you type.
 - M10 hardening (part 2): axe-core accessibility checks (WCAG 2.1 AA) in
   Playwright on the main user and admin screens (light and dark); a bundle
   size budget (`npm run bundle:check`, in CI); an absolute session lifetime

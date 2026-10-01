@@ -1,0 +1,93 @@
+# Ada Chat in production with Docker Compose (docs/deployment.md).
+#
+#   cp deploy/env.production.example .env    # then fill it in
+#   docker compose -f compose.production.yml up -d --build
+#   docker compose -f compose.production.yml exec app php artisan ada:install
+#
+# The application listens on 127.0.0.1:8080 only; put the host's reverse
+# proxy (nginx, Caddy, Apache) in front of it for HTTPS.
+
+name: ada
+
+x-app: &app
+    image: ${ADA_IMAGE:-ada-chat:latest}
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+        - storage:/app/storage
+    depends_on:
+        mysql:
+            condition: service_healthy
+        redis:
+            condition: service_started
+
+x-app-environment: &app-environment
+    APP_ENV: production
+    DB_CONNECTION: mysql
+    DB_HOST: mysql
+    DB_PORT: 3306
+    REDIS_HOST: redis
+    SESSION_DRIVER: redis
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    LOG_CHANNEL: stderr
+    # Only the host's proxy can reach the published port (127.0.0.1).
+    TRUSTED_PROXIES: ${TRUSTED_PROXIES:-*}
+
+services:
+    app:
+        <<: *app
+        environment:
+            <<: *app-environment
+            ADA_MIGRATE: 'true'
+        ports:
+            - '127.0.0.1:${ADA_PORT:-8080}:8080'
+
+    scheduler:
+        <<: *app
+        command: ['php', 'artisan', 'schedule:work']
+        environment:
+            <<: *app-environment
+            ADA_MIGRATE: 'false'
+        healthcheck:
+            disable: true
+        depends_on:
+            app:
+                condition: service_healthy
+
+    mysql:
+        image: mysql:8.4
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-ada}
+            MYSQL_USER: ${DB_USERNAME:-ada}
+            MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+            MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+        command:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_0900_ai_ci
+            - --default-time-zone=+00:00
+        volumes:
+            - mysql:/var/lib/mysql
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'mysqladmin ping -h 127.0.0.1 -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" --silent',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+
+    redis:
+        image: redis:7-alpine
+        restart: unless-stopped
+        command: ['redis-server', '--save', '60', '1', '--appendonly', 'no']
+        volumes:
+            - redis:/data
+
+volumes:
+    storage:
+    mysql:
+    redis:
