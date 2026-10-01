@@ -117,7 +117,7 @@ final class MonthlyReport
                 // Today's cap against that month's spending.
                 'cap' => $cap === null ? null : [
                     'cap_usd' => BudgetSummary::cents($cap, RoundingMode::Down),
-                    'percent' => BudgetSummary::percent($institutionMonth?->spent_usd ?? Usd::zero(), $cap),
+                    'percent' => BudgetSummary::percent($institutionMonth === null ? Usd::zero() : $institutionMonth->spent_usd, $cap),
                 ],
             ],
         ];

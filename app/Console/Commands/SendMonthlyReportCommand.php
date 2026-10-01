@@ -32,7 +32,7 @@ class SendMonthlyReportCommand extends Command
             return self::SUCCESS;
         }
 
-        if (! is_string($month) || preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) !== 1) {
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) !== 1) {
             $this->components->error('Use --month=YYYY-MM.');
 
             return self::FAILURE;

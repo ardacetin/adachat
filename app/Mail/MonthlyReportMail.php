@@ -44,9 +44,9 @@ class MonthlyReportMail extends Mailable
      */
     public function attachments(): array
     {
-        return array_values(array_map(
+        return array_map(
             fn (string $name) => Attachment::fromData(fn () => $this->files[$name], $name)->withMime('text/csv'),
             array_keys($this->files),
-        ));
+        );
     }
 }
