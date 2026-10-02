@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Chat: pin conversations (they stay on top of the sidebar), search your
+  own conversations by title, message text or file name (Ctrl+K / ⌘K), and
+  export a conversation as Markdown or print it / save it as PDF.
 - Administrators add users by e-mail address (Administration → Users → Add
   users), with group and role, and see who has not signed in yet. Added
   addresses can sign in even outside the allowed domains; with "Anyone with

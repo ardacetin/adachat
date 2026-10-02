@@ -42,7 +42,11 @@
         "deleteTitle": "Sohbet silinsin mi?",
         "deleteConfirm": "Sohbet ve mesajları kaldırılacak. Kullanım kayıtları korunur.",
         "cancel": "Vazgeç",
-        "save": "Kaydet"
+        "save": "Kaydet",
+        "pin": "Sabitle",
+        "unpin": "Sabitlemeyi kaldır",
+        "exportMarkdown": "Markdown olarak indir",
+        "print": "Yazdır veya PDF olarak kaydet"
     },
     "errors": {
         "budget_exhausted": "Aylık bütçeniz doldu. Gelecek ayın başında yenilenir.",
@@ -110,5 +114,18 @@
         "resent": "Eklenen dosyalar, sohbette kaldıkça her mesajla yeniden gönderilir.",
         "pages_one": "{{count}} sayfa",
         "pages_other": "{{count}} sayfa"
+    },
+    "pinned": "Sabitlenenler",
+    "search": {
+        "nav": "Ara",
+        "title": "Sohbetlerde ara",
+        "label": "Sohbetlerinizde arayın",
+        "placeholder": "Başlık, mesaj veya dosya adlarındaki kelimeler",
+        "hint": "Yalnızca kendi sohbetleriniz aranır. Kısayol: Ctrl+K (⌘K).",
+        "short": "En az iki karakter girin.",
+        "none": "Sohbet bulunamadı.",
+        "count_one": "{{count}} sohbet",
+        "count_other": "{{count}} sohbet",
+        "submit": "Ara"
     }
 }

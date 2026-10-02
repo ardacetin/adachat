@@ -83,6 +83,7 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
                         'flex gap-1 text-muted-foreground opacity-100 transition-opacity',
                         'md:opacity-0 md:group-hover/message:opacity-100 md:focus-within:opacity-100',
                     )}
+                    data-print-hide
                 >
                     <Button
                         type="button"

@@ -138,6 +138,7 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 | Login page / sign-in redirect / SAML ACS / OIDC callback | 60 / 20 / 20 / 20 |
 | OIDC connection test (admin) | 10 |
 | Usage notice acknowledgment | 10 |
+| Conversation search / Markdown export | 60 / 30 |
 | Provider connection check | 10 |
 
 ## 8. Authorization and admin privilege boundaries
@@ -158,6 +159,9 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   names or previews). Viewing another user's
   conversation is not a V1 feature; if a future legal-hold feature is added it
   must require super admin, a reason, and an audit entry visible to auditors.
+- Conversation search (`GET /search`) and the Markdown export only ever
+  read the signed-in user's own conversations; administrators cannot search
+  or export anyone else's. The search term is not logged.
 - Prompts and responses are **never logged** (application logs, exception
   reports, queue payloads). Error reporting integrations (if any) must scrub
   request bodies.

@@ -319,7 +319,10 @@ export default function ChatView({
 
             <div ref={bottom} aria-hidden />
 
-            <div className="sticky bottom-0 bg-gradient-to-t from-background from-80% pt-2 pb-4">
+            <div
+                className="sticky bottom-0 bg-gradient-to-t from-background from-80% pt-2 pb-4"
+                data-print-hide
+            >
                 {error && (
                     <Alert variant="destructive" className="mb-2">
                         <AlertDescription>{error}</AlertDescription>

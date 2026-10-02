@@ -1,5 +1,12 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+    Download,
+    MoreHorizontal,
+    Pencil,
+    Pin,
+    PinOff,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -28,7 +35,7 @@ import {
     SidebarMenuSkeleton,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { destroy, show, update } from '@/routes/conversations';
+import { destroy, exportMethod, show, update } from '@/routes/conversations';
 import type { ConversationSummary } from '@/types/chat';
 
 /**
@@ -51,65 +58,93 @@ export function ConversationList() {
 
     const conversations = props.conversations;
 
+    const pin = (conversation: ConversationSummary) =>
+        router.patch(
+            update.url(conversation.id),
+            { pinned: !conversation.pinned },
+            { preserveScroll: true, only: ['conversations', 'conversation'] },
+        );
+
+    const item = (conversation: ConversationSummary) => (
+        <SidebarMenuItem key={conversation.id}>
+            <SidebarMenuButton
+                asChild
+                isActive={isCurrentUrl(show(conversation.id))}
+            >
+                <Link href={show(conversation.id)} prefetch>
+                    <span className="truncate">
+                        {conversation.title ?? t('untitled')}
+                    </span>
+                </Link>
+            </SidebarMenuButton>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <SidebarMenuAction
+                        showOnHover
+                        aria-label={t('conversation.actions')}
+                    >
+                        <MoreHorizontal />
+                    </SidebarMenuAction>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start">
+                    <DropdownMenuItem onSelect={() => pin(conversation)}>
+                        {conversation.pinned ? <PinOff /> : <Pin />}
+                        {conversation.pinned
+                            ? t('conversation.unpin')
+                            : t('conversation.pin')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setTitle(conversation.title ?? '');
+                            setRenaming(conversation);
+                        }}
+                    >
+                        <Pencil />
+                        {t('conversation.rename')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <a href={exportMethod.url(conversation.id)} download>
+                            <Download />
+                            {t('conversation.exportMarkdown')}
+                        </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={() => setDeleting(conversation)}
+                    >
+                        <Trash2 />
+                        {t('conversation.delete')}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </SidebarMenuItem>
+    );
+
+    const pinned =
+        conversations?.filter((conversation) => conversation.pinned) ?? [];
+    const recent = conversations?.filter(
+        (conversation) => !conversation.pinned,
+    );
+
     return (
         <SidebarGroup className="px-2 py-0 group-data-[collapsible=icon]:hidden">
+            {pinned.length > 0 && (
+                <>
+                    <SidebarGroupLabel>{t('pinned')}</SidebarGroupLabel>
+                    <SidebarMenu data-test="pinned-conversations">
+                        {pinned.map(item)}
+                    </SidebarMenu>
+                </>
+            )}
             <SidebarGroupLabel>{t('recent')}</SidebarGroupLabel>
             <SidebarMenu>
-                {conversations === undefined
+                {recent === undefined
                     ? Array.from({ length: 3 }, (_, index) => (
                           <SidebarMenuItem key={index}>
                               <SidebarMenuSkeleton />
                           </SidebarMenuItem>
                       ))
-                    : conversations.map((conversation) => (
-                          <SidebarMenuItem key={conversation.id}>
-                              <SidebarMenuButton
-                                  asChild
-                                  isActive={isCurrentUrl(show(conversation.id))}
-                              >
-                                  <Link href={show(conversation.id)} prefetch>
-                                      <span className="truncate">
-                                          {conversation.title ?? t('untitled')}
-                                      </span>
-                                  </Link>
-                              </SidebarMenuButton>
-                              <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                      <SidebarMenuAction
-                                          showOnHover
-                                          aria-label={t('conversation.actions')}
-                                      >
-                                          <MoreHorizontal />
-                                      </SidebarMenuAction>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                      side="right"
-                                      align="start"
-                                  >
-                                      <DropdownMenuItem
-                                          onSelect={() => {
-                                              setTitle(
-                                                  conversation.title ?? '',
-                                              );
-                                              setRenaming(conversation);
-                                          }}
-                                      >
-                                          <Pencil />
-                                          {t('conversation.rename')}
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                          variant="destructive"
-                                          onSelect={() =>
-                                              setDeleting(conversation)
-                                          }
-                                      >
-                                          <Trash2 />
-                                          {t('conversation.delete')}
-                                      </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                              </DropdownMenu>
-                          </SidebarMenuItem>
-                      ))}
+                    : recent.map(item)}
             </SidebarMenu>
 
             <Dialog

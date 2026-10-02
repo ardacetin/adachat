@@ -8,7 +8,9 @@ use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ConversationController;
+use App\Http\Controllers\Chat\ConversationExportController;
 use App\Http\Controllers\Chat\MessageController;
+use App\Http\Controllers\Chat\SearchController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +62,12 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::get('c/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::patch('c/{conversation}', [ConversationController::class, 'update'])->name('conversations.update');
     Route::delete('c/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');
+    Route::get('c/{conversation}/export.md', ConversationExportController::class)
+        ->middleware('throttle:30,1,export:')
+        ->name('conversations.export');
+    Route::get('search', SearchController::class)
+        ->middleware('throttle:60,1,search:')
+        ->name('search');
 
     Route::post('chat/messages', [MessageController::class, 'store'])
         ->middleware('throttle:60,1,messages:')

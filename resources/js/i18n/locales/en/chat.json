@@ -42,7 +42,11 @@
         "deleteTitle": "Delete conversation?",
         "deleteConfirm": "The conversation and its messages will be removed. Usage records are kept.",
         "cancel": "Cancel",
-        "save": "Save"
+        "save": "Save",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "exportMarkdown": "Download as Markdown",
+        "print": "Print or save as PDF"
     },
     "errors": {
         "budget_exhausted": "Your monthly budget is used up. It renews at the start of next month.",
@@ -110,5 +114,18 @@
         "resent": "Attached files are sent again with every message while they are in the conversation.",
         "pages_one": "{{count}} page",
         "pages_other": "{{count}} pages"
+    },
+    "pinned": "Pinned",
+    "search": {
+        "nav": "Search",
+        "title": "Search conversations",
+        "label": "Search your conversations",
+        "placeholder": "Words in titles, messages or file names",
+        "hint": "Only your own conversations are searched. Shortcut: Ctrl+K (⌘K).",
+        "short": "Enter at least two characters.",
+        "none": "No conversations found.",
+        "count_one": "{{count}} conversation",
+        "count_other": "{{count}} conversations",
+        "submit": "Search"
     }
 }
