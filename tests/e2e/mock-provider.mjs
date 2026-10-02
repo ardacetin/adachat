@@ -204,8 +204,15 @@ const server = createServer(async (request, response) => {
         const long = text.includes('long');
         // Assistants: the instructions arrive as "instructions" (system prompt).
         const persona = /Talimat: (\S+)/.exec(body.instructions ?? '')?.[1];
+        const documentCode = /Belge kodu: (\S+)/.exec(
+            body.instructions ?? '',
+        )?.[1];
         const chunks = persona
-            ? [`Asistan ${persona} burada. `, ...ANSWER]
+            ? [
+                  `Asistan ${persona} burada. `,
+                  ...(documentCode ? [`Belge ${documentCode} okundu. `] : []),
+                  ...ANSWER,
+              ]
             : long
               ? Array.from({ length: 80 }, (_, i) => `Kelime ${i + 1}. `)
               : files > 0

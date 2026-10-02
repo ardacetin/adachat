@@ -1,5 +1,7 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import AssistantDocuments from '@/components/admin/assistant-documents';
+import type { AssistantDocument } from '@/components/admin/assistant-documents';
 import CheckboxField from '@/components/admin/checkbox-field';
 import FormField from '@/components/admin/form-field';
 import AssistantIcon from '@/components/chat/assistant-icon';
@@ -30,6 +32,9 @@ type Assistant = {
     sort_order: number;
     enabled: boolean;
     group_ids: number[];
+    documents: AssistantDocument[];
+    fixed_tokens: number;
+    input_price_per_million: string;
 };
 
 type Props = {
@@ -37,6 +42,7 @@ type Props = {
     aliases: { id: number; name: string; enabled: boolean }[];
     groups: { id: number; name: string; is_default: boolean }[];
     icons: string[];
+    maxDocumentTokens: number;
 };
 
 const STARTERS = 4;
@@ -46,6 +52,7 @@ export default function AssistantForm({
     aliases,
     groups,
     icons,
+    maxDocumentTokens,
 }: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
@@ -337,6 +344,22 @@ export default function AssistantForm({
                     {tCommon('actions.save')}
                 </Button>
             </form>
+
+            <div className="mt-10 border-t pt-6">
+                {assistant === null ? (
+                    <p className="text-sm text-muted-foreground">
+                        {t('assistants.documentsAfterSave')}
+                    </p>
+                ) : (
+                    <AssistantDocuments
+                        assistantId={assistant.id}
+                        documents={assistant.documents}
+                        fixedTokens={assistant.fixed_tokens}
+                        inputPricePerMillion={assistant.input_price_per_million}
+                        maxDocumentTokens={maxDocumentTokens}
+                    />
+                )}
+            </div>
         </>
     );
 }

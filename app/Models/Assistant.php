@@ -5,10 +5,12 @@ namespace App\Models;
 use Carbon\CarbonImmutable;
 use Database\Factories\AssistantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * An institutional assistant: instructions written by the administrators on
@@ -28,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read ModelAlias $modelAlias
+ * @property-read Collection<int, AssistantDocument> $documents
  */
 #[Fillable([
     'slug', 'name', 'description', 'instructions', 'model_alias_id',
@@ -69,6 +72,39 @@ class Assistant extends Model
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class);
+    }
+
+    /**
+     * @return HasMany<AssistantDocument, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(AssistantDocument::class)->orderBy('sort_order')->orderBy('created_at');
+    }
+
+    /**
+     * What the model is told: the instructions, then the documents' text,
+     * each in a fence that its own content cannot close.
+     */
+    public function systemInstructions(): string
+    {
+        $text = trim($this->instructions);
+        $documents = $this->relationLoaded('documents') ? $this->documents : $this->documents()->get();
+
+        if ($documents->isEmpty()) {
+            return $text;
+        }
+
+        $text .= "\n\n# Documents\n\nUse these documents provided by the institution when they are relevant.";
+
+        foreach ($documents as $document) {
+            $body = rtrim($document->extracted_text, "\n");
+            preg_match_all('/`+/', $body, $runs);
+            $fence = str_repeat('`', max(3, ...array_map(fn (string $run) => strlen($run) + 1, $runs[0] ?: [''])));
+            $text .= "\n\n{$fence}{$document->original_name}\n{$body}\n{$fence}";
+        }
+
+        return $text;
     }
 
     public function localizedName(string $locale): string

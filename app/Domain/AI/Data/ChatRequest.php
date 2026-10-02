@@ -19,6 +19,9 @@ final readonly class ChatRequest
         public int $maxOutputTokens,
         public ?string $systemPrompt = null,
         public ?float $temperature = null,
+        // Long fixed instructions (assistant documents): providers with
+        // explicit prompt caching mark the system prompt as cacheable.
+        public bool $cacheSystemPrompt = false,
     ) {
         if ($messages === []) {
             throw new InvalidArgumentException('A chat request needs at least one message.');
@@ -31,6 +34,6 @@ final readonly class ChatRequest
 
     public function withMaxOutputTokens(int $maxOutputTokens): self
     {
-        return new self($this->model, $this->messages, $maxOutputTokens, $this->systemPrompt, $this->temperature);
+        return new self($this->model, $this->messages, $maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt);
     }
 }

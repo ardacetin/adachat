@@ -15,6 +15,9 @@ return [
         'too_many_pending' => 'Too many unsent files. Send or remove some first.',
         'too_many' => 'At most :max files can be attached to a message.',
         'invalid' => 'An attached file is no longer available. Remove it and attach it again.',
+        'no_text' => 'No text could be read from this file. Scanned PDFs are not supported as assistant documents.',
+        'document_limit' => 'The assistant\'s documents may add at most :max tokens to every message. Remove a document or shorten it.',
+        'context_limit' => 'With this document, the assistant\'s instructions would use more than half of the model\'s context window.',
         'vision_unsupported' => 'This model cannot read images. Choose another model or remove the images.',
     ],
     'export' => [

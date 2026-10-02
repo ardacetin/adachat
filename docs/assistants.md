@@ -1,6 +1,6 @@
 # Assistants
 
-> Status: **Implemented** (v1.2, P4). Fixed documents follow in P5.
+> Status: **Implemented** (v1.2, P4 and P5).
 > Location: `app/Domain/Assistants`, `app/Models/Assistant.php`.
 
 An assistant is a set of instructions written by the institution on top of a
@@ -40,11 +40,40 @@ conversations cannot continue (403); they stay readable.
 - Budgets work as usual: the instructions are input tokens of every request
   and are counted by the provider's token counter.
 
+## Documents
+
+An assistant can carry fixed documents (a guide, a syllabus, regulations).
+There is no search over them (no RAG): their whole text is added to the
+instructions of **every** request.
+
+- Uploads use the same content checks and text extraction as chat
+  attachments (`FileInspector`): PDF, Word, Excel, PowerPoint, text and code
+  files; no images. Only the text is used, also for PDFs; a PDF without text
+  (scanned) is refused.
+- Files are kept on the private disk under `assistants/{assistant}/{uuid}`
+  (`assistant_documents` table, cascade with the assistant); a removed
+  document's file is deleted, and the retention orphan sweep also covers
+  this directory.
+- Limits: all documents of an assistant together at most
+  `ADA_ASSISTANT_MAX_DOCUMENT_TOKENS` (default 50,000, estimated), and the
+  fixed part of a request (alias system prompt, instructions, documents) at
+  most half of the model's context window.
+- The system prompt becomes: alias system prompt, instructions, a
+  "Documents" heading and each document in a fence that its content cannot
+  close.
+- **Cost:** the documents are input tokens of every message. The form shows
+  the fixed tokens per message and their price without caching. With
+  Anthropic models the system prompt is marked for prompt caching
+  (`cache_control`, five minutes) when the assistant has documents; cached
+  reads are billed at the cached input price, which the budget engine
+  already uses. OpenAI and Gemini cache long prompts automatically.
+
 ## Administration
 
 Administration → Assistants (super administrators, like providers, models
 and aliases). Changes are audited as `assistant.created` /
-`assistant.updated`; the audit entry stores a SHA-256 of the instructions
+`assistant.updated`, documents as `assistant.document_added` /
+`assistant.document_removed` (name and SHA-256); the audit entry stores a SHA-256 of the instructions
 instead of the text (it can be long, and the form shows the current text).
 
 Assistant instructions are institutional content written by

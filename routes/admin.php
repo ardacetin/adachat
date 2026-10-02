@@ -64,6 +64,11 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
             ->except(['show', 'destroy']);
 
         Route::resource('assistants', AssistantController::class)->except(['show', 'destroy']);
+        Route::post('assistants/{assistant}/documents', [AssistantController::class, 'storeDocument'])
+            ->middleware('throttle:uploads')
+            ->name('assistants.documents.store');
+        Route::delete('assistants/{assistant}/documents/{document}', [AssistantController::class, 'destroyDocument'])
+            ->name('assistants.documents.destroy');
 
         Route::resource('budget-policies', BudgetPolicyController::class)->except(['show']);
     });

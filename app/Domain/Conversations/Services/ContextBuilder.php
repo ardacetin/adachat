@@ -42,11 +42,12 @@ final class ContextBuilder
 
     /**
      * @param  Collection<int, Message>  $history  oldest first, ending with the new user message
-     * @param  string|null  $instructions  an assistant's instructions
+     * @param  string|null  $instructions  an assistant's instructions (and documents)
+     * @param  bool  $cacheInstructions  the instructions are long and the same every time
      *
      * @throws ContextLengthExceeded when even the newest message alone does not fit
      */
-    public function build(ModelAlias $alias, Collection $history, ?string $instructions = null): ChatRequest
+    public function build(ModelAlias $alias, Collection $history, ?string $instructions = null, bool $cacheInstructions = false): ChatRequest
     {
         $systemPrompt = self::systemPrompt($alias, $instructions);
         $model = $alias->aiModel;
@@ -119,6 +120,7 @@ final class ContextBuilder
             maxOutputTokens: $maxOutput,
             systemPrompt: $systemPrompt,
             temperature: $alias->temperature !== null ? (float) $alias->temperature : null,
+            cacheSystemPrompt: $cacheInstructions && $systemPrompt !== null,
         );
     }
 
@@ -186,6 +188,15 @@ final class ContextBuilder
     }
 
     private static function estimate(string $text): int
+    {
+        return self::estimateTokens($text);
+    }
+
+    /**
+     * Rough token count used for trimming and limits; the provider's
+     * counter measures the real request.
+     */
+    public static function estimateTokens(string $text): int
     {
         return (int) ceil(mb_strlen($text) / self::CHARS_PER_TOKEN);
     }

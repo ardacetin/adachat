@@ -137,7 +137,12 @@ final class ChatGenerationService
 
         try {
             $this->throttle($user);
-            $request = $this->context->build($alias, $history, $assistant?->instructions);
+            $request = $this->context->build(
+                $alias,
+                $history,
+                $assistant?->systemInstructions(),
+                cacheInstructions: $assistant !== null && $assistant->documents()->exists(),
+            );
             $count = $this->counting->count($model, $request);
             $reservation = $this->budget->reserve($user, $model, $count, $alias->effectiveMaxOutputTokens());
         } catch (ChatRefused $refused) {
