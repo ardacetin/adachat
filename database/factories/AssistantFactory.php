@@ -16,7 +16,7 @@ class AssistantFactory extends Factory
      */
     public function definition(): array
     {
-        $name = (string) fake()->unique()->words(2, true);
+        $name = fake()->unique()->lexify('assistant ????');
 
         return [
             'slug' => str($name)->slug()->value(),
