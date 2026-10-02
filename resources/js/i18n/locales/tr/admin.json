@@ -79,6 +79,22 @@
             "idpSsoUrl": "SSO URL'si",
             "certificate": "İmza sertifikası (SHA-256)",
             "expires": "geçerlilik sonu {{date}}"
+        },
+        "oidc": {
+            "title": "OpenID Connect (Microsoft Entra ID ve diğerleri)",
+            "description": "Ada'yı kimlik sağlayıcıda bu yönlendirme adresiyle bir web uygulaması olarak kaydedin. Ada gösterilen kapsamları ister ve PKCE ile yetkilendirme kodu akışını kullanır.",
+            "redirectUri": "Yönlendirme adresi (Redirect URI)",
+            "status": "Kimlik sağlayıcı",
+            "off": "Kullanılmıyor",
+            "invalid": "Yapılandırma hatası",
+            "notConfigured": "OpenID Connect kullanılmıyor. Sunmak için sunucuda OIDC_ENABLED, OIDC_ISSUER, OIDC_CLIENT_ID ve OIDC_CLIENT_SECRET değerlerini ayarlayın (docs/authentication.md).",
+            "preset": "Hazır ayar",
+            "presetEntra": "Microsoft Entra ID (tek kiracı)",
+            "presetGeneric": "Genel (e-posta doğrulanmış olmalı)",
+            "issuer": "Yayıncı (issuer)",
+            "clientId": "İstemci kimliği (client ID)",
+            "scopes": "Kapsamlar",
+            "test": "Bağlantıyı test et"
         }
     },
     "common": {

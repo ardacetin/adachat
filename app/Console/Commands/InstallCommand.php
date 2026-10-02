@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
@@ -48,7 +49,7 @@ class InstallCommand extends Command
         }
 
         if ($providers->enabledKeys() === []) {
-            $problems[] = 'No identity provider is configured: set SAML_IDP_ENTITY_ID, SAML_IDP_SSO_URL and SAML_IDP_CERT (see docs/authentication.md).';
+            $problems[] = 'No identity provider is configured: set SAML_IDP_ENTITY_ID, SAML_IDP_SSO_URL and SAML_IDP_CERT, or the OIDC_* settings (see docs/authentication.md).';
         }
 
         if (config('cache.default') === 'array') {
@@ -58,6 +59,17 @@ class InstallCommand extends Command
         $this->components->info('SAML service provider — enter these in the IdP (Google Admin / Apps / Web and mobile apps / custom SAML app):');
         $this->components->twoColumnDetail('ACS URL', $saml->acsUrl());
         $this->components->twoColumnDetail('Entity ID', $saml->entityId());
+
+        $oidc = app(OidcIdentityProvider::class)->setupDetails();
+
+        if ($oidc['enabled']) {
+            $this->components->info('OpenID Connect — register this redirect URI at the identity provider (Entra ID: App registrations / Authentication / Web):');
+            $this->components->twoColumnDetail('Redirect URI', $oidc['redirect_uri']);
+
+            if ($oidc['problem'] !== null) {
+                $problems[] = $oidc['problem'];
+            }
+        }
 
         if ($problems !== []) {
             $this->components->warn('Configuration needs attention:');

@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Domain\AI\Catalog\ModelCatalog;
 use App\Domain\AI\Enums\ProviderDriver;
+use App\Domain\Identity\Oidc\OidcUnavailable;
+use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
@@ -68,8 +70,10 @@ class DoctorCommand extends Command
         $this->check("Mail is sent ({$mailer})", ! in_array($mailer, ['log', 'array'], true) || ! $notified, warnOnly: true, hint: 'Notification e-mails are set but MAIL_MAILER only writes to the log: set the MAIL_* settings (docs/deployment.md).');
 
         $this->components->info('Sign-in');
-        $this->check('An identity provider is configured', $providers->enabledKeys() !== [], hint: 'Set SAML_IDP_* (docs/authentication.md).');
+        $this->check('An identity provider is configured', $providers->enabledKeys() !== [], hint: 'Set SAML_IDP_* or OIDC_* (docs/authentication.md).');
         $this->check('Allowed e-mail domains are set', $auth->allowed_domains !== [] && ! in_array('example.edu', $auth->allowed_domains, true), hint: 'Admin > Sign-in, or php artisan ada:install.');
+
+        $this->checkOidc(app(OidcIdentityProvider::class));
 
         $certificate = $saml->setupDetails()['certificate'];
 
@@ -104,6 +108,39 @@ class DoctorCommand extends Command
             : $this->components->info('Everything looks good.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * OpenID Connect, when turned on: settings, reachability of the
+     * discovery document and keys, and the clock (ID tokens are checked with
+     * 60 seconds of leeway).
+     */
+    private function checkOidc(OidcIdentityProvider $oidc): void
+    {
+        $details = $oidc->setupDetails();
+
+        if (! $details['enabled']) {
+            return;
+        }
+
+        $this->check('OpenID Connect settings are complete', $details['problem'] === null, hint: (string) $details['problem']);
+
+        if ($details['problem'] !== null) {
+            return;
+        }
+
+        try {
+            $skew = $oidc->discovery()->test();
+            $this->check('OpenID Connect provider is reachable', true);
+        } catch (OidcUnavailable $exception) {
+            $this->check('OpenID Connect provider is reachable', false, hint: $exception->getMessage());
+
+            return;
+        }
+
+        if ($skew !== null) {
+            $this->check("Clock matches the identity provider ({$skew} s)", abs($skew) <= 30, warnOnly: abs($skew) <= 60, hint: 'Synchronize the server clock (NTP); ID tokens are refused beyond 60 seconds.');
+        }
     }
 
     private function check(string $label, bool $ok, bool $warnOnly = false, ?string $hint = null): void

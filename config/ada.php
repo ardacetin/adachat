@@ -65,6 +65,21 @@ return [
             'label' => env('SAML_LOGIN_LABEL', 'Google'),
         ],
 
+        // OpenID Connect sign-in, e.g. Microsoft Entra ID, Keycloak or Okta
+        // (docs/authentication.md). Can be used next to SAML.
+        'oidc' => [
+            'enabled' => (bool) env('OIDC_ENABLED', false),
+            // Label of the sign-in button; default "Microsoft" with the entra preset.
+            'label' => env('OIDC_LABEL'),
+            // Entra ID: https://login.microsoftonline.com/<tenant ID>/v2.0
+            'issuer' => env('OIDC_ISSUER'),
+            'client_id' => env('OIDC_CLIENT_ID'),
+            'client_secret' => env('OIDC_CLIENT_SECRET'),
+            // entra (single tenant, see docs) or generic (email_verified required).
+            'preset' => env('OIDC_PRESET', 'generic'),
+            'scopes' => env('OIDC_SCOPES', 'openid email profile'),
+        ],
+
         // Password-less development login. Only ever active in the local and
         // testing environments, regardless of this flag.
         'dev_login' => (bool) env('ADA_DEV_LOGIN', false),

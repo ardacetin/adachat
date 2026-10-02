@@ -79,6 +79,22 @@
             "idpSsoUrl": "SSO URL",
             "certificate": "Signing certificate (SHA-256)",
             "expires": "expires {{date}}"
+        },
+        "oidc": {
+            "title": "OpenID Connect (Microsoft Entra ID and others)",
+            "description": "Register Ada as a web application at the identity provider with this redirect URI. Ada asks for the scopes shown and uses the authorization code flow with PKCE.",
+            "redirectUri": "Redirect URI",
+            "status": "Identity provider",
+            "off": "Not used",
+            "invalid": "Configuration error",
+            "notConfigured": "OpenID Connect is not used. To offer it, set OIDC_ENABLED, OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET on the server (docs/authentication.md).",
+            "preset": "Preset",
+            "presetEntra": "Microsoft Entra ID (single tenant)",
+            "presetGeneric": "Generic (e-mail must be verified)",
+            "issuer": "Issuer",
+            "clientId": "Client ID",
+            "scopes": "Scopes",
+            "test": "Test connection"
         }
     },
     "common": {

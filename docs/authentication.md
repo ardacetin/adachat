@@ -1,14 +1,17 @@
 # Authentication
 
 > Status: **Implemented** — M2 (Google OAuth), replaced by SAML 2.0 with a
-> Google Workspace SAML app; allowed domains are admin-managed since M3.
+> Google Workspace SAML app; allowed domains are admin-managed since M3;
+> OpenID Connect with a Microsoft Entra ID preset since v1.2 (§1a).
 > Location: `app/Domain/Identity`.
 
-V1 signs users in with **SAML 2.0** against the institution's identity
+Ada signs users in with **SAML 2.0** against the institution's identity
 provider — a **custom SAML app in the Google Workspace admin console** —
-restricted to configured e-mail domains. There is **no password login**. The
-protocol sits behind `RedirectIdentityProvider`, so generic OIDC, Microsoft
-Entra ID and LDAP can be added as adapters.
+and/or with **OpenID Connect** (Microsoft Entra ID, Keycloak, Okta…),
+restricted to configured e-mail domains. Both can be on at the same time;
+the login page shows one button per provider. There is **no password
+login**. The protocols sit behind `RedirectIdentityProvider`; LDAP can be
+added as an adapter.
 
 > Changed after M5: the first design used Google OAuth (Socialite, client ID
 > and secret). The institution chose a Google Workspace SAML app instead; the
@@ -148,6 +151,123 @@ after every `.env` change.
 Google's SAML certificate is valid for five years; renew it in Google Admin
 before the expiry date shown in the admin panel and update `.env`.
 
+## 1a. OpenID Connect (Microsoft Entra ID, generic)
+
+`OidcIdentityProvider` implements the authorization code flow with PKCE:
+
+```
+Browser                      Ada                                  IdP
+  │ GET /auth/oidc/redirect   │                                     │
+  │──────────────────────────▶│ state, nonce, PKCE verifier → session (one-time, 10 min)
+  │ 302 authorization_endpoint?response_type=code&state&nonce&code_challenge (S256)
+  │◀──────────────────────────│                                     │
+  │──────────────────────────────────────────────────────────────▶│ sign-in
+  │ 302 /auth/oidc/callback?code&state                              │
+  │◀──────────────────────────────────────────────────────────────│
+  │──────────────────────────▶│ state must match a pending sign-in (then removed)
+  │                           │ POST token_endpoint (code, verifier, client secret)
+  │                           │──────────────────────────────────▶│
+  │                           │◀──────────────── id_token ─────────│
+  │                           │ verify signature (JWKS) and claims → LoginUser
+```
+
+- **Discovery:** `{OIDC_ISSUER}/.well-known/openid-configuration`; its
+  `issuer` must equal `OIDC_ISSUER` exactly. The document and the key set
+  (`jwks_uri`) are cached for an hour; a token signed with an unknown key ID
+  makes Ada fetch the key set again once (key rotation).
+- **ID token:** the signature is verified with PHP's OpenSSL extension
+  (`App\Domain\Identity\Oidc\IdTokenVerifier`). Only **RS256** and **ES256**
+  are accepted; `none`, HMAC (`HS256`, which anyone holding the client secret
+  could forge) and tokens with `crit` headers are refused. Checked claims:
+  `iss`, `aud` (must contain the client ID), `azp` (when present or with
+  several audiences), `exp`, `nbf` and `iat` with 60 seconds of clock
+  leeway, `nonce`, a non-empty `sub`.
+- **Client authentication** at the token endpoint: `client_secret_basic`
+  when the provider supports it (the default), otherwise
+  `client_secret_post`.
+- **Identity:** `subject` = `sub`. Generic preset: `email` with
+  `email_verified=true` (otherwise `email_not_verified`). Name from `name`,
+  else `given_name family_name`, else the e-mail's local part.
+- Errors are logged with the failed check (e.g. `aud`), never with the token
+  or the claims; users see "sign-in failed".
+
+**Microsoft Entra ID preset** (`OIDC_PRESET=entra`):
+
+- Only a **single-tenant** issuer is accepted:
+  `https://login.microsoftonline.com/<tenant ID>/v2.0`. `common`,
+  `organizations` and `consumers` are configuration errors. The `tid` claim
+  must be that tenant.
+- Entra has no `email_verified` claim, and the `email` attribute of an
+  account can be set to an arbitrary address. Ada therefore uses `email`
+  only together with the optional claim `xms_edov=true` ("e-mail domain
+  owner verified"); otherwise it uses `preferred_username`, which for members
+  of the tenant is the user principal name, whose domain must be verified in
+  the tenant. **Guest accounts** (`idp` claim of another directory, `#EXT#`
+  names) are refused.
+- The allowed e-mail domains still apply on top of the tenant check.
+
+**Account linking.** As with SAML, a first sign-in links an existing Ada
+account with the same (verified, allowed-domain) e-mail address that has no
+identity *at this provider* yet. A person who used Google SAML and later
+signs in with Entra ID therefore keeps their account, budget and
+conversations. Both identity providers must be the institution's own.
+
+### Configuration (`.env`)
+
+| Setting | Meaning |
+|---|---|
+| `OIDC_ENABLED` | `true` to offer the button. |
+| `OIDC_ISSUER` | Entra: `https://login.microsoftonline.com/<tenant ID>/v2.0`; Keycloak: `https://<host>/realms/<realm>`; Okta: `https://<org>.okta.com` (or the authorization server's issuer). |
+| `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | From the app registration. The secret stays in `.env`; it is never stored in the database, shown or logged. |
+| `OIDC_PRESET` | `entra` or `generic` (default). |
+| `OIDC_LABEL` | Button text, default "Microsoft" (entra) or "SSO". |
+| `OIDC_SCOPES` | Default `openid email profile`. |
+
+Redirect URI to register: `https://<your-ada-host>/auth/oidc/callback`
+(derived from `APP_URL`). **Administration → Sign-in** shows it with a copy
+button, the values in use (client ID shortened, never the secret) and a
+**Test connection** button that loads the discovery document and keys and
+compares the clocks. `ada:doctor` runs the same checks; `ada:install` prints
+the redirect URI.
+
+### Setting up Microsoft Entra ID
+
+1. Entra admin center → **App registrations → New registration**.
+   - Supported account types: **Accounts in this organizational directory
+     only** (single tenant).
+   - Redirect URI: platform **Web**, `https://<your-ada-host>/auth/oidc/callback`.
+2. **Overview:** copy the *Application (client) ID* (`OIDC_CLIENT_ID`) and
+   the *Directory (tenant) ID* (for `OIDC_ISSUER`).
+3. **Certificates & secrets → New client secret:** copy the value into
+   `OIDC_CLIENT_SECRET`. Note the expiry date and renew it in time; with an
+   expired secret sign-in fails and the log shows `invalid_client`.
+4. **Token configuration → Add optional claim → ID:** `email` and
+   `xms_edov` (so verified e-mail addresses can be used; without them Ada
+   uses the user principal name).
+5. Optional: **Enterprise applications → Ada → Properties → Assignment
+   required = Yes**, then assign the pilot users or groups.
+6. `.env`:
+
+   ```
+   OIDC_ENABLED=true
+   OIDC_PRESET=entra
+   OIDC_ISSUER=https://login.microsoftonline.com/<tenant ID>/v2.0
+   OIDC_CLIENT_ID=<application ID>
+   OIDC_CLIENT_SECRET=<secret value>
+   ```
+
+7. `php artisan config:cache` (if used), then Administration → Sign-in →
+   **Test connection**, and `php artisan ada:doctor`.
+
+### Generic providers (Keycloak, Okta, …)
+
+Create a confidential web client with the authorization code flow, PKCE
+allowed, and the redirect URI above. The provider must sign ID tokens with
+RS256 or ES256 and include `email` and `email_verified` (Keycloak: the
+`email` client scope; mark addresses verified or use a verified-email
+policy). Set `OIDC_PRESET=generic` and `OIDC_ISSUER` to the issuer shown in
+the provider's discovery document.
+
 ## 2. Bootstrapping and recovery
 
 - `php artisan ada:install` ensures the default group exists and reports
@@ -249,8 +369,8 @@ applies: domain policy → identity lookup/linking → provisioning → active c
 
 | Future provider | Adapter approach |
 |---|---|
-| Generic OIDC | Discovery document, ID token signature validation (JWKS), `nonce`, configurable claim mapping |
-| Microsoft Entra ID | OIDC adapter preset; tenant restriction via `tid` claim in addition to domain |
+| Generic OIDC | Implemented in v1.2 (§1a) |
+| Microsoft Entra ID | Implemented in v1.2 as an OIDC preset (§1a) |
 | Other SAML IdPs | `SamlIdentityProvider` already works with any SAML 2.0 IdP; several IdPs would need per-IdP keys and settings |
 | LDAP / AD | `CredentialIdentityProvider` using LdapRecord; password form shown only when enabled; login throttling |
 
@@ -259,6 +379,19 @@ renders one button per redirect provider.
 
 ## 6. Tests
 
+- `tests/Feature/Auth/OidcSignInTest.php` plays the OpenID provider with
+  `Http::fake` and generated RSA and EC keys. Covered: the authorization
+  request (state, nonce, PKCE); sign-in with RS256 and ES256 tokens and the
+  code redemption (verifier, client authentication); single-use state;
+  unknown state; signature with another key, `alg=none`, HS256, wrong
+  issuer, audience, authorized party, tenant or nonce, expired, not yet
+  valid or future tokens, unknown key IDs, `crit` headers; key rotation;
+  provider errors and refused code redemptions; the Entra e-mail rules
+  (`xms_edov`, guests); `email_verified` for the generic preset; the domain
+  policy; configuration errors; the admin page (no secret) and the
+  connection test; `ada:doctor`.
+- `tests/e2e/oidc.spec.ts` signs in through the OpenID provider played by
+  `tests/e2e/mock-provider.mjs`.
 - `tests/Feature/Auth/SamlSignInTest.php` plays the IdP: it generates a key
   pair, answers Ada's real AuthnRequest with a signed response and posts it
   to the ACS. Covered: sign-in with a signed response and with a signed

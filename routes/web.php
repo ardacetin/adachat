@@ -1,5 +1,7 @@
 <?php
 
+use App\Domain\Identity\Providers\OidcIdentityProvider;
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Http\Controllers\AcknowledgmentController;
 use App\Http\Controllers\Auth\DevLoginController;
 use App\Http\Controllers\Auth\ExternalLoginController;
@@ -28,9 +30,15 @@ Route::middleware('guest')->group(function () {
 
     // Assertion consumer service: the IdP posts the SAML response here.
     Route::post('auth/{provider}/acs', [ExternalLoginController::class, 'callback'])
-        ->where('provider', '[a-z0-9-]+')
+        ->where('provider', SamlIdentityProvider::KEY)
         ->middleware('throttle:20,1,auth-acs:')
         ->name('auth.acs');
+
+    // OpenID Connect redirects the browser back here with the code (GET).
+    Route::get('auth/{provider}/callback', [ExternalLoginController::class, 'callback'])
+        ->where('provider', OidcIdentityProvider::KEY)
+        ->middleware('throttle:20,1,auth-callback:')
+        ->name('auth.callback');
 
     if (DevLoginController::isEnabled()) {
         Route::post('dev/login', [DevLoginController::class, 'store'])

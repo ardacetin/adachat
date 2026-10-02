@@ -47,6 +47,13 @@ export default defineConfig({
                 APP_URL: baseURL,
                 ADA_DEV_LOGIN: 'true',
                 PHP_CLI_SERVER_WORKERS: '4',
+                // tests/e2e/mock-provider.mjs is the OpenID Connect provider too.
+                OIDC_ENABLED: 'true',
+                OIDC_LABEL: 'Test SSO',
+                OIDC_ISSUER: `http://127.0.0.1:${mockPort}/oidc`,
+                OIDC_CLIENT_ID: 'ada-e2e',
+                OIDC_CLIENT_SECRET: 'e2e-secret',
+                OIDC_PRESET: 'generic',
             },
             reuseExistingServer: !process.env.CI,
             timeout: 60_000,

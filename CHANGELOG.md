@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   former form is the "Advanced" mode.
 - When a release updates catalog prices, the model list and `ada:doctor`
   point out the models concerned; "Use new prices" takes them over.
+- Sign-in with OpenID Connect, next to or instead of Google SAML: a preset
+  for Microsoft Entra ID (single tenant, tenant pinned, guest accounts
+  refused) and a generic mode for Keycloak, Okta and others. Authorization
+  code flow with PKCE; ID tokens verified against the provider's keys
+  (RS256/ES256). Configured in `.env` (`OIDC_*`); Administration → Sign-in
+  shows the redirect URI and tests the connection, `ada:doctor` checks it
+  ([authentication.md §1a](docs/authentication.md#1a-openid-connect-microsoft-entra-id-generic)).
 
 ## [1.1.0] - 2026-10-01
 
