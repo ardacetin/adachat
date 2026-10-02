@@ -57,6 +57,11 @@ type CatalogEntry = {
     supports_vision: boolean;
     supports_files: boolean;
     supports_reasoning: boolean;
+    next_change: {
+        from: string;
+        input_price_per_million: string;
+        output_price_per_million: string;
+    } | null;
 };
 
 type ProviderOption = {
@@ -450,6 +455,28 @@ export default function ModelForm({
                                         {new URL(chosen.source).hostname}
                                     </a>
                                 </p>
+                                {chosen.next_change && (
+                                    <p
+                                        className="text-xs text-muted-foreground"
+                                        data-test="catalog-next-change"
+                                    >
+                                        {t('models.catalogNextChange', {
+                                            date: chosen.next_change.from,
+                                            input: usd(
+                                                Number(
+                                                    chosen.next_change
+                                                        .input_price_per_million,
+                                                ),
+                                            ),
+                                            output: usd(
+                                                Number(
+                                                    chosen.next_change
+                                                        .output_price_per_million,
+                                                ),
+                                            ),
+                                        })}
+                                    </p>
+                                )}
                                 <ModelCostHints
                                     prices={prices}
                                     budget={Number(exampleBudgetUsd)}

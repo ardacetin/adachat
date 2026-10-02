@@ -1,5 +1,5 @@
 {
-    "about": "Prices in USD per million tokens from the providers' official pricing pages, standard (non-batch, global) rates. cache_write is the 5-minute cache write. Ada updates this file with each release; administrators can always override prices in the advanced mode of the model form.",
+    "about": "Prices in USD per million tokens from the providers' official pricing pages, standard (non-batch, global) rates. cache_write is the 5-minute cache write. Where a provider charges more above a prompt size (OpenAI above 272K input tokens, Gemini 3.1 Pro above 200K), context_window is set to that size, so Ada never sends a longer prompt and the listed prices always apply. price_changes lists price changes the provider has announced. Ada updates this file with each release; administrators can always override prices in the advanced mode of the model form.",
     "models": [
         {
             "driver": "anthropic",
@@ -72,6 +72,138 @@
             },
             "source": "https://platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-10-01"
+        },
+        {
+            "driver": "openai",
+            "id": "gpt-6-astra",
+            "name": "GPT-6 Astra",
+            "context_window": 272000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "10",
+                "output": "50",
+                "cached_input": "1",
+                "cache_write": "12.50"
+            },
+            "source": "https://platform.openai.com/docs/pricing",
+            "as_of": "2026-10-02"
+        },
+        {
+            "driver": "openai",
+            "id": "gpt-6.1-sol",
+            "name": "GPT-6.1 Sol",
+            "context_window": 272000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "2",
+                "output": "10",
+                "cached_input": "0.10",
+                "cache_write": "2.50"
+            },
+            "source": "https://platform.openai.com/docs/pricing",
+            "as_of": "2026-10-02"
+        },
+        {
+            "driver": "openai",
+            "id": "gpt-6-luna",
+            "name": "GPT-6 Luna",
+            "context_window": 272000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "0.10",
+                "output": "0.50",
+                "cached_input": "0.01",
+                "cache_write": "0.125"
+            },
+            "source": "https://platform.openai.com/docs/pricing",
+            "as_of": "2026-10-02"
+        },
+        {
+            "driver": "gemini",
+            "id": "gemini-3.1-pro-preview",
+            "name": "Gemini 3.1 Pro (Preview)",
+            "context_window": 200000,
+            "max_output_tokens": 65536,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "2",
+                "output": "12",
+                "cached_input": "0.20"
+            },
+            "source": "https://ai.google.dev/gemini-api/docs/pricing",
+            "as_of": "2026-10-02"
+        },
+        {
+            "driver": "gemini",
+            "id": "gemini-3.8-flash",
+            "name": "Gemini 3.8 Flash",
+            "context_window": 1048576,
+            "max_output_tokens": 65536,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "0.75",
+                "output": "3.75",
+                "cached_input": "0.075"
+            },
+            "source": "https://ai.google.dev/gemini-api/docs/pricing",
+            "as_of": "2026-10-02",
+            "price_changes": [
+                {
+                    "from": "2027-01-01",
+                    "prices": {
+                        "input": "1.50",
+                        "output": "7.50",
+                        "cached_input": "0.15"
+                    }
+                }
+            ]
+        },
+        {
+            "driver": "gemini",
+            "id": "gemini-3.5-flash-lite",
+            "name": "Gemini 3.5 Flash-Lite",
+            "context_window": 1048576,
+            "max_output_tokens": 65536,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "0.30",
+                "output": "2.50",
+                "cached_input": "0.03"
+            },
+            "source": "https://ai.google.dev/gemini-api/docs/pricing",
+            "as_of": "2026-10-02"
+        },
+        {
+            "driver": "gemini",
+            "id": "gemini-3.1-flash-lite",
+            "name": "Gemini 3.1 Flash-Lite",
+            "context_window": 1048576,
+            "max_output_tokens": 65536,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "0.25",
+                "output": "1.50",
+                "cached_input": "0.025"
+            },
+            "source": "https://ai.google.dev/gemini-api/docs/pricing",
+            "as_of": "2026-10-02"
         }
     ]
 }

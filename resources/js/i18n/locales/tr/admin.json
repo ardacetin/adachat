@@ -207,6 +207,7 @@
         "catalogPrices": "1M token: girdi {{input}} / çıktı {{output}}",
         "catalogSummary": "Milyon token başına girdi {{input}} · çıktı {{output}} · bağlam penceresi {{window}} token.",
         "catalogSource": "{{date}} tarihli resmî fiyatlar:",
+        "catalogNextChange": "Sağlayıcı {{date}} tarihinden itibaren yeni fiyatlar duyurdu: girdi {{input}} · çıktı {{output}} / milyon token. Ada o tarihte bu model için “Yeni katalog fiyatları” uyarısını gösterecek.",
         "free": "Ücretsiz (kendi sunucunuzdaki model)",
         "catalogUpdate": "Yeni katalog fiyatları",
         "catalogUpdateHelp": "Ada'nın kataloğunda bu model için daha yeni fiyatlar var: 1M token başına girdi {{input}} / çıktı {{output}}.",
