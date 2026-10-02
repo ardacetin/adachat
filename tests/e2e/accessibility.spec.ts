@@ -56,6 +56,9 @@ for (const scheme of ['light', 'dark'] as const) {
         await page.goto('/search?q=merhaba');
         await expectNoViolations(page, 'search');
 
+        await page.goto('/assistants');
+        await expectNoViolations(page, 'assistants');
+
         await page.goto('/settings/language');
         await expectNoViolations(page, 'settings');
     });
@@ -72,6 +75,8 @@ test('administration screens are accessible', async ({ page }) => {
         '/admin/audit-log',
         '/admin/privacy',
         '/admin/institution',
+        '/admin/assistants',
+        '/admin/assistants/create',
         '/admin/models/create',
     ]) {
         await page.goto(path);

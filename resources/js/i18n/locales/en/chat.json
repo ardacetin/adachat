@@ -127,5 +127,11 @@
         "count_one": "{{count}} conversation",
         "count_other": "{{count}} conversations",
         "submit": "Search"
+    },
+    "assistants": {
+        "nav": "Assistants",
+        "title": "Assistants",
+        "description": "Assistants prepared by your institution for particular tasks. They use one of your models.",
+        "none": "No assistants are available to you yet."
     }
 }

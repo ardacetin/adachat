@@ -13,7 +13,8 @@
         "users": "Users",
         "auditLog": "Audit log",
         "reports": "Reports",
-        "privacy": "Privacy"
+        "privacy": "Privacy",
+        "assistants": "Assistants"
     },
     "index": {
         "intro": "This month at a glance."
@@ -468,5 +469,30 @@
         "deletedDaysHelp": "Conversations the user deleted can be restored by an operator until then. 0 = at the next run.",
         "usageMonths": "Keep usage records for (months)",
         "usageMonthsHelp": "Costs and token counts for reports and budgets; at least 12."
+    },
+    "assistants": {
+        "title": "Assistants",
+        "description": "Institutional assistants: instructions on top of a model, for chosen groups.",
+        "add": "New assistant",
+        "create": "New assistant",
+        "edit": "Edit assistant",
+        "name": "Name",
+        "nameIn": "Name ({{locale}})",
+        "descriptionIn": "Short description ({{locale}})",
+        "slug": "Slug",
+        "slugHelp": "Lower-case letters, digits and hyphens; used in the assistant's address.",
+        "instructions": "Instructions",
+        "instructionsHelp": "What the assistant should do and how to answer. Sent with every message, after the model alias's system prompt (whose institutional rules take precedence). Tokens count against the user's budget.",
+        "alias": "Model alias",
+        "aliasHelp": "The assistant always answers with this alias. Users need access to it as well.",
+        "starters": "Starter prompts",
+        "startersHelp": "Up to four suggestions shown when a conversation starts. Leave fields empty to show fewer.",
+        "starter": "Starter prompt {{number}}",
+        "icon": "Icon",
+        "sortOrder": "Order",
+        "enabled": "Enabled",
+        "groups": "Groups",
+        "groupsHelp": "Members of these groups see the assistant.",
+        "noAliases": "Create a model alias first."
     }
 }

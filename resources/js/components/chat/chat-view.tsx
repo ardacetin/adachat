@@ -1,10 +1,12 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import AssistantIcon from '@/components/chat/assistant-icon';
 import Composer from '@/components/chat/composer';
 import MessageItem from '@/components/chat/message-item';
 import ModelSelector from '@/components/models/model-selector';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useAttachments } from '@/hooks/use-attachments';
 import type { AttachmentItem } from '@/hooks/use-attachments';
 import { useChatStream } from '@/hooks/use-chat-stream';
@@ -12,13 +14,20 @@ import { formatDate } from '@/lib/format';
 import { usage } from '@/routes';
 import { show } from '@/routes/conversations';
 import { cancel, regenerate, store } from '@/routes/messages';
-import type { AliasOption, ChatMessage, ErrorEvent } from '@/types/chat';
+import type {
+    AliasOption,
+    AssistantSummary,
+    ChatMessage,
+    ErrorEvent,
+} from '@/types/chat';
 
 type Props = {
     conversationId: string | null;
     conversationAliasId: number | null;
     messages: ChatMessage[];
     aliases: AliasOption[];
+    /** The assistant the conversation is (or will be) held with. */
+    assistant?: AssistantSummary | null;
 };
 
 const LAST_ALIAS_KEY = 'ada.chat.alias';
@@ -58,13 +67,17 @@ export default function ChatView({
     conversationAliasId,
     messages,
     aliases,
+    assistant = null,
 }: Props) {
     const { t } = useTranslation('chat');
     const { budget, locale } = usePage().props;
     const { status, draft, run, stop } = useChatStream();
     const [input, setInput] = useState('');
+    // An assistant always answers with its own model.
     const [aliasId, setAliasId] = useState<number | null>(() =>
-        rememberedAlias(aliases, conversationAliasId),
+        assistant
+            ? assistant.model_alias_id
+            : rememberedAlias(aliases, conversationAliasId),
     );
     const [pending, setPending] = useState<Pending | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -223,8 +236,8 @@ export default function ChatView({
         output_capped: false,
     });
 
-    const send = () => {
-        const content = input.trim();
+    const send = (text?: string) => {
+        const content = (text ?? input).trim();
         const files = attachments.ready;
 
         if ((content === '' && files.length === 0) || aliasId === null) {
@@ -245,6 +258,8 @@ export default function ChatView({
                 content,
                 model_alias_id: aliasId,
                 conversation_id: conversationId,
+                assistant_id:
+                    conversationId === null ? (assistant?.id ?? null) : null,
                 attachment_ids: files.map((file) => file.id),
             },
             {
@@ -281,7 +296,42 @@ export default function ChatView({
 
     return (
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4">
-            {shown.length === 0 ? (
+            {shown.length === 0 && assistant ? (
+                <div
+                    className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
+                    data-test="assistant-intro"
+                >
+                    <AssistantIcon
+                        name={assistant.icon}
+                        className="size-10 text-muted-foreground"
+                    />
+                    <h1 className="text-2xl font-semibold">{assistant.name}</h1>
+                    {assistant.description && (
+                        <p className="max-w-md text-sm text-muted-foreground">
+                            {assistant.description}
+                        </p>
+                    )}
+                    {assistant.starter_prompts.length > 0 && (
+                        <div className="flex max-w-xl flex-wrap justify-center gap-2">
+                            {assistant.starter_prompts.map((prompt) => (
+                                <Button
+                                    key={prompt}
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-auto py-2 whitespace-normal"
+                                    disabled={
+                                        streaming || budget?.exhausted === true
+                                    }
+                                    onClick={() => send(prompt)}
+                                >
+                                    {prompt}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : shown.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 py-16 text-center">
                     <h1 className="text-2xl font-semibold">
                         {t('empty.title')}
@@ -377,7 +427,7 @@ export default function ChatView({
                                 aliases={aliases}
                                 value={aliasId}
                                 onChange={chooseAlias}
-                                disabled={streaming}
+                                disabled={streaming || assistant !== null}
                             />
                         }
                     />

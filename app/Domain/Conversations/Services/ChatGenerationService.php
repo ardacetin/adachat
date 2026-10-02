@@ -22,6 +22,7 @@ use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Exceptions\ChatRefused;
 use App\Domain\Usage\Enums\UsageEventStatus;
 use App\Models\AiModel;
+use App\Models\Assistant;
 use App\Models\BudgetReservation;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -78,7 +79,7 @@ final class ChatGenerationService
      * @param  Closure(): bool  $clientGone
      * @return Generator<int, ChatStreamEvent>
      */
-    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone, ?EloquentCollection $attachments = null): Generator
+    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone, ?EloquentCollection $attachments = null, ?Assistant $assistant = null): Generator
     {
         $history = $conversation !== null ? ConversationThread::active($conversation) : collect();
 
@@ -98,7 +99,7 @@ final class ChatGenerationService
         ]);
         $userMessage->setRelation('attachments', $attachments ?? new EloquentCollection);
 
-        yield from $this->run($user, $conversation, $alias, $history->push($userMessage), $userMessage, $clientGone);
+        yield from $this->run($user, $conversation, $alias, $history->push($userMessage), $userMessage, $clientGone, $assistant);
     }
 
     /**
@@ -121,7 +122,7 @@ final class ChatGenerationService
         // The thread up to (and including) the user message being answered.
         $history = $history->slice(0, -1)->values();
 
-        yield from $this->run($user, $conversation, $alias, $history, null, $clientGone);
+        yield from $this->run($user, $conversation, $alias, $history, null, $clientGone, $conversation->loadMissing('assistant')->assistant);
     }
 
     /**
@@ -130,13 +131,13 @@ final class ChatGenerationService
      * @param  Closure(): bool  $clientGone
      * @return Generator<int, ChatStreamEvent>
      */
-    private function run(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, Closure $clientGone): Generator
+    private function run(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, Closure $clientGone, ?Assistant $assistant = null): Generator
     {
         $model = $alias->aiModel;
 
         try {
             $this->throttle($user);
-            $request = $this->context->build($alias, $history);
+            $request = $this->context->build($alias, $history, $assistant?->instructions);
             $count = $this->counting->count($model, $request);
             $reservation = $this->budget->reserve($user, $model, $count, $alias->effectiveMaxOutputTokens());
         } catch (ChatRefused $refused) {
@@ -156,7 +157,7 @@ final class ChatGenerationService
 
         // Nothing is stored before the budget is secured.
         try {
-            [$conversation, $answer] = DB::transaction(fn () => $this->persist($user, $conversation, $alias, $history, $userMessage, $reservation));
+            [$conversation, $answer] = DB::transaction(fn () => $this->persist($user, $conversation, $alias, $history, $userMessage, $reservation, $assistant));
         } catch (ChatRefused $refused) {
             $this->budget->release($reservation, $refused->errorCode);
             yield self::error($refused->errorCode, $refused->retryable);
@@ -337,13 +338,14 @@ final class ChatGenerationService
      *
      * @throws ChatRefused when an attachment was sent meanwhile (double submit)
      */
-    private function persist(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, BudgetReservation $reservation): array
+    private function persist(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, BudgetReservation $reservation, ?Assistant $assistant): array
     {
         if ($conversation === null) {
             $conversation = new Conversation;
             $conversation->forceFill([
                 'user_id' => $user->id,
                 'title' => self::title($userMessage),
+                'assistant_id' => $assistant?->id,
             ]);
         }
 

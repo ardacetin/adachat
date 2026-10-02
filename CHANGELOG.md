@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Institutional assistants: super administrators write instructions on top
+  of a model alias, choose groups, an icon and up to four starter prompts
+  (Administration → Assistants). Users open them from the Assistants
+  gallery; the conversation keeps the assistant's model and instructions,
+  which follow the alias system prompt ([docs/assistants.md](docs/assistants.md)).
 - Chat: pin conversations (they stay on top of the sidebar), search your
   own conversations by title, message text or file name (Ctrl+K / ⌘K), and
   export a conversation as Markdown or print it / save it as PDF.

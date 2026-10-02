@@ -18,7 +18,8 @@ use Illuminate\Support\Collection;
 
 /**
  * Builds the provider request for the next answer: the alias system prompt
- * plus the conversation's active branch, trimmed from the oldest turns so
+ * (the institution's rules come first), an assistant's instructions after
+ * it, plus the conversation's active branch, trimmed from the oldest turns so
  * that it fits the model's context window next to the output cap. The exact
  * size is measured afterwards by the provider's token counter.
  *
@@ -41,16 +42,18 @@ final class ContextBuilder
 
     /**
      * @param  Collection<int, Message>  $history  oldest first, ending with the new user message
+     * @param  string|null  $instructions  an assistant's instructions
      *
      * @throws ContextLengthExceeded when even the newest message alone does not fit
      */
-    public function build(ModelAlias $alias, Collection $history): ChatRequest
+    public function build(ModelAlias $alias, Collection $history, ?string $instructions = null): ChatRequest
     {
+        $systemPrompt = self::systemPrompt($alias, $instructions);
         $model = $alias->aiModel;
         $maxOutput = $alias->effectiveMaxOutputTokens();
         // Leave room for at least a quarter of the window for the answer.
         $inputBudget = $model->context_window - min($maxOutput, intdiv($model->context_window, 4));
-        $inputBudget -= self::estimate((string) $alias->system_prompt);
+        $inputBudget -= self::estimate((string) $systemPrompt);
 
         $messages = [];
         $used = 0;
@@ -114,9 +117,20 @@ final class ContextBuilder
             model: $model->provider_model_id,
             messages: $messages,
             maxOutputTokens: $maxOutput,
-            systemPrompt: filled($alias->system_prompt) ? $alias->system_prompt : null,
+            systemPrompt: $systemPrompt,
             temperature: $alias->temperature !== null ? (float) $alias->temperature : null,
         );
+    }
+
+    /**
+     * The alias system prompt (institutional rules) first, then the
+     * assistant's instructions.
+     */
+    public static function systemPrompt(ModelAlias $alias, ?string $instructions): ?string
+    {
+        $parts = array_filter([trim((string) $alias->system_prompt), trim((string) $instructions)], fn (string $part) => $part !== '');
+
+        return $parts === [] ? null : implode("\n\n", $parts);
     }
 
     /**

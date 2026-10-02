@@ -46,6 +46,8 @@ numbers.
 
 - Sign-in with Google Workspace (SAML 2.0) and/or Microsoft Entra ID and
   other OpenID Connect providers, restricted to allowed domains
+- Institutional assistants (instructions on a model, per group) and chat
+  search, pinning and Markdown/PDF export
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
 - OpenAI, Anthropic and Google Gemini through a provider abstraction, and
@@ -114,6 +116,7 @@ error when something needs fixing.
 | [Database design](docs/database-design.md) | Tables, relations, indexes, money precision, MySQL conventions |
 | [Budget engine](docs/budget-engine.md) | Budget periods, token counting, reservations, settlement, concurrency |
 | [Authentication](docs/authentication.md) | SAML (Google Workspace) and OpenID Connect (Entra ID) sign-in, roles |
+| [Assistants](docs/assistants.md) | Institutional assistants: instructions, access, conversations |
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |
 | [Frontend architecture](docs/frontend-architecture.md) | React/Inertia structure, streaming state, i18n, theming |
 | [Security](docs/security.md) | Threats and controls |

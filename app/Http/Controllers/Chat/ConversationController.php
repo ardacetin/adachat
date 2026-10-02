@@ -39,6 +39,9 @@ class ConversationController extends Controller
                 'model_alias_id' => $conversation->model_alias_id,
                 'pinned' => $conversation->pinned_at !== null,
             ],
+            'assistant' => $conversation->assistant_id === null ? null : AssistantGalleryController::summary(
+                $conversation->loadMissing('assistant')->assistant ?? abort(404),
+            ),
             'messages' => ConversationThread::active($conversation)->map(fn (Message $message) => [
                 'id' => $message->id,
                 'role' => $message->role->value,

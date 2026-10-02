@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AiModelController;
+use App\Http\Controllers\Admin\AssistantController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuthSettingsController;
 use App\Http\Controllers\Admin\BudgetPolicyController;
@@ -61,6 +62,8 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
         Route::resource('aliases', ModelAliasController::class)
             ->parameters(['aliases' => 'alias'])
             ->except(['show', 'destroy']);
+
+        Route::resource('assistants', AssistantController::class)->except(['show', 'destroy']);
 
         Route::resource('budget-policies', BudgetPolicyController::class)->except(['show']);
     });

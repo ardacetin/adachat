@@ -5,7 +5,9 @@
  * here), so no test-only code exists in the application.
  *
  *   POST /v1/responses/input_tokens  → token count
- *   POST /v1/responses               → SSE stream (slow when the prompt contains "long")
+ *   POST /v1/responses               → SSE stream (slow when the prompt contains "long";
+ *                                       names the assistant when the instructions
+ *                                       contain "Talimat: <name>")
  *   POST /v1/chat/completions        → SSE stream, data-only chunks ending in [DONE];
  *                                       refuses a request with credentials (keyless server)
  *   GET  /v1/models                  → connection check
@@ -200,15 +202,19 @@ const server = createServer(async (request, response) => {
                 String(part.image_url).startsWith('data:image/'),
         ).length;
         const long = text.includes('long');
-        const chunks = long
-            ? Array.from({ length: 80 }, (_, i) => `Kelime ${i + 1}. `)
-            : files > 0
-              ? [`PDF alındı: ${files}. `, ...ANSWER]
-              : images > 0
-                ? [`Görsel sayısı: ${images}. `, ...ANSWER]
-                : text.includes('```')
-                  ? ['Dosyayı okudum. ', ...ANSWER]
-                  : ANSWER;
+        // Assistants: the instructions arrive as "instructions" (system prompt).
+        const persona = /Talimat: (\S+)/.exec(body.instructions ?? '')?.[1];
+        const chunks = persona
+            ? [`Asistan ${persona} burada. `, ...ANSWER]
+            : long
+              ? Array.from({ length: 80 }, (_, i) => `Kelime ${i + 1}. `)
+              : files > 0
+                ? [`PDF alındı: ${files}. `, ...ANSWER]
+                : images > 0
+                  ? [`Görsel sayısı: ${images}. `, ...ANSWER]
+                  : text.includes('```')
+                    ? ['Dosyayı okudum. ', ...ANSWER]
+                    : ANSWER;
 
         let closed = false;
         request.on('close', () => (closed = true));

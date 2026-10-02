@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'assistant_not_allowed' => 'Bu asistan sizin için kullanılabilir değil.',
+    'assistant_model_locked' => 'Asistanla yapılan sohbetler her zaman asistanın modelini kullanır.',
     'alias_not_allowed' => 'Bu model sizin kullanımınıza açık değil.',
 
     'attachments' => [

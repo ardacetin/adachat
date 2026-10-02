@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $user_id
  * @property string|null $title
  * @property int|null $model_alias_id
+ * @property int|null $assistant_id
  * @property CarbonImmutable $last_message_at
  * @property CarbonImmutable|null $pinned_at
  * @property CarbonImmutable|null $created_at
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonImmutable|null $deleted_at
  * @property-read User $user
  * @property-read ModelAlias|null $modelAlias
+ * @property-read Assistant|null $assistant
  */
 #[Fillable(['title', 'model_alias_id'])]
 class Conversation extends Model
@@ -62,6 +64,16 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    /**
+     * The assistant the conversation was started with, if any.
+     *
+     * @return BelongsTo<Assistant, $this>
+     */
+    public function assistant(): BelongsTo
+    {
+        return $this->belongsTo(Assistant::class);
     }
 
     /**

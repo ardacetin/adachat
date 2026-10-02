@@ -12,6 +12,7 @@ import { index } from '@/routes/admin';
 import { index as aliases } from '@/routes/admin/aliases';
 import { index as auditLog } from '@/routes/admin/audit-log';
 import { edit as editAuthentication } from '@/routes/admin/authentication';
+import { index as assistantsAdmin } from '@/routes/admin/assistants';
 import { index as budgetPolicies } from '@/routes/admin/budget-policies';
 import { index as groups } from '@/routes/admin/groups';
 import { edit as editInstitution } from '@/routes/admin/institution';
@@ -59,6 +60,10 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.aliases',
                       href: aliases(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.assistants',
+                      href: assistantsAdmin(),
                   } satisfies NavItem,
                   {
                       titleKey: 'admin:nav.budgetPolicies',
