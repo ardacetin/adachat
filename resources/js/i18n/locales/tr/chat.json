@@ -127,5 +127,11 @@
         "count_one": "{{count}} sohbet",
         "count_other": "{{count}} sohbet",
         "submit": "Ara"
+    },
+    "assistants": {
+        "nav": "Asistanlar",
+        "title": "Asistanlar",
+        "description": "Kurumunuzun belirli işler için hazırladığı asistanlar. Modellerinizden birini kullanırlar.",
+        "none": "Henüz kullanabileceğiniz bir asistan yok."
     }
 }

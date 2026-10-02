@@ -13,7 +13,8 @@
         "users": "Kullanıcılar",
         "auditLog": "Denetim kaydı",
         "reports": "Raporlar",
-        "privacy": "Gizlilik"
+        "privacy": "Gizlilik",
+        "assistants": "Asistanlar"
     },
     "index": {
         "intro": "Bu ayın özeti."
@@ -468,5 +469,30 @@
         "deletedDaysHelp": "Kullanıcının sildiği sohbetler o zamana kadar bir operatör tarafından geri getirilebilir. 0 = bir sonraki çalışmada.",
         "usageMonths": "Kullanım kayıtlarını sakla (ay)",
         "usageMonthsHelp": "Raporlar ve bütçeler için maliyet ve token sayıları; en az 12."
+    },
+    "assistants": {
+        "title": "Asistanlar",
+        "description": "Kurum içi asistanlar: bir modelin üzerine yazılan talimatlar, seçilen gruplar için.",
+        "add": "Yeni asistan",
+        "create": "Yeni asistan",
+        "edit": "Asistanı düzenle",
+        "name": "Ad",
+        "nameIn": "Ad ({{locale}})",
+        "descriptionIn": "Kısa açıklama ({{locale}})",
+        "slug": "Kısa ad (slug)",
+        "slugHelp": "Küçük harf, rakam ve tire; asistanın adresinde kullanılır.",
+        "instructions": "Talimatlar",
+        "instructionsHelp": "Asistanın ne yapacağı ve nasıl yanıt vereceği. Her mesajla, model takma adının sistem talimatından sonra gönderilir (oradaki kurumsal kurallar önce gelir). Tokenları kullanıcının bütçesinden düşer.",
+        "alias": "Model takma adı",
+        "aliasHelp": "Asistan her zaman bu takma adla yanıt verir. Kullanıcıların bu takma ada da erişimi olmalı.",
+        "starters": "Başlangıç önerileri",
+        "startersHelp": "Sohbet başında gösterilen en çok dört öneri. Daha az göstermek için alanları boş bırakın.",
+        "starter": "Başlangıç önerisi {{number}}",
+        "icon": "Simge",
+        "sortOrder": "Sıra",
+        "enabled": "Etkin",
+        "groups": "Gruplar",
+        "groupsHelp": "Bu grupların üyeleri asistanı görür.",
+        "noAliases": "Önce bir model takma adı oluşturun."
     }
 }

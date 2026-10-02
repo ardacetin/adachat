@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Search, ShieldCheck, SquarePen } from 'lucide-react';
+import { Bot, Search, ShieldCheck, SquarePen } from 'lucide-react';
 import { useEffect } from 'react';
 import AppLogo from '@/components/app-logo';
 import BudgetIndicator from '@/components/budget/budget-indicator';
@@ -16,6 +16,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { home, search } from '@/routes';
+import { index as assistants } from '@/routes/assistants';
 import { index as adminIndex } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
@@ -41,6 +42,7 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         { titleKey: 'chat:newChat', href: home(), icon: SquarePen },
+        { titleKey: 'chat:assistants.nav', href: assistants(), icon: Bot },
         { titleKey: 'chat:search.nav', href: search(), icon: Search },
         ...(can.accessAdmin
             ? [

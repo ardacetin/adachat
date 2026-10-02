@@ -6,6 +6,7 @@ use App\Http\Controllers\AcknowledgmentController;
 use App\Http\Controllers\Auth\DevLoginController;
 use App\Http\Controllers\Auth\ExternalLoginController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Chat\AssistantGalleryController;
 use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\ConversationExportController;
@@ -65,6 +66,10 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::get('c/{conversation}/export.md', ConversationExportController::class)
         ->middleware('throttle:30,1,export:')
         ->name('conversations.export');
+    Route::get('assistants', [AssistantGalleryController::class, 'index'])->name('assistants.index');
+    Route::get('assistants/{slug}', [AssistantGalleryController::class, 'show'])
+        ->where('slug', '[a-z0-9-]+')
+        ->name('assistants.show');
     Route::get('search', SearchController::class)
         ->middleware('throttle:60,1,search:')
         ->name('search');

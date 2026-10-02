@@ -63,3 +63,13 @@ export type ErrorEvent = {
     /** A validation message from the server, already translated. */
     message?: string;
 };
+
+export type AssistantSummary = {
+    id: number;
+    slug: string;
+    name: string;
+    description: string | null;
+    icon: string;
+    model_alias_id: number;
+    starter_prompts: string[];
+};

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ChatView from '@/components/chat/chat-view';
 import { Button } from '@/components/ui/button';
 import { exportMethod, update } from '@/routes/conversations';
-import type { AliasOption, ChatMessage } from '@/types/chat';
+import type { AliasOption, AssistantSummary, ChatMessage } from '@/types/chat';
 
 type Props = {
     conversation: {
@@ -15,9 +15,15 @@ type Props = {
     };
     messages: ChatMessage[];
     aliases: AliasOption[];
+    assistant: AssistantSummary | null;
 };
 
-export default function ChatShow({ conversation, messages, aliases }: Props) {
+export default function ChatShow({
+    conversation,
+    messages,
+    aliases,
+    assistant,
+}: Props) {
     const { t } = useTranslation('chat');
     const title = conversation.title ?? t('untitled');
 
@@ -27,6 +33,14 @@ export default function ChatShow({ conversation, messages, aliases }: Props) {
             <div className="mx-auto flex w-full max-w-3xl items-center gap-1 px-4 pt-4">
                 <h1 className="min-w-0 flex-1 truncate text-sm font-medium print:text-xl print:whitespace-normal">
                     {title}
+                    {assistant && (
+                        <span
+                            className="ml-2 text-xs font-normal text-muted-foreground"
+                            data-test="conversation-assistant"
+                        >
+                            · {assistant.name}
+                        </span>
+                    )}
                 </h1>
                 <div
                     className="flex gap-1 print:hidden"
@@ -92,6 +106,7 @@ export default function ChatShow({ conversation, messages, aliases }: Props) {
                 conversationAliasId={conversation.model_alias_id}
                 messages={messages}
                 aliases={aliases}
+                assistant={assistant}
             />
         </>
     );

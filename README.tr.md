@@ -42,6 +42,8 @@ iş görebileceğini öngörmüştür.
 
 ## Özellikler
 
+- Kurum içi asistanlar (bir model üzerine talimatlar, gruba göre) ve
+  sohbetlerde arama, sabitleme, Markdown/PDF dışa aktarma
 - İzin verilen domainlerle sınırlı giriş: Google Workspace (SAML 2.0) ve/veya
   Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
@@ -109,6 +111,7 @@ biter.
 | [Veritabanı tasarımı](docs/database-design.md) | Tablolar, ilişkiler, index'ler, para hassasiyeti, MySQL kuralları |
 | [Bütçe motoru](docs/budget-engine.md) | Bütçe dönemleri, token sayımı, rezervasyon, settlement, eşzamanlılık |
 | [Kimlik doğrulama](docs/authentication.md) | SAML (Google Workspace) ve OpenID Connect (Entra ID) ile giriş, roller |
+| [Asistanlar](docs/assistants.md) | Kurum içi asistanlar: talimatlar, erişim, sohbetler |
 | [Provider mimarisi](docs/provider-architecture.md) | Provider arayüzü, adapter'lar, token sayaçları, kullanım normalizasyonu |
 | [Frontend mimarisi](docs/frontend-architecture.md) | React/Inertia yapısı, streaming state, i18n, tema |
 | [Güvenlik](docs/security.md) | Tehditler ve kontroller |

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Chat;
 
 use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Services\AliasAccess;
+use App\Domain\Assistants\AssistantAccess;
 use App\Domain\Attachments\Enums\AttachmentKind;
 use App\Domain\Conversations\Data\ChatStreamEvent;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Services\ChatGenerationService;
 use App\Http\Controllers\Controller;
+use App\Models\Assistant;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
@@ -33,6 +35,7 @@ class MessageController extends Controller
     public function __construct(
         private readonly ChatGenerationService $chat,
         private readonly AliasAccess $aliases,
+        private readonly AssistantAccess $assistants,
     ) {}
 
     public function store(Request $request): StreamedResponse
@@ -42,6 +45,8 @@ class MessageController extends Controller
             'content' => ['required_without:attachment_ids', 'nullable', 'string', 'max:'.(int) config('ada.chat.max_message_chars', 32000)],
             'model_alias_id' => ['required', 'integer'],
             'conversation_id' => ['nullable', 'uuid'],
+            // Starts a new conversation with an assistant.
+            'assistant_id' => ['nullable', 'integer'],
             'attachment_ids' => ['nullable', 'array', 'max:'.(int) config('ada.attachments.max_per_message')],
             'attachment_ids.*' => ['uuid', 'distinct'],
         ], [
@@ -55,7 +60,14 @@ class MessageController extends Controller
             Gate::authorize('update', $conversation);
         }
 
-        $alias = $this->alias($user, $validated['model_alias_id']);
+        $assistant = $this->assistant($user, $conversation, $validated['assistant_id'] ?? null);
+        $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id']);
+
+        // An assistant's conversation keeps the assistant's model.
+        if ($assistant !== null && (int) $validated['model_alias_id'] !== $assistant->model_alias_id) {
+            throw ValidationException::withMessages(['model_alias_id' => __('chat.assistant_model_locked')]);
+        }
+
         $content = trim((string) ($validated['content'] ?? ''));
         $attachments = $this->attachments($user, $alias, $validated['attachment_ids'] ?? []);
 
@@ -63,7 +75,7 @@ class MessageController extends Controller
             throw ValidationException::withMessages(['content' => __('validation.required', ['attribute' => 'content'])]);
         }
 
-        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments));
+        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments, $assistant));
     }
 
     public function regenerate(Request $request, Message $message): StreamedResponse
@@ -72,7 +84,8 @@ class MessageController extends Controller
         Gate::authorize('update', $message->conversation);
 
         $validated = $request->validate(['model_alias_id' => ['nullable', 'integer']]);
-        $alias = $this->alias($user, $validated['model_alias_id'] ?? $message->model_alias_id);
+        $assistant = $this->assistant($user, $message->conversation, null);
+        $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id'] ?? $message->model_alias_id);
 
         return $this->sse(fn (callable $clientGone) => $this->chat->regenerate($user, $message, $alias, $clientGone(...)));
     }
@@ -154,6 +167,24 @@ class MessageController extends Controller
         }
 
         return $attachments;
+    }
+
+    /**
+     * The assistant of the conversation (or the one a new conversation starts
+     * with), when the user may still use it.
+     */
+    private function assistant(User $user, ?Conversation $conversation, mixed $assistantId): ?Assistant
+    {
+        $assistantId = $conversation !== null ? $conversation->assistant_id : $assistantId;
+
+        if ($assistantId === null) {
+            return null;
+        }
+
+        $assistant = is_int($assistantId) || is_string($assistantId) ? $this->assistants->find($user, $assistantId) : null;
+        abort_if($assistant === null, 403, __('chat.assistant_not_allowed'));
+
+        return $assistant;
     }
 
     private function alias(User $user, mixed $aliasId): ModelAlias

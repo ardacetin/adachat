@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'assistant_not_allowed' => 'This assistant is not available to you.',
+    'assistant_model_locked' => 'Conversations with an assistant always use its model.',
     'alias_not_allowed' => 'This model is not available to you.',
 
     'attachments' => [
