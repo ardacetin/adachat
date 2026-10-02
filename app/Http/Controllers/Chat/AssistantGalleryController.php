@@ -59,7 +59,7 @@ class AssistantGalleryController extends Controller
             'description' => $assistant->localizedDescription($locale),
             'icon' => $assistant->icon,
             'model_alias_id' => $assistant->model_alias_id,
-            'starter_prompts' => array_values($assistant->starter_prompts ?? []),
+            'starter_prompts' => $assistant->starter_prompts ?? [],
         ];
     }
 

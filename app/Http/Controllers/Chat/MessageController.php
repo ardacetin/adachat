@@ -61,7 +61,7 @@ class MessageController extends Controller
         }
 
         $assistant = $this->assistant($user, $conversation, $validated['assistant_id'] ?? null);
-        $alias = $this->alias($user, $assistant?->model_alias_id ?? $validated['model_alias_id']);
+        $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id']);
 
         // An assistant's conversation keeps the assistant's model.
         if ($assistant !== null && (int) $validated['model_alias_id'] !== $assistant->model_alias_id) {
@@ -85,7 +85,7 @@ class MessageController extends Controller
 
         $validated = $request->validate(['model_alias_id' => ['nullable', 'integer']]);
         $assistant = $this->assistant($user, $message->conversation, null);
-        $alias = $this->alias($user, $assistant?->model_alias_id ?? $validated['model_alias_id'] ?? $message->model_alias_id);
+        $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id'] ?? $message->model_alias_id);
 
         return $this->sse(fn (callable $clientGone) => $this->chat->regenerate($user, $message, $alias, $clientGone(...)));
     }
