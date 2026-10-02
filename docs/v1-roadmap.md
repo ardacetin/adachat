@@ -177,9 +177,9 @@ Planned with the pilot's feedback, one pull request per step:
 | P2 | Sign-in with OIDC, with a Microsoft Entra ID preset (next to Google SAML) | ✅ |
 | P3 | Chat: search, pinned conversations, export (Markdown, print / PDF) | ✅ |
 | P4 | Institutional assistants part 1: instructions, model, groups, gallery | ✅ |
-| P5 | Institutional assistants part 2: fixed documents added to the context | 🚧 |
+| P5 | Institutional assistants part 2: fixed documents added to the context | ✅ |
 
-Then the v1.2.0 release notes.
+Then the v1.2.0 release notes ✅ ([docs/releases/v1.2.0.md](releases/v1.2.0.md)).
 
 ## Candidates for V2
 

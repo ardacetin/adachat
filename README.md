@@ -7,14 +7,17 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.1.0** ([release notes](docs/releases/v1.1.0.md)). Version 1.1 adds an
-> institution-wide spending cap, CSV exports and a monthly report,
-> OpenAI-compatible servers and chat attachments. Milestones M0–M11 of 1.0: foundation,
-> Google Workspace (SAML) sign-in, institution settings and branding, AI
-> providers and model aliases, the budget engine, streaming chat, groups,
-> budget policies and user usage, administration of users and the audit
-> log, the dashboard and reports, hardening and production deployment
-> (Docker image, server guide). Installation:
+> **Status: 1.2.0** ([release notes](docs/releases/v1.2.0.md)). Version 1.2 adds
+> easy model pricing from a price catalog, sign-in with Microsoft Entra ID and
+> OpenID Connect, users added by e-mail address, chat search, pinning and
+> export, and institutional assistants with instructions and documents.
+> Version 1.1 added an institution-wide spending cap, CSV exports and a
+> monthly report, OpenAI-compatible servers and chat attachments. Milestones
+> M0–M11 of 1.0: foundation, Google Workspace (SAML) sign-in, institution
+> settings and branding, AI providers and model aliases, the budget engine,
+> streaming chat, groups, budget policies and user usage, administration of
+> users and the audit log, the dashboard and reports, hardening and
+> production deployment (Docker image, server guide). Installation:
 > [docs/deployment.md](docs/deployment.md). The
 > architecture is documented in [`docs/`](docs/); see the
 > [roadmap](docs/v1-roadmap.md).
@@ -46,7 +49,8 @@ numbers.
 
 - Sign-in with Google Workspace (SAML 2.0) and/or Microsoft Entra ID and
   other OpenID Connect providers, restricted to allowed domains
-- Institutional assistants (instructions on a model, per group) and chat
+- Institutional assistants (instructions and documents on a model, per
+  group) and chat
   search, pinning and Markdown/PDF export
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups

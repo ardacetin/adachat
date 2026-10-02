@@ -7,14 +7,17 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.1.0** ([sürüm notları](docs/releases/v1.1.0.md#türkçe-özet)). 1.1 sürümü kurum geneli
-> harcama tavanı, CSV dışa aktarma ve aylık rapor, OpenAI uyumlu sunucular ve
-> sohbette dosya ekleri getirdi. 1.0'ın M0–M11 kilometre taşları: temel
-> altyapı, Google Workspace (SAML) ile giriş, kurum ayarları ve marka, AI
-> sağlayıcıları ve model takma adları, bütçe motoru, akışlı sohbet, gruplar,
-> bütçe politikaları ve kullanıcı kullanımı, kullanıcı yönetimi, denetim
-> kaydı, gösterge paneli ve raporlar, sağlamlaştırma ve üretim kurulumu
-> (Docker imajı, sunucu rehberi).
+> **Durum: 1.2.0** ([sürüm notları](docs/releases/v1.2.0.md#türkçe-özet)). 1.2 sürümü
+> fiyat kataloğuyla kolay model fiyatlandırması, Microsoft Entra ID ve OpenID
+> Connect ile giriş, e-posta adresiyle kullanıcı ekleme, sohbetlerde arama,
+> sabitleme ve dışa aktarma, talimat ve belgeli kurum içi asistanlar getirdi.
+> 1.1 sürümü kurum geneli harcama tavanı, CSV dışa aktarma ve aylık rapor,
+> OpenAI uyumlu sunucular ve sohbette dosya ekleri getirmişti. 1.0'ın M0–M11
+> kilometre taşları: temel altyapı, Google Workspace (SAML) ile giriş, kurum
+> ayarları ve marka, AI sağlayıcıları ve model takma adları, bütçe motoru,
+> akışlı sohbet, gruplar, bütçe politikaları ve kullanıcı kullanımı,
+> kullanıcı yönetimi, denetim kaydı, gösterge paneli ve raporlar,
+> sağlamlaştırma ve üretim kurulumu (Docker imajı, sunucu rehberi).
 > Kurulum: [docs/deployment.tr.md](docs/deployment.tr.md). Mimari [`docs/`](docs/) klasöründe (İngilizce) belgelenmiştir; bkz.
 > [yol haritası](docs/v1-roadmap.md).
 
@@ -42,7 +45,8 @@ iş görebileceğini öngörmüştür.
 
 ## Özellikler
 
-- Kurum içi asistanlar (bir model üzerine talimatlar, gruba göre) ve
+- Kurum içi asistanlar (bir model üzerine talimatlar ve belgeler, gruba
+  göre) ve
   sohbetlerde arama, sabitleme, Markdown/PDF dışa aktarma
 - İzin verilen domainlerle sınırlı giriş: Google Workspace (SAML 2.0) ve/veya
   Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
