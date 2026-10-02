@@ -263,7 +263,7 @@ class UserController extends Controller
 
         /** @var User $actor */
         $actor = $request->user();
-        $result = $users->invite($people['valid'], Group::query()->findOrFail($data['group_id']), $role, $actor);
+        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor);
 
         Inertia::flash('toast', [
             'type' => 'success',
