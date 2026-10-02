@@ -18,6 +18,18 @@ class UserPolicy
         return $actor->role->canAccessAdmin();
     }
 
+    /** Add users by e-mail address; roles other than "user" need a super administrator. */
+    public function create(User $actor): bool
+    {
+        return $actor->role->canAccessAdmin();
+    }
+
+    /** Remove an account that was added but never used. */
+    public function removeInvitation(User $actor, User $user): bool
+    {
+        return $this->update($actor, $user) && $actor->isNot($user) && $user->invitationPending();
+    }
+
     public function view(User $actor, User $user): bool
     {
         return $actor->role->canAccessAdmin();

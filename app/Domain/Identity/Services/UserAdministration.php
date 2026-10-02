@@ -12,6 +12,7 @@ use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * Changes administrators make to a user account (authorization is the
@@ -112,6 +113,63 @@ final class UserAdministration
         $user->save();
 
         $this->audit->record('user.role_changed', $user, ['role' => $old->value], ['role' => $role->value]);
+    }
+
+    /**
+     * Adds accounts for e-mail addresses that do not have one yet. The
+     * person signs in with the institution's identity provider; the account
+     * is linked by the (verified) address on the first sign-in.
+     *
+     * @param  list<array{email: string, name: string|null}>  $people
+     * @return array{created: list<string>, existing: list<string>}
+     */
+    public function invite(array $people, Group $group, UserRole $role, User $actor): array
+    {
+        $created = [];
+        $existing = [];
+
+        foreach ($people as $person) {
+            $email = mb_strtolower(trim($person['email']));
+
+            if (User::query()->where('email', $email)->exists()) {
+                $existing[] = $email;
+
+                continue;
+            }
+
+            $user = new User;
+            $user->forceFill([
+                'email' => $email,
+                'name' => filled($person['name']) ? trim((string) $person['name']) : Str::before($email, '@'),
+                'role' => $role,
+                'group_id' => $group->id,
+                'invited_at' => now(),
+                'invited_by' => $actor->id,
+            ])->save();
+
+            $this->audit->record('user.invited', $user, [], ['email' => $email, 'role' => $role->value, 'group_id' => $group->id]);
+            $created[] = $email;
+        }
+
+        return ['created' => $created, 'existing' => $existing];
+    }
+
+    /**
+     * Removes an account that was added but never used. Accounts that have
+     * signed in are disabled instead (their usage stays on record).
+     */
+    public function removeInvitation(User $user): void
+    {
+        if (! $user->invitationPending() || $user->identities()->exists()) {
+            throw new InvalidArgumentException('Only unused invitations can be removed.');
+        }
+
+        DB::transaction(function () use ($user): void {
+            // A budget period may exist if a limit was applied before the first sign-in.
+            DB::table('budget_periods')->where('user_id', $user->id)->delete();
+            $this->audit->record('user.invitation_removed', $user, ['email' => $user->email], []);
+            $user->delete();
+        });
     }
 
     /**

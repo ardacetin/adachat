@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Protocol-independent sign-in: domain policy → identity lookup/linking →
  * just-in-time provisioning → active check. Session handling stays in the
- * HTTP layer.
+ * HTTP layer. Addresses an administrator added (invited) may sign in
+ * whatever their domain and whether or not accounts are created
+ * automatically.
  */
 final class LoginUser
 {
@@ -30,7 +32,8 @@ final class LoginUser
      */
     public function handle(ExternalIdentity $identity, bool $requireHostedDomain): User
     {
-        $this->domainPolicy->assertAllowed($identity, $requireHostedDomain);
+        $invited = User::query()->where('email', $identity->email)->whereNotNull('invited_at')->exists();
+        $this->domainPolicy->assertAllowed($identity, $requireHostedDomain, $invited);
 
         try {
             $user = $this->persist($identity);

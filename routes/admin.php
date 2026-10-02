@@ -23,6 +23,8 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
     // Administrators and super administrators (docs/authentication.md §4);
     // UserPolicy decides per action.
     Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::post('users', [UserController::class, 'store'])->middleware('throttle:20,1,users-invite:')->name('users.store');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::put('users/{user}/group', [UserController::class, 'updateGroup'])->name('users.group');
     Route::put('users/{user}/budget', [UserController::class, 'updateBudget'])->name('users.budget');

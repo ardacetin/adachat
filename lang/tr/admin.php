@@ -53,4 +53,11 @@ return [
         'output_tokens' => 'Çıktı token',
         'cost' => 'Maliyet (USD)',
     ],
+    'users' => [
+        'role_forbidden' => 'Yöneticileri yalnızca süper yöneticiler ekleyebilir.',
+        'invalid_addresses' => 'Bunlar geçerli e-posta adresi değil: :list',
+        'address_count' => '1 ile :max arasında e-posta adresi girin.',
+        'invited' => ':created kullanıcı eklendi; :existing adresin zaten hesabı vardı.',
+        'invitation_removed' => 'Kullanıcı kaldırıldı.',
+    ],
 ];

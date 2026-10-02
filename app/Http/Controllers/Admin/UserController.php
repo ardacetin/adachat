@@ -11,6 +11,7 @@ use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Exceptions\LastSuperAdmin;
 use App\Domain\Identity\Services\UserAdministration;
+use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Domain\Usage\Enums\UsageEventType;
 use App\Domain\Usage\UsageReport;
@@ -36,6 +37,8 @@ use InvalidArgumentException;
 class UserController extends Controller
 {
     private const PER_PAGE = 25;
+
+    private const MAX_INVITES = 500;
 
     private const SORTS = ['name', 'last_active', 'spent'];
 
@@ -84,6 +87,10 @@ class UserController extends Controller
                 'sort' => $filters['sort'] ?? 'name',
             ],
             'groups' => Group::query()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name']),
+            'access' => [
+                'auto_provision' => app(AuthSettings::class)->auto_provision,
+                'allowed_domains' => app(AuthSettings::class)->allowed_domains,
+            ],
         ]);
     }
 
@@ -123,6 +130,8 @@ class UserController extends Controller
                 'created_at' => $user->created_at?->toIso8601String(),
                 'last_login_at' => $user->last_login_at?->toIso8601String(),
                 'last_active_at' => $user->last_active_at?->toIso8601String(),
+                'invited_at' => $user->invited_at?->toIso8601String(),
+                'invitation_pending' => $user->invitationPending(),
                 'is_self' => $actor->is($user),
             ],
             'usage' => $report->for($user, null, 'amount'),
@@ -134,6 +143,7 @@ class UserController extends Controller
                 'changeStatus' => $actor->can('changeStatus', $user),
                 'changeRole' => $actor->can('changeRole', $user),
                 'adjustBudget' => $actor->can('adjustBudget', $user),
+                'removeInvitation' => $actor->can('removeInvitation', $user),
             ],
         ]);
     }
@@ -221,6 +231,96 @@ class UserController extends Controller
     }
 
     /**
+     * Adds accounts for a list of e-mail addresses ("ada@example.edu",
+     * "Ada Lovelace <ada@example.edu>"; one per line, or separated by commas
+     * or semicolons). Existing addresses are left unchanged.
+     */
+    public function store(Request $request, UserAdministration $users): RedirectResponse
+    {
+        Gate::authorize('create', User::class);
+
+        $data = $request->validate([
+            'emails' => ['required', 'string', 'max:20000'],
+            'group_id' => ['required', 'integer', 'exists:groups,id'],
+            'role' => ['required', Rule::enum(UserRole::class)],
+        ]);
+
+        $role = UserRole::from($data['role']);
+
+        if ($role !== UserRole::User && ! $request->user()?->can('manage-system')) {
+            throw ValidationException::withMessages(['role' => __('admin.users.role_forbidden')]);
+        }
+
+        $people = self::parseAddresses($data['emails']);
+
+        if ($people['invalid'] !== []) {
+            throw ValidationException::withMessages(['emails' => __('admin.users.invalid_addresses', ['list' => implode(', ', array_slice($people['invalid'], 0, 5))])]);
+        }
+
+        if ($people['valid'] === [] || count($people['valid']) > self::MAX_INVITES) {
+            throw ValidationException::withMessages(['emails' => __('admin.users.address_count', ['max' => self::MAX_INVITES])]);
+        }
+
+        /** @var User $actor */
+        $actor = $request->user();
+        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('admin.users.invited', ['created' => count($result['created']), 'existing' => count($result['existing'])]),
+        ]);
+
+        return to_route('admin.users.index', ['sort' => 'name']);
+    }
+
+    public function destroy(User $user, UserAdministration $users): RedirectResponse
+    {
+        Gate::authorize('removeInvitation', $user);
+
+        $users->removeInvitation($user);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('admin.users.invitation_removed')]);
+
+        return to_route('admin.users.index');
+    }
+
+    /**
+     * @return array{valid: list<array{email: string, name: string|null}>, invalid: list<string>}
+     */
+    public static function parseAddresses(string $input): array
+    {
+        $valid = [];
+        $invalid = [];
+
+        foreach (preg_split('/[\r\n,;]+/', $input) ?: [] as $entry) {
+            $entry = trim($entry);
+
+            if ($entry === '') {
+                continue;
+            }
+
+            $name = null;
+            $email = $entry;
+
+            if (preg_match('/^(.*)<([^<>]+)>$/', $entry, $matches) === 1) {
+                $name = trim($matches[1], " \t\"'") ?: null;
+                $email = trim($matches[2]);
+            }
+
+            $email = mb_strtolower($email);
+
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) === false || mb_strlen($email) > 255 || ($name !== null && mb_strlen($name) > 255)) {
+                $invalid[] = $entry;
+
+                continue;
+            }
+
+            $valid[$email] ??= ['email' => $email, 'name' => $name];
+        }
+
+        return ['valid' => array_values($valid), 'invalid' => $invalid];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function row(User $user): array
@@ -242,6 +342,7 @@ class UserController extends Controller
             'spent_usd' => BudgetSummary::cents($spent, RoundingMode::Up),
             'remaining_usd' => BudgetSummary::cents($limit->minus($spent)->minus($reserved)->max(Usd::zero()), RoundingMode::Down),
             'last_active_at' => $user->last_active_at?->toIso8601String(),
+            'invitation_pending' => $user->invitationPending(),
         ];
     }
 

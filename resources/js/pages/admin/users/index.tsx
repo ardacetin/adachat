@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import AddUsersDialog from '@/components/admin/add-users-dialog';
 import Pagination from '@/components/admin/pagination';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { formatUsd } from '@/lib/format';
 import { index, show } from '@/routes/admin/users';
+import * as authentication from '@/routes/admin/authentication';
 import type { Paginated } from '@/types/pagination';
 
 type Role = 'super_admin' | 'admin' | 'user';
@@ -40,6 +42,7 @@ type UserRow = {
     spent_usd: string;
     remaining_usd: string;
     last_active_at: string | null;
+    invitation_pending: boolean;
 };
 
 type Filters = {
@@ -54,11 +57,12 @@ type Props = {
     users: Paginated<UserRow>;
     filters: Filters;
     groups: { id: number; name: string }[];
+    access: { auto_provision: boolean; allowed_domains: string[] };
 };
 
 const ALL = 'all';
 
-export default function UsersIndex({ users, filters, groups }: Props) {
+export default function UsersIndex({ users, filters, groups, access }: Props) {
     const { t } = useTranslation('admin');
     const { locale } = usePage().props;
     const [search, setSearch] = useState(filters.q);
@@ -96,11 +100,31 @@ export default function UsersIndex({ users, filters, groups }: Props) {
             <Head title={t('users.title')} />
 
             <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title={t('users.title')}
-                    description={t('users.description')}
-                />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <Heading
+                        variant="small"
+                        title={t('users.title')}
+                        description={t('users.description')}
+                    />
+                    <AddUsersDialog groups={groups} />
+                </div>
+
+                <p
+                    className="rounded-lg border p-3 text-sm text-muted-foreground"
+                    data-test="sign-in-access"
+                >
+                    {access.auto_provision
+                        ? t('users.accessDomains', {
+                              domains: access.allowed_domains.join(', ') || '—',
+                          })
+                        : t('users.accessListed')}{' '}
+                    <Link
+                        href={authentication.edit()}
+                        className="underline underline-offset-4"
+                    >
+                        {t('users.accessChange')}
+                    </Link>
+                </p>
 
                 <form
                     className="flex flex-wrap gap-2"
@@ -251,6 +275,11 @@ export default function UsersIndex({ users, filters, groups }: Props) {
                                         {user.role !== 'user' && (
                                             <Badge variant="secondary">
                                                 {t(`roles.${user.role}`)}
+                                            </Badge>
+                                        )}
+                                        {user.invitation_pending && (
+                                            <Badge variant="outline">
+                                                {t('users.invited')}
                                             </Badge>
                                         )}
                                         {user.status === 'disabled' && (

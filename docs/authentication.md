@@ -97,6 +97,30 @@ the login page with a translated, non-revealing message
 - Same e-mail already linked to a different subject: `account_conflict`; an
   admin resolves it. Ada never merges accounts automatically.
 
+### Adding users (who may sign in)
+
+Two settings decide who gets in, both in the administration panel:
+
+- **Administration → Sign-in → "Anyone with an address in an allowed
+  domain can sign in"** (`AuthSettings.auto_provision`). On: every verified
+  address in the allowed domains gets an account on its first sign-in. Off:
+  only the users listed under Users can sign in.
+- **Administration → Users → Add users.** Administrators enter e-mail
+  addresses (one per line, optionally `Name <address>`), a group and, as a
+  super administrator, a role. Ada creates the accounts (`invited_at`,
+  `invited_by`, audit `user.invited`); the person signs in with the
+  identity provider and the account is linked by the verified address.
+  Addresses that already have an account are skipped.
+
+Added addresses may sign in **even when their domain is not in the allowed
+domains** (e.g. a guest lecturer with a partner address, when the identity
+provider can authenticate them). The identity provider must still assert a
+verified address. Until the first sign-in the user shows as "Invited"; such
+an unused account can be removed again (audit `user.invitation_removed`).
+Accounts that have been used are disabled instead, never deleted, so their
+usage stays on record. Administrators cannot add administrators or remove
+super administrators; `ada:user:promote` remains the break-glass path.
+
 ### Configuration
 
 | Setting | Where | Why |
