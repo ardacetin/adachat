@@ -7,10 +7,13 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.2.0** ([sürüm notları](docs/releases/v1.2.0.md#türkçe-özet)). 1.2 sürümü
+> **Durum: 1.3.0** ([sürüm notları](docs/releases/v1.3.0.md#türkçe-özet)). 1.3 sürümü
+> sağlayıcıların kendi araçlarıyla web araması, kullanıcılara bütçe uyarıları,
+> memnuniyet raporlu yanıt geri bildirimi ve salt okunur sohbet paylaşımı
+> getirdi. 1.2 sürümü
 > fiyat kataloğuyla kolay model fiyatlandırması, Microsoft Entra ID ve OpenID
 > Connect ile giriş, e-posta adresiyle kullanıcı ekleme, sohbetlerde arama,
-> sabitleme ve dışa aktarma, talimat ve belgeli kurum içi asistanlar getirdi.
+> sabitleme ve dışa aktarma, talimat ve belgeli kurum içi asistanlar getirmişti.
 > 1.1 sürümü kurum geneli harcama tavanı, CSV dışa aktarma ve aylık rapor,
 > OpenAI uyumlu sunucular ve sohbette dosya ekleri getirmişti. 1.0'ın M0–M11
 > kilometre taşları: temel altyapı, Google Workspace (SAML) ile giriş, kurum
@@ -48,6 +51,8 @@ iş görebileceğini öngörmüştür.
 - Kurum içi asistanlar (bir model üzerine talimatlar ve belgeler, gruba
   göre) ve
   sohbetlerde arama, sabitleme, Markdown/PDF dışa aktarma
+- Oturum açmış meslektaşlar için sohbetin salt okunur anlık kopyasına bağlantı
+- Yanıt geri bildirimi (beğen / beğenme) ve içeriksiz memnuniyet raporu
 - İzin verilen domainlerle sınırlı giriş: Google Workspace (SAML 2.0) ve/veya
   Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
@@ -60,14 +65,15 @@ iş görebileceğini öngörmüştür.
 - Sağlayıcıların kendi arama araçlarıyla, kaynak gösteren web araması; her
   mesajda ayrıca açılır ve bütçeden düşer
 - Sert sınırlı aylık USD bütçeleri (provider token sayımı, rezervasyon,
-  çıktı limitinin kalan bütçeye göre düşürülmesi)
+  çıktı limitinin kalan bütçeye göre düşürülmesi); %80 ve %100'de
+  kullanıcıya uyarı
 - Fiyat snapshot'lı kullanım muhasebesi, raporlar ve yönetim paneli
 - Kurum geneli aylık harcama tavanı, CSV dışa aktarma ve aylık e-posta raporu
 - Şifrelenmiş provider anahtarları ve audit log
 - Ubuntu + Nginx + PHP-FPM + MySQL + Redis ya da Docker ile kurulum
 
-Kapsam dışında: RAG, web arama, agent'lar, araçlar, görsel üretimi, ses ve
-multi-tenant SaaS.
+Kapsam dışında: RAG, agent'lar, web araması dışında araçlar, görsel üretimi,
+ses ve multi-tenant SaaS.
 
 ## Teknoloji
 
