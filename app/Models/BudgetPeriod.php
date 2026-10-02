@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Usd $limit_usd
  * @property Usd $spent_usd
  * @property Usd $reserved_usd
+ * @property CarbonImmutable|null $alerted_80_at When the user was told about 80 % of the limit.
+ * @property CarbonImmutable|null $alerted_100_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User $user
@@ -74,6 +76,8 @@ class BudgetPeriod extends Model
             'limit_usd' => UsdCast::class,
             'spent_usd' => UsdCast::class,
             'reserved_usd' => UsdCast::class,
+            'alerted_80_at' => 'datetime',
+            'alerted_100_at' => 'datetime',
         ];
     }
 }

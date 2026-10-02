@@ -9,6 +9,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editLanguage } from '@/routes/language';
+import { edit as editNotifications } from '@/routes/notifications';
 import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
@@ -21,6 +22,11 @@ const sidebarNavItems: NavItem[] = [
     {
         titleKey: 'settings:nav.language',
         href: editLanguage(),
+        icon: null,
+    },
+    {
+        titleKey: 'settings:nav.notifications',
+        href: editNotifications(),
         icon: null,
     },
     {

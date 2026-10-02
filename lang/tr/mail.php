@@ -3,6 +3,17 @@
 return [
     'footer' => 'Ada Chat — bu ileti otomatik olarak gönderildi.',
 
+    'user_budget' => [
+        'subject_80' => ':institution: aylık AI bütçenizin %80\'ini kullandınız',
+        'subject_100' => ':institution: aylık AI bütçeniz doldu',
+        'heading_80' => 'Aylık bütçenizin %80\'i kullanıldı',
+        'heading_100' => 'Aylık bütçeniz doldu',
+        'body_80' => 'Ada Chat için aylık bütçenizin %80\'ini kullandınız. Bütçe dolduğunda, :date tarihinde yenilenene kadar yeni mesaj gönderilemez.',
+        'body_100' => 'Ada Chat için aylık bütçenizin tamamını kullandınız. Bütçe :date tarihinde yenilenene kadar yeni mesaj gönderilemez. Daha fazlasına ihtiyacınız varsa yöneticinize başvurun.',
+        'amounts' => 'Şimdiye kadar kullanılan: :spent / :limit.',
+        'button' => 'Kullanımınızı görün',
+        'settings' => 'Bu e-postaları Ayarlar → Bildirimler sayfasından kapatabilirsiniz.',
+    ],
     'cap_alert' => [
         'subject_80' => ':institution: aylık yapay zekâ bütçesinin %80\'i kullanıldı',
         'subject_100' => ':institution: aylık yapay zekâ bütçesi tükendi',

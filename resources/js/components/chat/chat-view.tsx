@@ -304,6 +304,30 @@ export default function ChatView({
 
     const last = shown.at(-1);
     const exhausted = budget?.exhausted === true && !streaming;
+    // At 80 %, once per period until the user closes it.
+    const warningKey = budget ? `ada.budget.warned.${budget.period_start}` : '';
+    const [warningClosed, setWarningClosed] = useState(() => {
+        try {
+            return window.localStorage.getItem(warningKey) === '1';
+        } catch {
+            return false;
+        }
+    });
+    const nearLimit =
+        budget !== null &&
+        budget !== undefined &&
+        !budget.exhausted &&
+        budget.percent_used >= 80 &&
+        !warningClosed;
+    const closeWarning = () => {
+        setWarningClosed(true);
+
+        try {
+            window.localStorage.setItem(warningKey, '1');
+        } catch {
+            // Closing it is a convenience only.
+        }
+    };
 
     return (
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4">
@@ -387,6 +411,36 @@ export default function ChatView({
                 {error && (
                     <Alert variant="destructive" className="mb-2">
                         <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {nearLimit && budget && (
+                    <Alert className="mb-2" data-test="budget-near-limit">
+                        <AlertDescription className="flex items-start justify-between gap-3">
+                            <span>
+                                {t('budget.nearLimit', {
+                                    percent: budget.percent_used,
+                                    date: formatDate(
+                                        budget.resets_on,
+                                        locale.current,
+                                    ),
+                                })}{' '}
+                                <Link
+                                    href={usage()}
+                                    className="underline underline-offset-4"
+                                >
+                                    {t('budget.details')}
+                                </Link>
+                            </span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto px-2 py-0.5"
+                                onClick={closeWarning}
+                            >
+                                {t('budget.dismiss')}
+                            </Button>
+                        </AlertDescription>
                     </Alert>
                 )}
                 {exhausted && budget && (

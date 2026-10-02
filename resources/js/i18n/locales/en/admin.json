@@ -56,7 +56,9 @@
         "notificationEmails": "Notification e-mails",
         "notificationEmailsHelp": "One address per line. They receive the cap alerts (80 % and 100 %) and the monthly report.",
         "testMail": "Send a test e-mail",
-        "mailNotConfigured": "E-mail is not configured on this server (MAIL_MAILER is log): messages are only written to the log. See the deployment guide."
+        "mailNotConfigured": "E-mail is not configured on this server (MAIL_MAILER is log): messages are only written to the log. See the deployment guide.",
+        "userBudgetEmails": "E-mail users at 80 % and 100 % of their monthly budget",
+        "userBudgetEmailsHelp": "Once per month and threshold. Users can turn these e-mails off for themselves; the chat shows the same warning in any case."
     },
     "authentication": {
         "title": "Sign-in",

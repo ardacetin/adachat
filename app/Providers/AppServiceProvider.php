@@ -6,13 +6,16 @@ use App\Domain\AI\Catalog\ModelCatalog;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Spatie\LaravelSettings\Support\SettingsCacheFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +35,23 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureRateLimits();
         $this->configureProxies();
+        $this->clearSettingsCacheAfterMigrations();
+    }
+
+    /**
+     * Settings are cached whole: after an upgrade adds a setting, the cached
+     * copy would lack it until the cache is cleared, so every migration run
+     * clears it.
+     */
+    protected function clearSettingsCacheAfterMigrations(): void
+    {
+        Event::listen(MigrationsEnded::class, function (): void {
+            foreach ($this->app->make(SettingsCacheFactory::class)->all() as $cache) {
+                if ($cache->isEnabled()) {
+                    $cache->clear();
+                }
+            }
+        });
     }
 
     /**

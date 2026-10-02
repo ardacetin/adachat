@@ -96,3 +96,42 @@ test('a reached institution cap stops new messages with its own message', async 
         setInstitutionCap(null);
     }
 });
+
+function setSpent(amount: string): void {
+    execFileSync(
+        'php',
+        [
+            'artisan',
+            'tinker',
+            '--execute',
+            `App\\Models\\BudgetPeriod::query()->whereHas('user', fn ($q) => $q->where('email', '${EMAIL}'))->where('period_end', '>', now())->update(['spent_usd' => '${amount}']);`,
+        ],
+        { stdio: 'ignore' },
+    );
+}
+
+test('at 80 % of the budget the chat warns until the user closes it', async ({
+    page,
+}) => {
+    setBudget('--limit=5');
+
+    try {
+        setSpent('4.50');
+        await signIn(page);
+
+        const warning = page.getByTestId('budget-near-limit');
+        await expect(warning).toContainText(
+            'You have used 90 % of your monthly budget.',
+        );
+        await expect(page.getByLabel('Message')).toBeEnabled();
+
+        await warning.getByRole('button', { name: 'Close' }).click();
+        await expect(warning).toHaveCount(0);
+
+        await page.reload();
+        await expect(page.getByTestId('budget-indicator')).toBeVisible();
+        await expect(page.getByTestId('budget-near-limit')).toHaveCount(0);
+    } finally {
+        setSpent('0');
+    }
+});

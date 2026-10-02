@@ -77,7 +77,9 @@
         "used": "{{percent}}% used",
         "renews": "Renews on {{date}}",
         "exhausted": "Your monthly budget is used up. It renews on {{date}}.",
-        "details": "Usage details"
+        "details": "Usage details",
+        "nearLimit": "You have used {{percent}} % of your monthly budget. It renews on {{date}}.",
+        "dismiss": "Close"
     },
     "usage": {
         "title": "Usage",

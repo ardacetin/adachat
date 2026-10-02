@@ -40,6 +40,7 @@ class InstitutionSettingsController extends Controller
             'settings' => [
                 ...array_combine(self::TEXT_FIELDS, array_map(fn (string $field) => $settings->{$field}, self::TEXT_FIELDS)),
                 'notification_emails' => $settings->notification_emails,
+                'user_budget_emails' => $settings->user_budget_emails,
                 'has_logo' => $settings->logo_path !== null,
                 'has_logo_dark' => $settings->logo_dark_path !== null,
                 'has_favicon' => $settings->favicon_path !== null,
@@ -65,6 +66,10 @@ class InstitutionSettingsController extends Controller
         // Absent (older clients): keep the addresses; an empty field clears them.
         if ($request->exists('notification_emails')) {
             $settings->notification_emails = array_values((array) ($request->validated('notification_emails') ?? []));
+        }
+
+        if ($request->exists('user_budget_emails')) {
+            $settings->user_budget_emails = $request->boolean('user_budget_emails');
         }
 
         foreach (self::ASSETS as $input => $property) {
