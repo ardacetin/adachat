@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   outside their budget by stopping them just before the end. Such streams are
   now charged at least an estimate of the text and reasoning delivered,
   within the reservation's output cap.
+- A small crafted .xlsx file could make text extraction allocate memory and
+  CPU far beyond its size: a cell reference such as `ZZZZZZZ1` sized every
+  row to that column, and a workbook could list the same worksheet any
+  number of times. Spreadsheets are now read within fixed bounds (100
+  sheets, each part once, columns up to `XFD`, no more text than is kept).
 
 ## [1.3.0] - 2026-10-02
 

@@ -85,7 +85,11 @@ operators with server access (ultimately trusted); compromised dependencies.
   uncompressed size are checked before reading (zip bombs: at most 2000
   entries, 100 MB in total, 20 MB per XML part), and XML containing a
   document type declaration or entity is refused, so no entity is expanded
-  or fetched (XXE, billion laughs; `LIBXML_NONET`). PDFs are parsed by
+  or fetched (XXE, billion laughs; `LIBXML_NONET`). Spreadsheets are read
+  within fixed bounds whatever the sheets claim: at most 100 sheets, each
+  worksheet part once, column references up to `XFD`, `max_sheet_rows`
+  rows per sheet, and reading stops once more text than `max_text_chars`
+  has been collected. PDFs are parsed by
   `smalot/pdfparser` (pure PHP) with image content discarded; failures are
   reported as unreadable. Parsing happens once, at upload, within the PHP
   memory and time limits; macros and embedded objects are never run.

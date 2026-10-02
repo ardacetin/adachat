@@ -13,7 +13,10 @@ use ZipArchive;
  * Untrusted archives: the number of entries and the uncompressed sizes are
  * checked before anything is read (zip bombs), and XML with a document type
  * declaration is refused, so no entity is ever expanded (XXE, billion
- * laughs). Legacy binary formats (.doc, .xls, .ppt) are not supported.
+ * laughs). Spreadsheets are read within fixed bounds: at most MAX_SHEETS
+ * sheets, each part once, columns up to Excel's XFD, and no more text than
+ * FileInspector keeps. Legacy binary formats (.doc, .xls, .ppt) are not
+ * supported.
  */
 final class OfficeExtractor
 {
@@ -28,6 +31,11 @@ final class OfficeExtractor
     private const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
 
     private const MAX_PART_BYTES = 20 * 1024 * 1024;
+
+    private const MAX_SHEETS = 100;
+
+    /** Excel's last column, XFD. */
+    private const MAX_COLUMN = 16383;
 
     /**
      * Which Office format the archive holds, from its parts; null if none.
@@ -142,10 +150,14 @@ final class OfficeExtractor
 
         $targets = $this->relationships($zip, 'xl/_rels/workbook.xml.rels');
         $maxRows = (int) config('ada.attachments.max_sheet_rows', 2000);
+        // FileInspector keeps max_text_chars characters; a character is at
+        // most four bytes, so this many bytes always cover the kept text.
+        $budget = 4 * (int) config('ada.attachments.max_text_chars', 200000);
         $out = [];
+        $read = [];
         $reader = $this->reader($zip, 'xl/workbook.xml');
 
-        while ($reader->read()) {
+        while ($reader->read() && $budget > 0) {
             if ($reader->nodeType !== XMLReader::ELEMENT || $reader->name !== 'sheet') {
                 continue;
             }
@@ -154,22 +166,32 @@ final class OfficeExtractor
             $target = $targets[(string) $reader->getAttribute('r:id')] ?? null;
             $part = $target === null ? null : 'xl/'.ltrim(str_replace('/xl/', '', $target), '/');
 
-            if ($part === null || $zip->locateName($part) === false) {
+            if ($part === null || isset($read[$part]) || $zip->locateName($part) === false) {
                 continue;
             }
 
-            $out[] = "## {$name}\n".$this->sheet($zip, $part, $shared, $maxRows);
+            if (count($read) >= self::MAX_SHEETS) {
+                $out[] = '[… only the first '.self::MAX_SHEETS.' sheets]';
+
+                break;
+            }
+
+            $read[$part] = true;
+            $sheet = "## {$name}\n".$this->sheet($zip, $part, $shared, $maxRows, $budget);
+            $budget -= strlen($sheet) + 2;
+            $out[] = $sheet;
         }
 
         return self::tidy(implode("\n\n", $out));
     }
 
     /**
-     * Rows as tab-separated values, cells in column order.
+     * Rows as tab-separated values, cells in column order, until the rows
+     * or the byte budget run out.
      *
      * @param  list<string>  $shared
      */
-    private function sheet(ZipArchive $zip, string $part, array $shared, int $maxRows): string
+    private function sheet(ZipArchive $zip, string $part, array $shared, int $maxRows, int $budget): string
     {
         $reader = $this->reader($zip, $part);
         $rows = [];
@@ -177,6 +199,7 @@ final class OfficeExtractor
         $cell = null;
         $type = null;
         $count = 0;
+        $length = 0;
 
         while ($reader->read()) {
             if ($reader->nodeType === XMLReader::ELEMENT) {
@@ -201,13 +224,38 @@ final class OfficeExtractor
                 }
 
                 if ($row !== []) {
-                    $line = array_fill(0, max(array_keys($row)) + 1, '');
-                    $rows[] = rtrim(implode("\t", array_replace($line, $row)));
+                    $line = self::line($row);
+                    $rows[] = $line;
+                    $length += strlen($line) + 1;
+
+                    if ($length > $budget) {
+                        break;
+                    }
                 }
             }
         }
 
         return implode("\n", $rows);
+    }
+
+    /**
+     * One row as tab-separated values: a tab per skipped column, built from
+     * the cells present rather than from the highest column index.
+     *
+     * @param  array<int, string>  $cells  column index → value
+     */
+    private static function line(array $cells): string
+    {
+        ksort($cells);
+        $line = '';
+        $next = 0;
+
+        foreach ($cells as $column => $value) {
+            $line .= str_repeat("\t", $column - $next + ($next > 0 ? 1 : 0)).$value;
+            $next = $column + 1;
+        }
+
+        return rtrim($line);
     }
 
     private function powerPoint(ZipArchive $zip): ExtractedText
@@ -297,8 +345,8 @@ final class OfficeExtractor
      */
     private static function column(string $reference, int $fallback): int
     {
-        if (preg_match('/^([A-Z]+)/', $reference, $match) !== 1) {
-            return $fallback;
+        if (preg_match('/^([A-Z]{1,3})(?![A-Z])/', $reference, $match) !== 1) {
+            return min($fallback, self::MAX_COLUMN);
         }
 
         $index = 0;
@@ -307,7 +355,7 @@ final class OfficeExtractor
             $index = $index * 26 + (ord($letter) - 64);
         }
 
-        return $index - 1;
+        return min($index - 1, self::MAX_COLUMN);
     }
 
     private static function tidy(string $text): string
