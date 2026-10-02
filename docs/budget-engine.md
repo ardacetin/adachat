@@ -426,9 +426,9 @@ COMMIT
 | Situation | Detection | Budget action |
 |---|---|---|
 | Provider rejects request (4xx/5xx before any output) | Adapter exception before first token | **Release** |
-| Provider error mid-stream | Adapter exception after output | **Settle** with reported usage if any, otherwise estimate from generated text (`is_estimated = true`) |
+| Provider error mid-stream | Adapter exception after output | **Settle** with the larger of the reported usage and the estimate from the streamed text and reasoning (`is_estimated = true`) |
 | Provider timeout | HTTP timeout / max stream duration reached | As above (release if nothing generated, otherwise settle) |
-| User clicks Stop / browser closed / network drop | `connection_aborted()` after flush, or cancel flag | Stop provider stream, **settle** with usage so far |
+| User clicks Stop / browser closed / network drop | `connection_aborted()` after flush, or cancel flag | Stop provider stream, **settle** with the larger of the usage reported so far and the estimate from the streamed text and reasoning (`is_estimated = true`) |
 | PHP exception in Ada | `try/finally` in `ChatGenerationService` | Settle or release in `finally` |
 | PHP process killed (OOM, deploy, FPM restart) | Nothing runs | **Cleanup job** (§11) |
 | Queue failure | N/A for chat (streaming does not use the queue) | — |
@@ -441,6 +441,14 @@ before that, input tokens are taken from the reservation's counted input and
 output tokens are counted from the generated text (provider counter where
 possible, otherwise a conservative bytes-per-token ratio). The provider still bills us for tokens it generated, so charging an
 estimate is more accurate than charging nothing.
+
+Usage reported before the end is not final either: Anthropic's
+`message_start` carries the input tokens and an output count of about 1, and
+the real output only arrives in `message_delta`. A stream that ends before
+the provider's final usage (stopped, disconnected, deadline or error) is
+therefore charged at least the estimate of everything it delivered, text and
+reasoning at 2 bytes per token, capped at the reservation's
+`max_output_tokens` (security audit, run 1).
 
 ## 11. Stale reservation cleanup
 

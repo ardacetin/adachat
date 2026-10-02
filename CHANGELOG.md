@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- A stopped or disconnected answer was charged only the usage the provider
+  had reported when the stream began (for Anthropic, about one output
+  token), although the text had been delivered. Users could get long answers
+  outside their budget by stopping them just before the end. Such streams are
+  now charged at least an estimate of the text and reasoning delivered,
+  within the reservation's output cap.
+
 ## [1.3.0] - 2026-10-02
 
 Web search through the providers' own tools, budget alerts for users,
