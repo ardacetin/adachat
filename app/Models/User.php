@@ -54,7 +54,7 @@ class User extends Authenticatable
     /**
      * Default attribute values, mirroring the database defaults.
      *
-     * @var array<string, string|null>
+     * @var array<string, string|bool|null>
      */
     protected $attributes = [
         'avatar_url' => null,
