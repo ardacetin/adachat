@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-02
+
+Easy model pricing from a built-in price catalog, sign-in with Microsoft
+Entra ID and other OpenID Connect providers, users added by e-mail address,
+search, pinning and export in the chat, and institutional assistants with
+instructions and documents. Release notes:
+[docs/releases/v1.2.0.md](docs/releases/v1.2.0.md).
+
 ### Added
 
 - Administration → Users: a menu on each row disables or enables the account
@@ -29,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   addresses can sign in even outside the allowed domains; with "Anyone with
   an address in an allowed domain can sign in" turned off, only listed users
   can sign in. Unused invitations can be removed.
-
 - Easy model pricing: in Admin → Models, a model is added by choosing it
   from Ada's price catalog, without typing prices. The catalog
   (`resources/catalog/models.json`) holds official prices with their source
