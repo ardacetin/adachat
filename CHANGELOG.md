@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Administration → Users: a menu on each row disables or enables the account
+  (with a confirmation) and, for super administrators, changes the role,
+  without opening the user's page.
 - Institutional assistants: super administrators write instructions on top
   of a model alias, choose groups, an icon and up to four starter prompts
   (Administration → Assistants). Users open them from the Assistants

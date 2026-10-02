@@ -352,7 +352,10 @@
         "removeInvitationHelp": "Hesap hiç kullanılmadı ve silinir. Alan adı izinli değilse bu adres artık giriş yapamaz.",
         "accessDomains": "Kimler giriş yapabilir: {{domains}} adreslerine sahip herkes ve burada eklenen kullanıcılar.",
         "accessListed": "Kimler giriş yapabilir: yalnızca burada listelenen kullanıcılar.",
-        "accessChange": "Giriş ayarlarından değiştirin"
+        "accessChange": "Giriş ayarlarından değiştirin",
+        "actionsFor": "{{name}} için işlemler",
+        "disableTitle": "{{name}} devre dışı bırakılsın mı?",
+        "actionFailed": "Değişiklik kaydedilemedi."
     },
     "auditLog": {
         "title": "Denetim kaydı",

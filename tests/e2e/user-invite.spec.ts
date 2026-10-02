@@ -44,3 +44,39 @@ test('an administrator adds a user by e-mail address', async ({ page }) => {
     await page.waitForURL(/\/admin\/users$/);
     await expect(page.getByText('The user was removed.')).toBeVisible();
 });
+
+test('a user is promoted and disabled from the list', async ({ page }) => {
+    const address = `quick-${run}@partner.example`;
+
+    await page.goto('/login');
+    await page
+        .getByRole('button', {
+            name: /^Sign in as Sample Super Admin [a-z_]+$/,
+        })
+        .click();
+    await page.waitForURL('/');
+
+    await page.goto('/admin/users');
+    await page.getByRole('button', { name: 'Add users' }).click();
+    await page.getByLabel('E-mail addresses').fill(`Quick ${run} <${address}>`);
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.getByText('Added 1 user(s)')).toBeVisible();
+
+    await page.goto(`/admin/users?q=${encodeURIComponent(address)}`);
+    const row = page.getByRole('row', { name: new RegExp(address) });
+
+    await row.getByRole('button', { name: `Actions for Quick ${run}` }).click();
+    await page
+        .getByRole('menuitemradio', { name: 'Administrator', exact: true })
+        .click();
+    await expect(row.getByText('Administrator', { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/users\?q=/);
+
+    await row.getByRole('button', { name: `Actions for Quick ${run}` }).click();
+    await page.getByRole('menuitem', { name: 'Disable account' }).click();
+    await page
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Disable account' })
+        .click();
+    await expect(row.getByText('Disabled', { exact: true })).toBeVisible();
+});

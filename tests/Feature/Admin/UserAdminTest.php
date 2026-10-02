@@ -268,3 +268,40 @@ test('the audit log lists entries and filters them', function () {
     $this->actingAs($this->admin)->get(route('admin.audit-log.index', ['from' => '2026-10-16']))
         ->assertInertia(fn ($page) => $page->where('entries.total', 0));
 });
+
+test('the users list carries quick-action permissions per row', function () {
+    $admin = User::factory()->admin()->create();
+    $super = User::factory()->superAdmin()->create();
+    $member = User::factory()->create();
+
+    $rows = collect($this->actingAs($admin)->get(route('admin.users.index'))->inertiaProps('users.data'))->keyBy('id');
+
+    expect($rows[$member->id]['can'])->toBe(['changeStatus' => true, 'changeRole' => false])
+        ->and($rows[$super->id]['can'])->toBe(['changeStatus' => false, 'changeRole' => false])
+        ->and($rows[$admin->id]['can'])->toBe(['changeStatus' => false, 'changeRole' => false]);
+
+    $rows = collect($this->actingAs($super)->get(route('admin.users.index'))->inertiaProps('users.data'))->keyBy('id');
+
+    expect($rows[$member->id]['can'])->toBe(['changeStatus' => true, 'changeRole' => true]);
+});
+
+test('quick actions from the list return to the list', function () {
+    $super = User::factory()->superAdmin()->create();
+    $member = User::factory()->create();
+
+    $this->actingAs($super)
+        ->from(route('admin.users.index'))
+        ->put(route('admin.users.status', $member), ['status' => 'disabled', 'stay' => true])
+        ->assertRedirect(route('admin.users.index'));
+
+    $this->from(route('admin.users.index'))
+        ->put(route('admin.users.role', $member), ['role' => 'admin', 'stay' => true])
+        ->assertRedirect(route('admin.users.index'));
+
+    expect($member->refresh()->status->value)->toBe('disabled')
+        ->and($member->role->value)->toBe('admin');
+
+    // Without "stay" the user page follows, as before.
+    $this->put(route('admin.users.status', $member), ['status' => 'active'])
+        ->assertRedirect(route('admin.users.show', $member));
+});
