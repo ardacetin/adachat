@@ -53,7 +53,8 @@ final class FeedbackStatistics
         $rows = $this->votes($filters)
             ->leftJoin("{$table} as d", 'd.id', '=', $key)
             ->when($dimension === 'assistant', fn ($query) => $query->whereNotNull('f.assistant_id'))
-            ->selectRaw("{$key} AS id, MAX({$label}) AS label, SUM(f.rating = 'up') AS up, SUM(f.rating = 'down') AS down")
+            // The label is built from fixed SQL and the config locale only.
+            ->select(DB::raw("{$key} AS id, MAX({$label}) AS label, SUM(f.rating = 'up') AS up, SUM(f.rating = 'down') AS down"))
             ->groupBy($key)
             ->orderByRaw('COUNT(*) DESC')
             ->limit(100)
@@ -67,7 +68,7 @@ final class FeedbackStatistics
             ->get()
             ->groupBy(fn (stdClass $row) => (string) $row->id);
 
-        return $rows->map(function (stdClass $row) use ($reasons): array {
+        return array_values($rows->map(function (stdClass $row) use ($reasons): array {
             $up = (int) $row->up;
             $down = (int) $row->down;
 
@@ -81,7 +82,7 @@ final class FeedbackStatistics
                     ->mapWithKeys(fn (stdClass $reason) => [(string) $reason->reason => (int) $reason->n])
                     ->all(),
             ];
-        })->values()->all();
+        })->all());
     }
 
     /**
