@@ -32,9 +32,12 @@ test('the shipped catalog is complete and well formed', function () {
             ->and($entry->source)->toStartWith('https://')
             ->and($entry->asOf)->toMatch('/^\d{4}-\d{2}-\d{2}$/');
 
-        foreach ([$entry->inputPrice, $entry->outputPrice, $entry->cachedInputPrice, $entry->cacheWritePrice] as $price) {
+        foreach ([$entry->inputPrice, $entry->outputPrice, $entry->cachedInputPrice, $entry->cacheWritePrice, $entry->webSearchPrice] as $price) {
             expect($price === null || preg_match('/^\d+(\.\d{1,6})?$/', $price) === 1)->toBeTrue();
         }
+
+        // A model that can search has a search price.
+        expect($entry->supportsWebSearch)->toBe($entry->webSearchPrice !== null);
     }
 
     expect($keys)->toBe(array_values(array_unique($keys)));
@@ -116,6 +119,8 @@ test('easy mode takes prices and limits from the catalog, not from the browser',
         ->and($model->context_window)->toBe(200000)
         ->and($model->max_output_tokens)->toBe(64000)
         ->and($model->supports_vision)->toBeTrue()
+        ->and($model->supports_web_search)->toBeTrue()
+        ->and($model->web_search_price_per_thousand)->toBe('10.000000')
         ->and($model->metadata)->toEqual(['pricing_source' => 'catalog', 'catalog_as_of' => '2026-10-01']);
 });
 

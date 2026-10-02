@@ -185,3 +185,43 @@ test('alias groups must exist', function () {
         ->post(route('admin.aliases.store'), aliasPayload($model, ['group_ids' => [999999]]))
         ->assertSessionHasErrors('group_ids.0');
 });
+
+test('a model can search the web at a price per 1,000 searches', function () {
+    $provider = Provider::factory()->create();
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->post(route('admin.models.store'), modelPayload($provider, ['supports_web_search' => true, 'web_search_price_per_thousand' => '10']))
+        ->assertSessionHasNoErrors();
+
+    $model = AiModel::query()->sole();
+    expect($model->supports_web_search)->toBeTrue()
+        ->and($model->web_search_price_per_thousand)->toBe('10.000000');
+});
+
+test('web search needs a price and a provider with a search tool', function (string $driver, array $overrides, string $error) {
+    $provider = Provider::factory()->create(['driver' => $driver]);
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->post(route('admin.models.store'), modelPayload($provider, ['supports_web_search' => true, ...$overrides]))
+        ->assertSessionHasErrors($error);
+})->with([
+    'no price' => ['openai', ['web_search_price_per_thousand' => ''], 'web_search_price_per_thousand'],
+    'OpenAI-compatible server' => ['openai_compatible', ['web_search_price_per_thousand' => '10'], 'supports_web_search'],
+]);
+
+test('an alias allows web search with a number of searches per message', function () {
+    $model = AiModel::factory()->create();
+    $admin = User::factory()->superAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.aliases.store'), aliasPayload($model, ['web_search_enabled' => true, 'web_search_max_uses' => 2]))
+        ->assertSessionHasNoErrors();
+
+    $alias = ModelAlias::query()->sole();
+    expect($alias->web_search_enabled)->toBeTrue()
+        ->and($alias->web_search_max_uses)->toBe(2);
+
+    $this->actingAs($admin)
+        ->put(route('admin.aliases.update', $alias), aliasPayload($model, ['web_search_max_uses' => 6]))
+        ->assertSessionHasErrors('web_search_max_uses');
+});

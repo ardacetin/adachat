@@ -111,6 +111,14 @@ return [
         'max_document_tokens' => (int) env('ADA_ASSISTANT_MAX_DOCUMENT_TOKENS', 50000),
     ],
 
+    'web_search' => [
+        // Upper bound for an alias's searches per message.
+        'max_uses_limit' => 5,
+        // Search results become input tokens; the reservation sets this
+        // many aside per allowed search.
+        'reserve_tokens_per_search' => (int) env('ADA_WEB_SEARCH_RESERVE_TOKENS', 4000),
+    ],
+
     'chat' => [
         // Longest message a user can send, in characters.
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),

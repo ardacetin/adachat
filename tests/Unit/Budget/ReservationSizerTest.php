@@ -95,3 +95,21 @@ test('the higher tier is used when the margin crosses its threshold', function (
 
     expect($size->amount->toString())->toBe('0.2279000000');
 });
+
+test('allowed web searches are reserved with their price and result tokens', function () {
+    $model = sizerModel(['web_search_price_per_thousand' => '10']);
+    $size = ReservationSizer::fit(counted(10000), $model, 4000, Usd::of('10'), webSearches: 3);
+
+    // 0.05 as above + 3 × $10/1000 + 3 × 4 000 result tokens × $1/M
+    expect($size->amount->toString())->toBe('0.0920000000');
+});
+
+test('the output cap shrinks to leave room for the searches', function () {
+    $model = sizerModel(['web_search_price_per_thousand' => '10']);
+
+    // $0.06 left: input $0.01 + searches $0.03 + result tokens $0.012 → $0.008 for output.
+    $size = ReservationSizer::fit(counted(10000), $model, 4000, Usd::of('0.06'), webSearches: 3);
+
+    expect($size->maxOutputTokens)->toBe(800)
+        ->and($size->outputCapped)->toBeTrue();
+});

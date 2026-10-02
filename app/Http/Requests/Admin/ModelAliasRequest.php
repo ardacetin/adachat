@@ -34,6 +34,8 @@ class ModelAliasRequest extends FormRequest
             'temperature' => ['nullable', 'numeric', 'min:0', 'max:2', 'decimal:0,2'],
             'system_prompt' => ['nullable', 'string', 'max:4000'],
             'show_model_details' => ['required', 'boolean'],
+            'web_search_enabled' => ['sometimes', 'boolean'],
+            'web_search_max_uses' => ['sometimes', 'integer', 'min:1', 'max:'.(int) config('ada.web_search.max_uses_limit', 5)],
             'sort_order' => ['required', 'integer', 'min:-1000', 'max:1000'],
             'enabled' => ['required', 'boolean'],
             // Groups whose members may use the alias.

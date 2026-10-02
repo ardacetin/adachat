@@ -155,7 +155,9 @@ unsupported model):
 input_tokens_reserved = ceil(counted_input_tokens × (1 + margin))
 input_cost            = input_tokens_reserved × input_price           (cache discounts ignored → worst case)
 max_output_cost       = max_output_tokens × output_price              (reasoning tokens count as output)
-reservation           = input_cost + max_output_cost
+search_cost           = max_searches × (search_price / 1000
+                        + reserve_tokens_per_search × input_price)    (v1.3, only with web search)
+reservation           = input_cost + max_output_cost + search_cost
 ```
 
 - **Output** is bounded exactly: `max_output_tokens` is always sent to the
@@ -166,6 +168,14 @@ reservation           = input_cost + max_output_cost
 - **Tiered pricing** (higher price above N input tokens): the tier is chosen
   from the counted input, using the higher tier if the margin crosses the
   threshold.
+- **Web search** (v1.3): each allowed search is reserved at the model's
+  price per 1,000 searches, plus `ada.web_search.reserve_tokens_per_search`
+  (default 4 000, `ADA_WEB_SEARCH_RESERVE_TOKENS`) input tokens for its
+  results. Settlement charges the searches the provider billed
+  (`usage_events.web_search_requests`, price in `web_search_price_snapshot`,
+  cost in `other_cost_usd`). For Gemini the list price is charged for every
+  search: Ada cannot see how much of the provider's monthly free quota is
+  left, so spending is never under-counted.
 
 ### 5.5 Output capping
 
@@ -449,6 +459,7 @@ input_cost  = input_tokens        × input_price        / 1_000_000
             + cached_input_tokens × cached_input_price / 1_000_000
             + cache_write_tokens  × cache_write_price  / 1_000_000
 output_cost = (output_tokens + reasoning_tokens) × output_price / 1_000_000
+other_cost  = web_search_requests × web_search_price / 1_000          (v1.3)
 total       = input_cost + output_cost + other_cost
 ```
 

@@ -20,8 +20,9 @@ class AiModelController extends Controller
         'provider_id', 'provider_model_id', 'display_name', 'description',
         'input_price_per_million', 'output_price_per_million',
         'cached_input_price_per_million', 'cache_write_price_per_million',
-        'context_window', 'max_output_tokens',
-        'supports_vision', 'supports_files', 'supports_tools', 'supports_reasoning', 'enabled',
+        'web_search_price_per_thousand', 'context_window', 'max_output_tokens',
+        'supports_vision', 'supports_files', 'supports_tools', 'supports_reasoning',
+        'supports_web_search', 'enabled',
     ];
 
     public function index(ModelCatalog $catalog): Response

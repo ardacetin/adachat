@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\AI\Catalog\CatalogModel;
 use App\Domain\AI\Catalog\ModelCatalog;
+use App\Domain\AI\Enums\ProviderDriver;
 use App\Models\AiModel;
 use App\Models\Provider;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -61,6 +62,8 @@ class AiModelRequest extends FormRequest
             'supports_files' => [$required, 'boolean'],
             'supports_tools' => ['required', 'boolean'],
             'supports_reasoning' => [$required, 'boolean'],
+            'supports_web_search' => ['sometimes', 'boolean'],
+            'web_search_price_per_thousand' => ['nullable', 'required_if_accepted:supports_web_search', ...self::PRICE],
             'enabled' => ['required', 'boolean'],
         ];
     }
@@ -73,6 +76,11 @@ class AiModelRequest extends FormRequest
         return [function (Validator $validator): void {
             if ($this->input('pricing') === 'catalog' && ! $validator->errors()->has('provider_id') && $this->catalogModel() === null) {
                 $validator->errors()->add('provider_model_id', __('admin.models.catalog_unknown'));
+            }
+
+            // OpenAI-compatible servers have no built-in search tool.
+            if ($this->boolean('supports_web_search') && Provider::query()->find($this->integer('provider_id'))?->driver === ProviderDriver::OpenAICompatible) {
+                $validator->errors()->add('supports_web_search', __('admin.models.web_search_unsupported'));
             }
         }];
     }

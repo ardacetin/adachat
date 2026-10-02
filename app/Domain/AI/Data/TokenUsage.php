@@ -15,6 +15,8 @@ final readonly class TokenUsage
         public int $cacheWrite = 0,
         public int $output = 0,
         public int $reasoning = 0,
+        /** Billable web searches the provider ran for the request. */
+        public int $webSearches = 0,
     ) {}
 
     /**
@@ -28,6 +30,7 @@ final readonly class TokenUsage
             max($this->cacheWrite, $other->cacheWrite),
             max($this->output, $other->output),
             max($this->reasoning, $other->reasoning),
+            max($this->webSearches, $other->webSearches),
         );
     }
 

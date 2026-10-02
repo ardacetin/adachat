@@ -16,7 +16,8 @@ class ModelAliasController extends Controller
 {
     private const FIELDS = [
         'slug', 'name', 'description', 'ai_model_id', 'max_output_tokens',
-        'temperature', 'system_prompt', 'show_model_details', 'sort_order', 'enabled',
+        'temperature', 'system_prompt', 'show_model_details', 'web_search_enabled',
+        'web_search_max_uses', 'sort_order', 'enabled',
     ];
 
     public function index(): Response

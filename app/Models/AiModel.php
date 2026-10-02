@@ -23,12 +23,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $output_price_per_million
  * @property string|null $cached_input_price_per_million
  * @property string|null $cache_write_price_per_million
+ * @property string|null $web_search_price_per_thousand USD per 1,000 searches
  * @property int $context_window
  * @property int $max_output_tokens
  * @property bool $supports_vision
  * @property bool $supports_files
  * @property bool $supports_tools
  * @property bool $supports_reasoning
+ * @property bool $supports_web_search
  * @property bool $enabled
  * @property array<string, mixed>|null $metadata
  * @property CarbonImmutable|null $created_at
@@ -39,9 +41,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'provider_model_id', 'display_name', 'description',
     'input_price_per_million', 'output_price_per_million',
     'cached_input_price_per_million', 'cache_write_price_per_million',
+    'web_search_price_per_thousand',
     'context_window', 'max_output_tokens',
     'supports_vision', 'supports_files', 'supports_tools', 'supports_reasoning',
-    'enabled',
+    'supports_web_search', 'enabled',
 ])]
 class AiModel extends Model
 {
@@ -55,10 +58,12 @@ class AiModel extends Model
         'description' => null,
         'cached_input_price_per_million' => null,
         'cache_write_price_per_million' => null,
+        'web_search_price_per_thousand' => null,
         'supports_vision' => false,
         'supports_files' => false,
         'supports_tools' => false,
         'supports_reasoning' => false,
+        'supports_web_search' => false,
         'enabled' => true,
         'metadata' => null,
     ];
@@ -89,10 +94,12 @@ class AiModel extends Model
             'output_price_per_million' => 'decimal:6',
             'cached_input_price_per_million' => 'decimal:6',
             'cache_write_price_per_million' => 'decimal:6',
+            'web_search_price_per_thousand' => 'decimal:6',
             'supports_vision' => 'boolean',
             'supports_files' => 'boolean',
             'supports_tools' => 'boolean',
             'supports_reasoning' => 'boolean',
+            'supports_web_search' => 'boolean',
             'enabled' => 'boolean',
             'metadata' => 'array',
         ];

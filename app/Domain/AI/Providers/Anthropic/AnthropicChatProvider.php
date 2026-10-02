@@ -6,7 +6,9 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
+use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\Events\WebSearchStarted;
 use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
@@ -22,10 +24,17 @@ use Illuminate\Http\Client\Response;
  * Usage normalization: input_tokens already excludes cache reads/writes,
  * which are reported separately. Thinking tokens are billed as output and
  * not reported separately, so reasoning stays 0.
+ *
+ * Web search uses the basic server tool (web_search_20250305): it works with
+ * every Claude model, and search results stay out of later turns because
+ * Ada keeps only the answer text. A turn the API pauses (pause_turn) ends
+ * the answer as cut off.
  */
 final class AnthropicChatProvider extends HttpChatProvider
 {
     public const API_VERSION = '2023-06-01';
+
+    public const WEB_SEARCH_TOOL = 'web_search_20250305';
 
     protected function name(): string
     {
@@ -52,6 +61,11 @@ final class AnthropicChatProvider extends HttpChatProvider
             'messages' => array_map(self::message(...), $request->messages),
             'max_tokens' => $request->maxOutputTokens,
             'temperature' => $request->temperature,
+            'tools' => $request->webSearchMaxUses === null ? null : [[
+                'type' => self::WEB_SEARCH_TOOL,
+                'name' => 'web_search',
+                'max_uses' => $request->webSearchMaxUses,
+            ]],
             'stream' => true,
         ], static fn (mixed $value): bool => $value !== null);
     }
@@ -94,7 +108,7 @@ final class AnthropicChatProvider extends HttpChatProvider
 
     protected function countPayload(ChatRequest $request, array $payload): array
     {
-        return array_intersect_key($payload, array_flip(['model', 'system', 'messages']));
+        return array_intersect_key($payload, array_flip(['model', 'system', 'messages', 'tools']));
     }
 
     protected function countFromResponse(array $body): int
@@ -110,6 +124,8 @@ final class AnthropicChatProvider extends HttpChatProvider
     protected function translate(Generator $events, StreamState $state): Generator
     {
         $reason = FinishReason::Error;
+        // Search queries arrive as streamed JSON, per content block index.
+        $queries = [];
 
         foreach ($events as $event) {
             $data = $event->json() ?? [];
@@ -118,30 +134,69 @@ final class AnthropicChatProvider extends HttpChatProvider
                 case 'message_start':
                     $message = is_array($data['message'] ?? null) ? $data['message'] : [];
                     $state->requestId ??= is_string($message['id'] ?? null) ? $message['id'] : null;
-                    $usage = $message['usage'] ?? [];
-                    $state->addUsage(new TokenUsage(
-                        input: (int) ($usage['input_tokens'] ?? 0),
-                        cachedInput: (int) ($usage['cache_read_input_tokens'] ?? 0),
-                        cacheWrite: (int) ($usage['cache_creation_input_tokens'] ?? 0),
-                        output: (int) ($usage['output_tokens'] ?? 0),
-                    ));
+                    $state->addUsage(self::usage($message['usage'] ?? []));
+                    break;
+
+                case 'content_block_start':
+                    $block = is_array($data['content_block'] ?? null) ? $data['content_block'] : [];
+                    $index = (int) ($data['index'] ?? 0);
+
+                    if (($block['type'] ?? null) === 'server_tool_use' && ($block['name'] ?? null) === 'web_search') {
+                        $input = is_array($block['input'] ?? null) ? $block['input'] : [];
+                        $queries[$index] = is_string($input['query'] ?? null) ? (string) json_encode($input) : '';
+                    } elseif (($block['type'] ?? null) === 'web_search_tool_result' && is_array($block['content'] ?? null) && array_is_list($block['content'])) {
+                        // A list of results; an error is a single object.
+                        foreach ($block['content'] as $result) {
+                            if (is_array($result) && is_string($result['url'] ?? null)) {
+                                yield new SourceFound($result['url'], self::title($result), cited: false);
+                            }
+                        }
+                    }
                     break;
 
                 case 'content_block_delta':
                     $delta = $data['delta'] ?? [];
-                    match ($delta['type'] ?? null) {
-                        'text_delta' => yield new TextDelta((string) ($delta['text'] ?? '')),
-                        'thinking_delta' => yield new ReasoningDelta((string) ($delta['thinking'] ?? '')),
-                        default => null,
-                    };
+                    $index = (int) ($data['index'] ?? 0);
+
+                    switch ($delta['type'] ?? null) {
+                        case 'text_delta':
+                            yield new TextDelta((string) ($delta['text'] ?? ''));
+                            break;
+                        case 'thinking_delta':
+                            yield new ReasoningDelta((string) ($delta['thinking'] ?? ''));
+                            break;
+                        case 'input_json_delta':
+                            if (isset($queries[$index])) {
+                                $queries[$index] .= (string) ($delta['partial_json'] ?? '');
+                            }
+                            break;
+                        case 'citations_delta':
+                            $citation = $delta['citation'] ?? [];
+
+                            if (is_array($citation) && is_string($citation['url'] ?? null)) {
+                                yield new SourceFound($citation['url'], self::title($citation));
+                            }
+                            break;
+                    }
+                    break;
+
+                case 'content_block_stop':
+                    $index = (int) ($data['index'] ?? 0);
+
+                    if (isset($queries[$index])) {
+                        $input = json_decode($queries[$index], true);
+                        unset($queries[$index]);
+                        yield new WebSearchStarted(is_array($input) && is_string($input['query'] ?? null) ? $input['query'] : null);
+                    }
                     break;
 
                 case 'message_delta':
-                    // Cumulative output count for the whole message.
-                    $state->addUsage(new TokenUsage(output: (int) ($data['usage']['output_tokens'] ?? 0)));
+                    // Cumulative usage for the whole message; with server
+                    // tools it includes the input read from search results.
+                    $state->addUsage(self::usage($data['usage'] ?? []));
                     $reason = match ($data['delta']['stop_reason'] ?? null) {
                         'end_turn', 'stop_sequence', 'tool_use' => FinishReason::Stop,
-                        'max_tokens' => FinishReason::Length,
+                        'max_tokens', 'pause_turn' => FinishReason::Length,
                         'refusal' => FinishReason::ContentFilter,
                         default => $reason,
                     };
@@ -154,5 +209,28 @@ final class AnthropicChatProvider extends HttpChatProvider
         }
 
         return $reason;
+    }
+
+    private static function usage(mixed $usage): TokenUsage
+    {
+        if (! is_array($usage)) {
+            return new TokenUsage;
+        }
+
+        return new TokenUsage(
+            input: (int) ($usage['input_tokens'] ?? 0),
+            cachedInput: (int) ($usage['cache_read_input_tokens'] ?? 0),
+            cacheWrite: (int) ($usage['cache_creation_input_tokens'] ?? 0),
+            output: (int) ($usage['output_tokens'] ?? 0),
+            webSearches: (int) ($usage['server_tool_use']['web_search_requests'] ?? 0),
+        );
+    }
+
+    /**
+     * @param  array<mixed>  $item
+     */
+    private static function title(array $item): ?string
+    {
+        return is_string($item['title'] ?? null) && $item['title'] !== '' ? $item['title'] : null;
     }
 }

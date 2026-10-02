@@ -19,6 +19,7 @@ return [
 
     'models' => [
         'catalog_unknown' => "This model is not in Ada's price catalog. Choose one from the list, or enter its prices in the advanced mode.",
+        'web_search_unsupported' => 'OpenAI-compatible servers have no built-in web search.',
     ],
 
     'provider_check' => [

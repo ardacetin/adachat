@@ -21,6 +21,8 @@ final readonly class PricingSnapshot
         public BigDecimal $cachedInput,
         public BigDecimal $cacheWrite,
         public BigDecimal $output,
+        /** USD per 1,000 web searches; null when the model has no price. */
+        public ?BigDecimal $webSearch = null,
     ) {}
 
     /**
@@ -54,6 +56,7 @@ final readonly class PricingSnapshot
             cachedInput: $cachedInput !== null ? BigDecimal::of($cachedInput) : $inputPrice,
             cacheWrite: $cacheWrite !== null ? BigDecimal::of($cacheWrite) : $inputPrice,
             output: BigDecimal::of($output),
+            webSearch: $model->web_search_price_per_thousand !== null ? BigDecimal::of($model->web_search_price_per_thousand) : null,
         );
     }
 
@@ -68,6 +71,15 @@ final readonly class PricingSnapshot
     public function outputCost(int $tokens): Usd
     {
         return self::cost($tokens, $this->output);
+    }
+
+    public function webSearchCost(int $searches): Usd
+    {
+        if ($searches <= 0 || $this->webSearch === null) {
+            return Usd::zero();
+        }
+
+        return Usd::of($this->webSearch->multipliedBy($searches)->dividedBy(1000, Usd::SCALE, RoundingMode::Up));
     }
 
     /**

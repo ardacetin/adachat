@@ -14,6 +14,7 @@ use App\Models\AiModel;
  * Measure the input, bound the output:
  *
  *   reservation = cost(counted input + margin) + cost(max output tokens)
+ *               + searches allowed × (search price + cost(result tokens))
  *
  * When that does not fit the remaining budget, the output cap is lowered to
  * what the budget can pay for, down to a useful minimum. Cache discounts are
@@ -23,11 +24,12 @@ final class ReservationSizer
 {
     /**
      * @param  int  $requestedMaxOutput  the alias/model output cap
+     * @param  int  $webSearches  searches the provider may run (0 = none)
      *
      * @throws BudgetExhausted
      * @throws ContextLengthExceeded when the input leaves no room for output
      */
-    public static function fit(InputTokenCount $input, AiModel $model, int $requestedMaxOutput, Usd $available): ReservationSize
+    public static function fit(InputTokenCount $input, AiModel $model, int $requestedMaxOutput, Usd $available, int $webSearches = 0): ReservationSize
     {
         $inputTokens = $input->reservedTokens();
         $pricing = PricingSnapshot::forModel($model, $inputTokens);
@@ -42,7 +44,9 @@ final class ReservationSizer
 
         $cap = max(1, min($requestedMaxOutput, $model->max_output_tokens, $roomInContext));
 
-        $inputCost = $pricing->inputCost($inputTokens);
+        // Search results are read as input; how much is unknown up front.
+        $searchTokens = $webSearches * (int) config('ada.web_search.reserve_tokens_per_search', 4000);
+        $inputCost = $pricing->inputCost($inputTokens + $searchTokens)->plus($pricing->webSearchCost($webSearches));
 
         if ($inputCost->isGreaterThan($available)) {
             throw new BudgetExhausted('The remaining budget does not cover the input.');

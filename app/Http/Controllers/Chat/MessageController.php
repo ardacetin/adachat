@@ -49,6 +49,7 @@ class MessageController extends Controller
             'assistant_id' => ['nullable', 'integer'],
             'attachment_ids' => ['nullable', 'array', 'max:'.(int) config('ada.attachments.max_per_message')],
             'attachment_ids.*' => ['uuid', 'distinct'],
+            'web_search' => ['sometimes', 'boolean'],
         ], [
             'attachment_ids.max' => __('chat.attachments.too_many', ['max' => (int) config('ada.attachments.max_per_message')]),
         ]);
@@ -75,7 +76,9 @@ class MessageController extends Controller
             throw ValidationException::withMessages(['content' => __('validation.required', ['attribute' => 'content'])]);
         }
 
-        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments, $assistant));
+        $webSearch = $this->webSearch($alias, $request->boolean('web_search'));
+
+        return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments, $assistant, $webSearch));
     }
 
     public function regenerate(Request $request, Message $message): StreamedResponse
@@ -83,11 +86,12 @@ class MessageController extends Controller
         $user = $this->user($request);
         Gate::authorize('update', $message->conversation);
 
-        $validated = $request->validate(['model_alias_id' => ['nullable', 'integer']]);
+        $validated = $request->validate(['model_alias_id' => ['nullable', 'integer'], 'web_search' => ['sometimes', 'boolean']]);
         $assistant = $this->assistant($user, $message->conversation, null);
         $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id'] ?? $message->model_alias_id);
+        $webSearch = $this->webSearch($alias, $request->boolean('web_search'));
 
-        return $this->sse(fn (callable $clientGone) => $this->chat->regenerate($user, $message, $alias, $clientGone(...)));
+        return $this->sse(fn (callable $clientGone) => $this->chat->regenerate($user, $message, $alias, $clientGone(...), $webSearch));
     }
 
     /**
@@ -185,6 +189,20 @@ class MessageController extends Controller
         abort_if($assistant === null, 403, __('chat.assistant_not_allowed'));
 
         return $assistant;
+    }
+
+    /**
+     * Searches allowed for this message: null when the user did not ask for
+     * web search. Asking for it where the alias does not allow it is an error.
+     */
+    private function webSearch(ModelAlias $alias, bool $requested): ?int
+    {
+        if (! $requested) {
+            return null;
+        }
+
+        return $alias->webSearchMaxUses()
+            ?? throw ValidationException::withMessages(['web_search' => __('chat.web_search_unavailable')]);
     }
 
     private function alias(User $user, mixed $aliasId): ModelAlias

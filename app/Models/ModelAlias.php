@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $temperature
  * @property string|null $system_prompt
  * @property bool $show_model_details
+ * @property bool $web_search_enabled
+ * @property int $web_search_max_uses Searches allowed per message.
  * @property int $sort_order
  * @property bool $enabled
  * @property CarbonImmutable|null $created_at
@@ -31,7 +33,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 #[Fillable([
     'slug', 'name', 'description', 'ai_model_id', 'max_output_tokens',
-    'temperature', 'system_prompt', 'show_model_details', 'sort_order', 'enabled',
+    'temperature', 'system_prompt', 'show_model_details', 'web_search_enabled',
+    'web_search_max_uses', 'sort_order', 'enabled',
 ])]
 class ModelAlias extends Model
 {
@@ -47,6 +50,8 @@ class ModelAlias extends Model
         'temperature' => null,
         'system_prompt' => null,
         'show_model_details' => false,
+        'web_search_enabled' => false,
+        'web_search_max_uses' => 3,
         'sort_order' => 0,
         'enabled' => true,
     ];
@@ -84,6 +89,22 @@ class ModelAlias extends Model
     }
 
     /**
+     * Searches per message when users may search with this alias, null
+     * otherwise: the alias must allow it and its model must support and
+     * price it.
+     */
+    public function webSearchMaxUses(): ?int
+    {
+        $model = $this->aiModel;
+
+        if (! $this->web_search_enabled || ! $model->supports_web_search || $model->web_search_price_per_thousand === null) {
+            return null;
+        }
+
+        return max(1, min($this->web_search_max_uses, (int) config('ada.web_search.max_uses_limit', 5)));
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -93,6 +114,8 @@ class ModelAlias extends Model
             'description' => 'array',
             'temperature' => 'decimal:2',
             'show_model_details' => 'boolean',
+            'web_search_enabled' => 'boolean',
+            'web_search_max_uses' => 'integer',
             'enabled' => 'boolean',
         ];
     }
