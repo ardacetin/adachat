@@ -127,6 +127,13 @@ test('administrators see satisfaction by alias, model and assistant, without con
     $this->actingAs($admin)
         ->get(route('admin.feedback.index', ['per' => 'assistant']))
         ->assertInertia(fn ($page) => $page->where('rows.0.label', 'Coach'));
+
+    // Names follow the administrator's language.
+    $admin->forceFill(['locale' => 'tr'])->save();
+
+    $this->actingAs($admin)
+        ->get(route('admin.feedback.index'))
+        ->assertInertia(fn ($page) => $page->where('rows.0.label', 'Akıllı'));
 });
 
 test('a rate needs enough votes', function () {

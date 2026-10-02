@@ -44,17 +44,16 @@ final class FeedbackStatistics
     public function breakdown(ReportFilters $filters, string $dimension): array
     {
         [$key, $table, $label] = match ($dimension) {
-            'alias' => ['f.model_alias_id', 'model_aliases', $this->localizedName()],
+            'alias' => ['f.model_alias_id', 'model_aliases', 'd.name'],
             'model' => ['f.ai_model_id', 'ai_models', 'd.display_name'],
-            'assistant' => ['f.assistant_id', 'assistants', $this->localizedName()],
+            'assistant' => ['f.assistant_id', 'assistants', 'd.name'],
             default => throw new InvalidArgumentException("Unknown dimension {$dimension}."),
         };
 
         $rows = $this->votes($filters)
             ->leftJoin("{$table} as d", 'd.id', '=', $key)
             ->when($dimension === 'assistant', fn ($query) => $query->whereNotNull('f.assistant_id'))
-            // The label is built from fixed SQL and the config locale only.
-            ->select(DB::raw("{$key} AS id, MAX({$label}) AS label, SUM(f.rating = 'up') AS up, SUM(f.rating = 'down') AS down"))
+            ->selectRaw("{$key} AS id, ANY_VALUE({$label}) AS label, SUM(f.rating = 'up') AS up, SUM(f.rating = 'down') AS down")
             ->groupBy($key)
             ->orderByRaw('COUNT(*) DESC')
             ->limit(100)
@@ -68,13 +67,16 @@ final class FeedbackStatistics
             ->get()
             ->groupBy(fn (stdClass $row) => (string) $row->id);
 
-        return array_values($rows->map(function (stdClass $row) use ($reasons): array {
+        $locale = app()->getLocale();
+
+        return array_values($rows->map(function (stdClass $row) use ($reasons, $dimension, $locale): array {
             $up = (int) $row->up;
             $down = (int) $row->down;
+            $label = is_string($row->label) && $dimension !== 'model' ? $this->localized($row->label, $locale) : $row->label;
 
             return [
                 'id' => $row->id === null ? null : (int) $row->id,
-                'label' => is_string($row->label) && $row->label !== '' ? $row->label : '—',
+                'label' => is_string($label) && $label !== '' ? $label : '—',
                 'up' => $up,
                 'down' => $down,
                 'rate' => $up + $down >= self::MIN_VOTES ? (int) round($up * 100 / ($up + $down)) : null,
@@ -110,13 +112,18 @@ final class FeedbackStatistics
     }
 
     /**
-     * The JSON name in the current language, else in English.
+     * A JSON name ({"en": …, "tr": …}) in the given language, else in English.
      */
-    private function localizedName(): string
+    private function localized(string $json, string $locale): ?string
     {
-        // Locale codes come from config (en, tr), never from user input.
-        $locale = preg_replace('/[^a-z_-]/i', '', app()->getLocale()) ?: 'en';
+        $names = json_decode($json, true);
 
-        return "COALESCE(JSON_UNQUOTE(JSON_EXTRACT(d.name, '$.\"{$locale}\"')), JSON_UNQUOTE(JSON_EXTRACT(d.name, '$.\"en\"')))";
+        if (! is_array($names)) {
+            return null;
+        }
+
+        $name = $names[$locale] ?? $names['en'] ?? null;
+
+        return is_string($name) ? $name : null;
     }
 }
