@@ -51,6 +51,21 @@ class ConversationExportController extends Controller
                 $lines[] = '';
                 $lines[] = '_'.__('chat.export.attachments', ['names' => $names->implode(', ')]).'_';
             }
+
+            $sources = $message->metadata['sources'] ?? [];
+
+            if (is_array($sources) && $sources !== []) {
+                $lines[] = '';
+                $lines[] = '**'.__('chat.export.sources').'**';
+                $lines[] = '';
+
+                foreach (array_values(array_filter($sources, 'is_array')) as $index => $source) {
+                    $url = is_string($source['url'] ?? null) ? $source['url'] : '';
+                    $title = is_string($source['title'] ?? null) ? $source['title'] : '';
+                    $label = str_replace(['\\', '[', ']'], ['\\\\', '\\[', '\\]'], $title !== '' ? $title : $url);
+                    $lines[] = ($index + 1).'. ['.$label.'](<'.str_replace('>', '%3E', $url).'>)';
+                }
+            }
         }
 
         $filename = 'ada-'.(Str::slug($title) ?: 'conversation').'-'.now()->toDateString().'.md';

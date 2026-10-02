@@ -12,6 +12,7 @@ use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\AiModel;
 use App\Models\Group;
+use App\Models\ModelAlias;
 use App\Models\Provider;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
@@ -94,6 +95,13 @@ class DoctorCommand extends Command
             ->filter(fn (AiModel $model) => $catalog->newerPrices($model) !== null)
             ->pluck('display_name');
         $this->check('Catalog prices are current', $outdated->isEmpty(), warnOnly: true, hint: 'New catalog prices for: '.$outdated->implode(', ').'. Admin > Models: "Use new prices".');
+
+        // An alias that allows web search on a model that cannot search (or
+        // has no search price) never offers it to users.
+        $noSearch = ModelAlias::query()->with('aiModel')->where('enabled', true)->where('web_search_enabled', true)->get()
+            ->filter(fn (ModelAlias $alias) => $alias->webSearchMaxUses() === null)
+            ->map(fn (ModelAlias $alias) => $alias->slug);
+        $this->check('Aliases with web search can search', $noSearch->isEmpty(), warnOnly: true, hint: 'The model of '.$noSearch->implode(', ').' does not support web search or has no search price. Admin > Models.');
 
         $this->newLine();
 

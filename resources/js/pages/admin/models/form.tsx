@@ -34,12 +34,14 @@ type AiModel = {
     output_price_per_million: string;
     cached_input_price_per_million: string | null;
     cache_write_price_per_million: string | null;
+    web_search_price_per_thousand: string | null;
     context_window: number;
     max_output_tokens: number;
     supports_vision: boolean;
     supports_files: boolean;
     supports_tools: boolean;
     supports_reasoning: boolean;
+    supports_web_search: boolean;
     enabled: boolean;
 };
 
@@ -52,11 +54,13 @@ type CatalogEntry = {
     output_price_per_million: string;
     cached_input_price_per_million: string | null;
     cache_write_price_per_million: string | null;
+    web_search_price_per_thousand: string | null;
     context_window: number;
     max_output_tokens: number;
     supports_vision: boolean;
     supports_files: boolean;
     supports_reasoning: boolean;
+    supports_web_search: boolean;
     next_change: {
         from: string;
         input_price_per_million: string;
@@ -81,7 +85,8 @@ type PriceField =
     | 'input_price_per_million'
     | 'output_price_per_million'
     | 'cached_input_price_per_million'
-    | 'cache_write_price_per_million';
+    | 'cache_write_price_per_million'
+    | 'web_search_price_per_thousand';
 
 type CapabilityField =
     | 'supports_vision'
@@ -127,6 +132,9 @@ export default function ModelForm({
         supports_files: model?.supports_files ?? false,
         supports_tools: model?.supports_tools ?? false,
         supports_reasoning: model?.supports_reasoning ?? false,
+        supports_web_search: model?.supports_web_search ?? false,
+        web_search_price_per_thousand:
+            model?.web_search_price_per_thousand ?? '',
         enabled: model?.enabled ?? true,
     });
 
@@ -159,6 +167,9 @@ export default function ModelForm({
             supports_vision: entry.supports_vision,
             supports_files: entry.supports_files,
             supports_reasoning: entry.supports_reasoning,
+            supports_web_search: entry.supports_web_search,
+            web_search_price_per_thousand:
+                entry.web_search_price_per_thousand ?? '',
         }));
     };
 
@@ -455,6 +466,21 @@ export default function ModelForm({
                                         {new URL(chosen.source).hostname}
                                     </a>
                                 </p>
+                                {chosen.supports_web_search &&
+                                    chosen.web_search_price_per_thousand && (
+                                        <p
+                                            className="text-sm"
+                                            data-test="catalog-web-search"
+                                        >
+                                            {t('models.catalogWebSearch', {
+                                                price: usd(
+                                                    Number(
+                                                        chosen.web_search_price_per_thousand,
+                                                    ),
+                                                ),
+                                            })}
+                                        </p>
+                                    )}
                                 {chosen.next_change && (
                                     <p
                                         className="text-xs text-muted-foreground"
@@ -660,6 +686,46 @@ export default function ModelForm({
                                     }
                                 />
                             ))}
+                            {provider?.driver !== 'openai_compatible' && (
+                                <>
+                                    <CheckboxField
+                                        id="supports_web_search"
+                                        label={t('models.webSearch')}
+                                        checked={form.data.supports_web_search}
+                                        onChange={(checked) =>
+                                            form.setData(
+                                                'supports_web_search',
+                                                checked,
+                                            )
+                                        }
+                                    />
+                                    {form.errors.supports_web_search && (
+                                        <p className="text-sm text-destructive">
+                                            {form.errors.supports_web_search}
+                                        </p>
+                                    )}
+                                    {form.data.supports_web_search &&
+                                        provider?.driver === 'gemini' && (
+                                            <p
+                                                className="text-sm text-amber-700 dark:text-amber-400"
+                                                data-test="gemini-search-terms"
+                                            >
+                                                {t(
+                                                    'models.webSearchGeminiTerms',
+                                                )}
+                                            </p>
+                                        )}
+                                    {form.data.supports_web_search && (
+                                        <div className="max-w-xs">
+                                            {priceInput(
+                                                'web_search_price_per_thousand',
+                                                t('models.webSearchPrice'),
+                                                t('models.webSearchPriceHelp'),
+                                            )}
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </section>
                     </>
                 )}

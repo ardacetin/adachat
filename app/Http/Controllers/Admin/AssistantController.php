@@ -28,7 +28,7 @@ class AssistantController extends Controller
 {
     private const FIELDS = [
         'slug', 'name', 'description', 'instructions', 'model_alias_id',
-        'starter_prompts', 'icon', 'sort_order', 'enabled',
+        'starter_prompts', 'web_search_enabled', 'icon', 'sort_order', 'enabled',
     ];
 
     public function index(): Response
@@ -174,8 +174,13 @@ class AssistantController extends Controller
                 'input_price_per_million' => $assistant->modelAlias->aiModel->input_price_per_million,
             ],
             'maxDocumentTokens' => (int) config('ada.assistants.max_document_tokens'),
-            'aliases' => ModelAlias::query()->orderBy('sort_order')->orderBy('slug')->get()
-                ->map(fn (ModelAlias $alias) => ['id' => $alias->id, 'name' => $alias->localizedName($locale), 'enabled' => $alias->enabled]),
+            'aliases' => ModelAlias::query()->with('aiModel')->orderBy('sort_order')->orderBy('slug')->get()
+                ->map(fn (ModelAlias $alias) => [
+                    'id' => $alias->id,
+                    'name' => $alias->localizedName($locale),
+                    'enabled' => $alias->enabled,
+                    'web_search' => $alias->webSearchMaxUses() !== null,
+                ]),
             'groups' => Group::query()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),
             'icons' => Assistant::ICONS,
         ]);

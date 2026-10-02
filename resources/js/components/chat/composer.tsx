@@ -1,4 +1,4 @@
-import { ArrowUp, Paperclip, Square } from 'lucide-react';
+import { ArrowUp, Globe, Paperclip, Square } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type {
     ClipboardEvent,
@@ -30,6 +30,13 @@ type Props = {
         onAdd: (files: File[]) => void;
         onRemove: (key: string) => void;
     };
+    /** The web search switch, when the chosen model can search. */
+    webSearch?: {
+        enabled: boolean;
+        onToggle: () => void;
+        maxUses: number;
+        pricePerSearch: string;
+    } | null;
 };
 
 export default function Composer({
@@ -41,6 +48,7 @@ export default function Composer({
     disabled = false,
     toolbar,
     attachments,
+    webSearch = null,
 }: Props) {
     const { t } = useTranslation('chat');
     const textarea = useRef<HTMLTextAreaElement>(null);
@@ -114,6 +122,18 @@ export default function Composer({
                 }
             }}
         >
+            {webSearch?.enabled && (
+                <p
+                    id="chat-web-search-hint"
+                    className="px-4 pt-2 text-xs text-muted-foreground"
+                    data-test="web-search-hint"
+                >
+                    {t('webSearch.hint', {
+                        count: webSearch.maxUses,
+                        price: webSearch.pricePerSearch,
+                    })}
+                </p>
+            )}
             {attachments && (
                 <AttachmentChips
                     items={attachments.items}
@@ -177,6 +197,36 @@ export default function Composer({
                                 <Paperclip className="size-4" />
                             </Button>
                         </>
+                    )}
+                    {webSearch && (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={webSearch.enabled ? 'secondary' : 'ghost'}
+                            className={cn(
+                                'h-8 shrink-0 gap-1.5 rounded-full px-2.5',
+                                webSearch.enabled && 'text-primary',
+                            )}
+                            disabled={disabled || streaming}
+                            onClick={webSearch.onToggle}
+                            aria-pressed={webSearch.enabled}
+                            aria-describedby={
+                                webSearch.enabled
+                                    ? 'chat-web-search-hint'
+                                    : undefined
+                            }
+                            title={
+                                webSearch.enabled
+                                    ? t('webSearch.on')
+                                    : t('webSearch.off')
+                            }
+                            data-test="web-search-toggle"
+                        >
+                            <Globe className="size-4" />
+                            <span className="hidden sm:inline">
+                                {t('webSearch.toggle')}
+                            </span>
+                        </Button>
                     )}
                     <div className="min-w-0">{toolbar}</div>
                 </div>

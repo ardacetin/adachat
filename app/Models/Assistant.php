@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $instructions
  * @property int $model_alias_id
  * @property list<string>|null $starter_prompts
+ * @property bool $web_search_enabled
  * @property string $icon
  * @property int $sort_order
  * @property bool $enabled
@@ -34,7 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 #[Fillable([
     'slug', 'name', 'description', 'instructions', 'model_alias_id',
-    'starter_prompts', 'icon', 'sort_order', 'enabled',
+    'starter_prompts', 'web_search_enabled', 'icon', 'sort_order', 'enabled',
 ])]
 class Assistant extends Model
 {
@@ -53,6 +54,7 @@ class Assistant extends Model
     protected $attributes = [
         'description' => null,
         'starter_prompts' => null,
+        'web_search_enabled' => false,
         'icon' => 'sparkles',
         'sort_order' => 0,
         'enabled' => true,
@@ -126,6 +128,7 @@ class Assistant extends Model
             'name' => 'array',
             'description' => 'array',
             'starter_prompts' => 'array',
+            'web_search_enabled' => 'boolean',
             'enabled' => 'boolean',
         ];
     }

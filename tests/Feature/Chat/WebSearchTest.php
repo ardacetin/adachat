@@ -2,6 +2,7 @@
 
 use App\Domain\AI\Services\CredentialVault;
 use App\Models\AiModel;
+use App\Models\Assistant;
 use App\Models\BudgetReservation;
 use App\Models\Conversation;
 use App\Models\Group;
@@ -141,4 +142,64 @@ test('searches per message never exceed the configured limit', function () {
     $this->alias->forceFill(['web_search_max_uses' => 50])->save();
 
     expect($this->alias->refresh()->webSearchMaxUses())->toBe(5);
+});
+
+test('the chat page tells which aliases can search and what a search costs', function () {
+    $this->actingAs($this->user)
+        ->get(route('home'))
+        ->assertInertia(fn ($page) => $page
+            ->where('aliases.0.web_search', ['max_uses' => 3, 'price_per_search' => '0.01']));
+
+    $this->alias->update(['web_search_enabled' => false]);
+
+    $this->actingAs($this->user)
+        ->get(route('home'))
+        ->assertInertia(fn ($page) => $page->where('aliases.0.web_search', null));
+});
+
+test('an assistant searches only when it allows web search', function () {
+    fakeSearchingOpenAi();
+    $assistant = Assistant::factory()->create(['model_alias_id' => $this->alias->id]);
+    $assistant->groups()->attach(Group::default());
+
+    $this->actingAs($this->user)
+        ->postJson(route('messages.store'), ['content' => 'Ara', 'model_alias_id' => $this->alias->id, 'assistant_id' => $assistant->id, 'web_search' => true])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('web_search');
+
+    $assistant->update(['web_search_enabled' => true]);
+
+    $events = searchEvents(['content' => 'Ara', 'model_alias_id' => $this->alias->id, 'assistant_id' => $assistant->id, 'web_search' => true]);
+
+    expect(array_column($events, 'event'))->toContain('search');
+});
+
+test('the Markdown export lists the sources of an answer', function () {
+    fakeSearchingOpenAi();
+
+    searchEvents(['content' => 'Ara', 'model_alias_id' => $this->alias->id, 'web_search' => true]);
+
+    $this->actingAs($this->user)
+        ->get(route('conversations.export', Conversation::query()->sole()))
+        ->assertOk()
+        ->assertSee("**Sources**\n\n1. [Ada Lovelace - Vikipedi](<https://tr.wikipedia.org/wiki/Ada_Lovelace>)", false);
+});
+
+test('reports count the web searches', function () {
+    fakeSearchingOpenAi();
+
+    searchEvents(['content' => 'Ara', 'model_alias_id' => $this->alias->id, 'web_search' => true]);
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->get(route('admin.reports.index', ['by' => 'model']))
+        ->assertInertia(fn ($page) => $page
+            ->where('totals.web_searches', 1)
+            ->where('totals.web_search_usd', '0.01')
+            ->where('breakdown.0.web_searches', 1));
+});
+
+test('the doctor warns about an alias that allows search on a model that cannot', function () {
+    $this->model->update(['supports_web_search' => false]);
+
+    $this->artisan('ada:doctor')->expectsOutputToContain('does not support web search or has no search price');
 });

@@ -399,6 +399,17 @@ answers with citations.
 - **Stored:** the answer keeps up to 20 cited sources (or, without
   citations, the first 5 results) in `messages.metadata.sources`, http(s)
   links only. Search queries and result contents are not stored.
+- **In the chat:** a "Web search" button in the composer appears when the
+  alias (and the assistant, if any) allows search; it is off for every new
+  message and shows how many searches are allowed and what one costs. While
+  the answer streams, each search is shown ("Searching: …"); the sources are
+  listed under the answer, also in the Markdown export. Reports and their
+  CSV have a web search column.
+- **Gemini and Google's terms:** grounded answers must be shown with
+  Google's Search Suggestions (`groundingMetadata.searchEntryPoint`), which
+  Ada does not render yet. The catalog therefore lists Gemini models
+  without web search, and the model form warns when it is turned on for a
+  Gemini model ([security.md §9](security.md#9-prompt-privacy)).
 
 Pricing: [budget-engine.md §5.4](budget-engine.md#54-reservation-amount).
 

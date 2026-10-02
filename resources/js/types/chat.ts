@@ -9,6 +9,15 @@ export type ChatMessage = {
     finish_reason: string | null;
     output_capped: boolean;
     attachments?: AttachmentInfo[];
+    sources?: Source[];
+    /** Searches the provider runs while the answer streams. */
+    searches?: (string | null)[];
+};
+
+/** A web page an answer is based on. */
+export type Source = {
+    url: string;
+    title: string | null;
 };
 
 export type AttachmentInfo = {
@@ -28,6 +37,8 @@ export type AliasOption = {
     description: string | null;
     details: string | null;
     supports_vision: boolean;
+    /** What web search allows and costs with this alias; null when it cannot search. */
+    web_search: { max_uses: number; price_per_search: string } | null;
 };
 
 export type ConversationSummary = {
@@ -48,9 +59,11 @@ export type CompletedEvent = {
     assistant_message_id: string;
     status: MessageStatus;
     finish_reason: string | null;
+    sources: Source[];
     usage: {
         input_tokens: number;
         output_tokens: number;
+        web_searches: number;
         cost_usd: string;
         estimated: boolean;
     };
@@ -72,4 +85,6 @@ export type AssistantSummary = {
     icon: string;
     model_alias_id: number;
     starter_prompts: string[];
+    /** Whether the assistant's users may search the web. */
+    web_search: boolean;
 };

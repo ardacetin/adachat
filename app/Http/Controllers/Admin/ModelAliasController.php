@@ -121,7 +121,10 @@ class ModelAliasController extends Controller
                     'id' => $model->id,
                     'label' => "{$model->display_name} ({$model->provider->name})",
                     'max_output_tokens' => $model->max_output_tokens,
+                    // Search needs a model that can search and a search price.
+                    'web_search' => $model->supports_web_search && $model->web_search_price_per_thousand !== null,
                 ]),
+            'webSearchMaxUsesLimit' => (int) config('ada.web_search.max_uses_limit', 5),
         ]);
     }
 

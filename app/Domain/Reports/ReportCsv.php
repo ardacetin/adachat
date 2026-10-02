@@ -36,7 +36,7 @@ final class ReportCsv
                 $cells[] = $row['detail'] ?? '';
             }
 
-            return [...$cells, $row['requests'], $row['input_tokens'], $row['output_tokens'], self::number($row['cost_usd'], $locale)];
+            return [...$cells, $row['requests'], $row['input_tokens'], $row['output_tokens'], $row['web_searches'], self::number($row['cost_usd'], $locale)];
         }, $this->statistics->breakdown($filters, $dimension, limit: null));
 
         $this->write($out, [...$headers, ...$this->amountHeaders($locale)], $rows, $locale);
@@ -96,6 +96,7 @@ final class ReportCsv
             __('admin.report_csv.requests', [], $locale),
             __('admin.report_csv.input_tokens', [], $locale),
             __('admin.report_csv.output_tokens', [], $locale),
+            __('admin.report_csv.web_searches', [], $locale),
             __('admin.report_csv.cost', [], $locale),
         ];
     }

@@ -57,6 +57,8 @@ iş görebileceğini öngörmüştür.
 - Model kaydı, model alias'ları ve grup bazlı model izinleri
 - Streaming sohbet, Markdown gösterimi, konuşma geçmişi
 - Dosya ekleri: görsel, PDF, Word, Excel, PowerPoint, metin ve kod dosyaları
+- Sağlayıcıların kendi arama araçlarıyla, kaynak gösteren web araması; her
+  mesajda ayrıca açılır ve bütçeden düşer
 - Sert sınırlı aylık USD bütçeleri (provider token sayımı, rezervasyon,
   çıktı limitinin kalan bütçeye göre düşürülmesi)
 - Fiyat snapshot'lı kullanım muhasebesi, raporlar ve yönetim paneli

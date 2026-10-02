@@ -39,6 +39,9 @@ conversations cannot continue (403); they stay readable.
 - Starter prompts are shown as buttons in the empty conversation.
 - Budgets work as usual: the instructions are input tokens of every request
   and are counted by the provider's token counter.
+- Web search (v1.3): users can turn it on for a message only when the
+  assistant allows it ("Users may search the web with this assistant") and
+  its alias allows it too; otherwise the request is refused (422).
 
 ## Documents
 

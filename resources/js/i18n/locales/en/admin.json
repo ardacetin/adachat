@@ -214,7 +214,12 @@
         "catalogUpdateHelp": "Ada's catalog has newer prices for this model: {{input}} in / {{output}} out per 1M tokens.",
         "catalogUpdateAction": "Use new prices",
         "pricingCatalog": "Catalog",
-        "pricingManual": "Manual"
+        "pricingManual": "Manual",
+        "webSearch": "Web search (the provider's own search tool)",
+        "webSearchPrice": "Web search (USD per 1,000 searches)",
+        "webSearchPriceHelp": "Charged for every search the provider runs, on top of the tokens its results add.",
+        "catalogWebSearch": "Web search: {{price}} per 1,000 searches.",
+        "webSearchGeminiTerms": "Google's Gemini API terms require showing Google's Search Suggestions with every answer grounded in Google Search. Ada does not show them yet, so check the terms before turning this on."
     },
     "aliases": {
         "title": "Model aliases",
@@ -237,7 +242,12 @@
         "enabled": "Enabled",
         "groups": "Available to groups",
         "groupsHelp": "Only members of the selected groups can choose this alias.",
-        "noModels": "Add a model first."
+        "noModels": "Add a model first.",
+        "webSearch": "Web search",
+        "webSearchEnabled": "Users may turn on web search",
+        "webSearchHelp": "Users turn it on for each message. Their question and the search queries go to the provider's search; every search costs money and counts against the user's budget.",
+        "webSearchMaxUses": "Searches per message (at most)",
+        "webSearchUnavailable": "The chosen model cannot search the web, or has no search price (Administration → Models)."
     },
     "groups": {
         "title": "Groups",
@@ -434,7 +444,10 @@
         "download_provider": "Breakdown by provider",
         "download_user": "Breakdown by user (all users)",
         "downloadDaily": "Spending per day",
-        "downloadMonthly": "Spending per month"
+        "downloadMonthly": "Spending per month",
+        "searches": "Web searches",
+        "webSearches_one": "{{formatted}} web search · {{cost}}",
+        "webSearches_other": "{{formatted}} web searches · {{cost}}"
     },
     "dashboard": {
         "spend": "Spending this month",
@@ -506,6 +519,9 @@
         "uploading": "Uploading…",
         "removeDocumentTitle": "Remove {{name}}?",
         "removeDocumentHelp": "The assistant no longer receives this document. The file is deleted.",
-        "documentsAfterSave": "Save the assistant first; documents can be added afterwards."
+        "documentsAfterSave": "Save the assistant first; documents can be added afterwards.",
+        "webSearch": "Users may search the web with this assistant",
+        "webSearchHelp": "Users turn it on for each message, as with the model alias.",
+        "webSearchAliasOff": "The assistant's model alias does not allow web search; turn it on there first."
     }
 }

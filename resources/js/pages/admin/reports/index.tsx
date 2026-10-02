@@ -327,6 +327,24 @@ export default function Reports({
                                 {formatNumber(totals.input_tokens, lang)} /{' '}
                                 {formatNumber(totals.output_tokens, lang)}
                             </CardTitle>
+                            {totals.web_searches > 0 && (
+                                <p
+                                    className="text-xs text-muted-foreground"
+                                    data-test="report-web-searches"
+                                >
+                                    {t('reports.webSearches', {
+                                        count: totals.web_searches,
+                                        formatted: formatNumber(
+                                            totals.web_searches,
+                                            lang,
+                                        ),
+                                        cost: formatUsd(
+                                            totals.web_search_usd,
+                                            lang,
+                                        ),
+                                    })}
+                                </p>
+                            )}
                         </CardHeader>
                     </Card>
                 </div>
@@ -410,6 +428,9 @@ export default function Reports({
                                     <TableHead className="hidden text-right md:table-cell">
                                         {t('reports.output')}
                                     </TableHead>
+                                    <TableHead className="hidden text-right lg:table-cell">
+                                        {t('reports.searches')}
+                                    </TableHead>
                                     <TableHead className="text-right">
                                         {t('reports.cost')}
                                     </TableHead>
@@ -461,6 +482,12 @@ export default function Reports({
                                         <TableCell className="hidden text-right tabular-nums md:table-cell">
                                             {formatNumber(
                                                 row.output_tokens,
+                                                lang,
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="hidden text-right tabular-nums lg:table-cell">
+                                            {formatNumber(
+                                                row.web_searches,
                                                 lang,
                                             )}
                                         </TableCell>

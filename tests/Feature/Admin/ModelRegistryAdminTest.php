@@ -225,3 +225,15 @@ test('an alias allows web search with a number of searches per message', functio
         ->put(route('admin.aliases.update', $alias), aliasPayload($model, ['web_search_max_uses' => 6]))
         ->assertSessionHasErrors('web_search_max_uses');
 });
+
+test('the alias form tells which models can search', function () {
+    $searching = AiModel::factory()->create(['supports_web_search' => true, 'web_search_price_per_thousand' => '10']);
+    $unpriced = AiModel::factory()->create(['supports_web_search' => true]);
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->get(route('admin.aliases.create'))
+        ->assertInertia(fn ($page) => $page
+            ->where('webSearchMaxUsesLimit', 5)
+            ->where('models', fn ($models) => collect($models)->firstWhere('id', $searching->id)['web_search'] === true
+                && collect($models)->firstWhere('id', $unpriced->id)['web_search'] === false));
+});

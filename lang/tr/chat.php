@@ -27,5 +27,6 @@ return [
         'you' => 'Siz',
         'assistant' => 'Asistan (:model)',
         'attachments' => 'Ekler: :names',
+        'sources' => 'Kaynaklar',
     ],
 ];

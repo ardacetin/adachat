@@ -68,7 +68,8 @@
         "forbidden": "Bu model sizin kullanımınıza açık değil.",
         "unknown": "Bir sorun oluştu. Lütfen tekrar deneyin.",
         "attachments_invalid": "Eklenen dosyalardan biri artık kullanılamıyor. Yeniden ekleyin.",
-        "validation": "Mesaj gönderilemedi."
+        "validation": "Mesaj gönderilemedi.",
+        "web_search_unavailable": "Bu modelle web araması kullanılamıyor."
     },
     "budget": {
         "title": "Aylık bütçe",
@@ -133,5 +134,15 @@
         "title": "Asistanlar",
         "description": "Kurumunuzun belirli işler için hazırladığı asistanlar. Modellerinizden birini kullanırlar.",
         "none": "Henüz kullanabileceğiniz bir asistan yok."
+    },
+    "webSearch": {
+        "toggle": "Web araması",
+        "on": "Bu mesajda web araması açık",
+        "off": "Bu mesaj için web'de ara",
+        "hint": "En çok {{count}} arama, aramanın tanesi yaklaşık {{price}} $. Sorunuz arama sağlayıcısına gider.",
+        "searching": "Aranıyor: {{query}}",
+        "searchingUnknown": "Web'de aranıyor…",
+        "sources": "Kaynaklar",
+        "sourceLink": "{{title}} (yeni sekmede açılır)"
     }
 }
