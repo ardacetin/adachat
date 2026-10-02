@@ -32,6 +32,8 @@ use Illuminate\Notifications\Notifiable;
  * @property Appearance $appearance
  * @property UserStatus $status
  * @property CarbonImmutable|null $disabled_at
+ * @property CarbonImmutable|null $invited_at Added by an administrator before the first sign-in.
+ * @property int|null $invited_by
  * @property CarbonImmutable|null $last_login_at
  * @property CarbonImmutable|null $last_active_at
  * @property int|null $acknowledged_version Usage notice version the user acknowledged.
@@ -75,11 +77,20 @@ class User extends Authenticatable
             'status' => UserStatus::class,
             'monthly_limit_override_usd' => UsdCast::class,
             'disabled_at' => 'datetime',
+            'invited_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
             'acknowledged_at' => 'datetime',
             'acknowledged_version' => 'integer',
         ];
+    }
+
+    /**
+     * Added by an administrator and not signed in yet.
+     */
+    public function invitationPending(): bool
+    {
+        return $this->invited_at !== null && $this->last_login_at === null;
     }
 
     /**

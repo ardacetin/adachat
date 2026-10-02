@@ -1,0 +1,147 @@
+<?php
+
+use App\Domain\Identity\Services\IdentityProviderRegistry;
+use App\Domain\Institution\Settings\AuthSettings;
+use App\Http\Controllers\Admin\UserController;
+use App\Models\AuditLog;
+use App\Models\Group;
+use App\Models\User;
+use App\Models\UserIdentity;
+use Illuminate\Testing\TestResponse;
+use Tests\Support\FakeIdentityProvider;
+
+beforeEach(function () {
+    updateSettings(AuthSettings::class, ['allowed_domains' => ['example.edu'], 'auto_provision' => false]);
+    $this->idp = new FakeIdentityProvider(requiresHostedDomain: false);
+    $this->app->instance(IdentityProviderRegistry::class, new IdentityProviderRegistry([$this->idp]));
+});
+
+function signInAsIdentity(array $overrides = []): TestResponse
+{
+    test()->idp->next = FakeIdentityProvider::identity(['hostedDomain' => null, ...$overrides]);
+
+    return test()->post(route('auth.acs', 'saml'));
+}
+
+test('addresses are parsed from lines, commas and name forms', function () {
+    $parsed = UserController::parseAddresses("ada@example.edu\nGrace Hopper <Grace@Example.edu>, \"Alan Turing\" <alan@partner.org>;\n\nnot-an-address\nada@example.edu");
+
+    expect($parsed['valid'])->toBe([
+        ['email' => 'ada@example.edu', 'name' => null],
+        ['email' => 'grace@example.edu', 'name' => 'Grace Hopper'],
+        ['email' => 'alan@partner.org', 'name' => 'Alan Turing'],
+    ])->and($parsed['invalid'])->toBe(['not-an-address']);
+});
+
+test('administrators add users by e-mail address', function () {
+    $admin = User::factory()->admin()->create();
+    $group = Group::factory()->create();
+    User::factory()->create(['email' => 'existing@example.edu']);
+
+    $this->actingAs($admin)->post(route('admin.users.store'), [
+        'emails' => "Grace Hopper <grace@example.edu>\nexisting@example.edu\nalan@partner.org",
+        'group_id' => $group->id,
+        'role' => 'user',
+    ])->assertRedirect()->assertInertiaFlash('toast.message', __('admin.users.invited', ['created' => 2, 'existing' => 1]));
+
+    $grace = User::query()->where('email', 'grace@example.edu')->sole();
+
+    expect($grace->name)->toBe('Grace Hopper')
+        ->and($grace->group_id)->toBe($group->id)
+        ->and($grace->invited_by)->toBe($admin->id)
+        ->and($grace->invitationPending())->toBeTrue()
+        ->and(User::query()->where('email', 'alan@partner.org')->value('name'))->toBe('alan')
+        ->and(AuditLog::query()->where('action', 'user.invited')->count())->toBe(2);
+
+    $this->get(route('admin.users.index'))->assertInertia(fn ($page) => $page
+        ->where('access.auto_provision', false)
+        ->where('users.data', fn ($rows) => collect($rows)->firstWhere('email', 'grace@example.edu')['invitation_pending'] === true));
+});
+
+test('invalid input is refused without creating anyone', function (string $emails, string $error) {
+    $this->actingAs(User::factory()->admin()->create())
+        ->post(route('admin.users.store'), ['emails' => $emails, 'group_id' => Group::default()->id, 'role' => 'user'])
+        ->assertSessionHasErrors(['emails' => $error]);
+
+    expect(User::query()->count())->toBe(1);
+})->with([
+    'bad address' => ['ada@example.edu, nope', 'These are not valid e-mail addresses: nope'],
+    'only separators' => [" ,\n;", 'Enter between 1 and 500 e-mail addresses.'],
+]);
+
+test('only super administrators add administrators', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->post(route('admin.users.store'), ['emails' => 'boss@example.edu', 'group_id' => Group::default()->id, 'role' => 'admin'])
+        ->assertSessionHasErrors('role');
+
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->post(route('admin.users.store'), ['emails' => 'boss@example.edu', 'group_id' => Group::default()->id, 'role' => 'admin'])
+        ->assertSessionHasNoErrors();
+
+    expect(User::query()->where('email', 'boss@example.edu')->value('role')->value)->toBe('admin');
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.users.store'), ['emails' => 'x@example.edu', 'group_id' => Group::default()->id, 'role' => 'user'])
+        ->assertForbidden();
+});
+
+test('an added address signs in and is linked, even outside the allowed domains', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->post(route('admin.users.store'), ['emails' => 'alan@partner.org', 'group_id' => Group::default()->id, 'role' => 'user']);
+    auth()->logout();
+
+    signInAsIdentity(['email' => 'alan@partner.org', 'subject' => 'alan-1', 'name' => 'Alan Turing'])->assertRedirect(route('home'));
+
+    $alan = User::query()->where('email', 'alan@partner.org')->sole();
+    $this->assertAuthenticatedAs($alan);
+    expect($alan->invitationPending())->toBeFalse()
+        ->and($alan->name)->toBe('Alan Turing')
+        ->and(UserIdentity::query()->where('user_id', $alan->id)->value('subject'))->toBe('alan-1');
+});
+
+test('without auto provisioning, unlisted addresses are refused', function () {
+    signInAsIdentity(['email' => 'stranger@example.edu'])
+        ->assertSessionHasErrors(['auth' => __('auth.errors.not_provisioned')]);
+
+    signInAsIdentity(['email' => 'stranger@other.org'])
+        ->assertSessionHasErrors(['auth' => __('auth.errors.domain_not_allowed')]);
+
+    expect(User::query()->count())->toBe(0);
+});
+
+test('an added address still needs a verified e-mail', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->post(route('admin.users.store'), ['emails' => 'alan@partner.org', 'group_id' => Group::default()->id, 'role' => 'user']);
+    auth()->logout();
+
+    signInAsIdentity(['email' => 'alan@partner.org', 'emailVerified' => false])
+        ->assertSessionHasErrors(['auth' => __('auth.errors.email_not_verified')]);
+});
+
+test('unused invitations can be removed, used accounts cannot', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->post(route('admin.users.store'), ['emails' => "unused@example.edu\nused@example.edu", 'group_id' => Group::default()->id, 'role' => 'user']);
+    $unused = User::query()->where('email', 'unused@example.edu')->sole();
+    $used = User::query()->where('email', 'used@example.edu')->sole();
+    $used->forceFill(['last_login_at' => now()])->save();
+
+    $this->get(route('admin.users.show', $unused))->assertInertia(fn ($page) => $page
+        ->where('user.invitation_pending', true)
+        ->where('permissions.removeInvitation', true));
+
+    $this->delete(route('admin.users.destroy', $unused))->assertRedirect(route('admin.users.index'));
+    $this->delete(route('admin.users.destroy', $used))->assertForbidden();
+    $this->delete(route('admin.users.destroy', $admin))->assertForbidden();
+
+    expect(User::query()->whereKey($unused->id)->exists())->toBeFalse()
+        ->and(User::query()->whereKey($used->id)->exists())->toBeTrue()
+        ->and(AuditLog::query()->where('action', 'user.invitation_removed')->sole()->old_values)->toBe(['email' => 'unused@example.edu']);
+});
+
+test('administrators cannot remove invited super administrators', function () {
+    $super = User::factory()->superAdmin()->create(['invited_at' => now()]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->delete(route('admin.users.destroy', $super))
+        ->assertForbidden();
+});

@@ -53,4 +53,11 @@ return [
         'output_tokens' => 'Output tokens',
         'cost' => 'Cost (USD)',
     ],
+    'users' => [
+        'role_forbidden' => 'Only super administrators can add administrators.',
+        'invalid_addresses' => 'These are not valid e-mail addresses: :list',
+        'address_count' => 'Enter between 1 and :max e-mail addresses.',
+        'invited' => 'Added :created user(s); :existing address(es) already had an account.',
+        'invitation_removed' => 'The user was removed.',
+    ],
 ];

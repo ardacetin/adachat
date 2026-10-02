@@ -7,8 +7,9 @@ use App\Domain\Identity\Exceptions\IdentityRejected;
 use App\Domain\Identity\Exceptions\RejectionReason;
 
 /**
- * Institution sign-in policy: only verified addresses from allowed domains.
- * Never trusts the e-mail string alone.
+ * Institution sign-in policy: only verified addresses, from allowed domains
+ * or added by an administrator (invited). Never trusts the e-mail string
+ * alone.
  */
 final class AllowedDomainPolicy
 {
@@ -20,10 +21,15 @@ final class AllowedDomainPolicy
     /**
      * @throws IdentityRejected
      */
-    public function assertAllowed(ExternalIdentity $identity, bool $requireHostedDomain): void
+    public function assertAllowed(ExternalIdentity $identity, bool $requireHostedDomain, bool $invited = false): void
     {
         if (! $identity->emailVerified) {
             throw new IdentityRejected(RejectionReason::EmailNotVerified);
+        }
+
+        // An administrator added exactly this address (Admin > Users).
+        if ($invited) {
+            return;
         }
 
         if ($this->allowedDomains === [] || ! $this->isAllowed($identity->emailDomain())) {

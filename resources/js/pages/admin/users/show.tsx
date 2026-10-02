@@ -1,5 +1,6 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import DeleteButton from '@/components/admin/delete-button';
 import CheckboxField from '@/components/admin/checkbox-field';
 import FormField from '@/components/admin/form-field';
 import UsageDetails from '@/components/budget/usage-details';
@@ -27,6 +28,7 @@ import { formatUsd } from '@/lib/format';
 import {
     adjustments as adjustmentsRoute,
     budget as budgetRoute,
+    destroy,
     group as groupRoute,
     index,
     role as roleRoute,
@@ -49,6 +51,8 @@ type Props = {
         created_at: string | null;
         last_login_at: string | null;
         last_active_at: string | null;
+        invited_at: string | null;
+        invitation_pending: boolean;
         is_self: boolean;
     };
     usage: UsageData;
@@ -65,6 +69,7 @@ type Props = {
         changeStatus: boolean;
         changeRole: boolean;
         adjustBudget: boolean;
+        removeInvitation: boolean;
     };
 };
 
@@ -153,6 +158,27 @@ export default function UserShow({
                         </div>
                     ))}
                 </dl>
+
+                {user.invitation_pending && (
+                    <Alert data-test="invitation-pending">
+                        <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                            <span>
+                                {t('users.invitedHelp', {
+                                    date: dateTime(user.invited_at),
+                                })}
+                            </span>
+                            {can.removeInvitation && (
+                                <DeleteButton
+                                    url={destroy.url(user.id)}
+                                    title={t('users.removeInvitationTitle')}
+                                    description={t(
+                                        'users.removeInvitationHelp',
+                                    )}
+                                />
+                            )}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 {user.is_self && (
                     <Alert>

@@ -154,6 +154,8 @@ Purpose: people who can sign in.
 | appearance | VARCHAR(8) | | `light` \| `dark` \| `system`, default `system` |
 | status | VARCHAR(16) | | `active` \| `disabled` |
 | disabled_at | DATETIME | yes | |
+| invited_at | DATETIME | yes | Added by an administrator (Admin → Users) before the first sign-in |
+| invited_by | BIGINT UNSIGNED FK → users | yes | `nullOnDelete` |
 | last_login_at | DATETIME | yes | |
 | last_active_at | DATETIME | yes | updated at most every few minutes |
 | remember_token | VARCHAR(100) | yes | |

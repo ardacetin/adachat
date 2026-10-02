@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Administrators add users by e-mail address (Administration → Users → Add
+  users), with group and role, and see who has not signed in yet. Added
+  addresses can sign in even outside the allowed domains; with "Anyone with
+  an address in an allowed domain can sign in" turned off, only listed users
+  can sign in. Unused invitations can be removed.
+
 - Easy model pricing: in Admin → Models, a model is added by choosing it
   from Ada's price catalog, without typing prices. The catalog
   (`resources/catalog/models.json`) holds official prices with their source
