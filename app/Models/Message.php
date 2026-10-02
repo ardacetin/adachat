@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property string $id
@@ -63,6 +64,14 @@ class Message extends Model
     public function modelAlias(): BelongsTo
     {
         return $this->belongsTo(ModelAlias::class);
+    }
+
+    /**
+     * @return HasOne<MessageFeedback, $this>
+     */
+    public function feedback(): HasOne
+    {
+        return $this->hasOne(MessageFeedback::class);
     }
 
     /**

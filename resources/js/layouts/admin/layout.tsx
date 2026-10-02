@@ -15,6 +15,7 @@ import { edit as editAuthentication } from '@/routes/admin/authentication';
 import { index as assistantsAdmin } from '@/routes/admin/assistants';
 import { index as budgetPolicies } from '@/routes/admin/budget-policies';
 import { index as groups } from '@/routes/admin/groups';
+import { index as feedback } from '@/routes/admin/feedback';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
 import { edit as editPrivacy } from '@/routes/admin/privacy';
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: PropsWithChildren) {
     const items: NavItem[] = [
         { titleKey: 'admin:nav.overview', href: index() },
         { titleKey: 'admin:nav.reports', href: reports() },
+        { titleKey: 'admin:nav.feedback', href: feedback() },
         { titleKey: 'admin:nav.users', href: users() },
         { titleKey: 'admin:nav.groups', href: groups() },
         { titleKey: 'admin:nav.auditLog', href: auditLog() },

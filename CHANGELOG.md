@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Answer feedback: 👍 / 👎 on every answer, with a reason for a thumbs
+  down (inaccurate, not helpful, incomplete, too long, something else; no
+  free text). Admin → Satisfaction shows votes, the share of thumbs up and
+  the reasons by model alias, model or assistant, from 5 votes on. Votes are
+  stored without the user and outlive deleted conversations as anonymous
+  counts ([docs/feedback.md](docs/feedback.md)).
 - Budget alerts for users: at 80 % of the monthly budget the chat shows a
   warning (until it is closed), and users get an e-mail at 80 % and 100 %,
   once per month each, in their language (`ada:budget:user-alerts`, every

@@ -146,5 +146,18 @@
         "searchingUnknown": "Searching the web…",
         "sources": "Sources",
         "sourceLink": "{{title}} (opens in a new tab)"
+    },
+    "feedback": {
+        "up": "Good answer",
+        "down": "Bad answer",
+        "downGiven": "Bad answer: {{reason}} (click to take back)",
+        "why": "What was wrong?",
+        "reasons": {
+            "inaccurate": "Inaccurate",
+            "unhelpful": "Not helpful",
+            "incomplete": "Incomplete",
+            "too_long": "Too long",
+            "other": "Something else"
+        }
     }
 }

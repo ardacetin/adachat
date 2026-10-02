@@ -14,7 +14,8 @@
         "auditLog": "Denetim kaydı",
         "reports": "Raporlar",
         "privacy": "Gizlilik",
-        "assistants": "Asistanlar"
+        "assistants": "Asistanlar",
+        "feedback": "Memnuniyet"
     },
     "index": {
         "intro": "Bu ayın özeti."
@@ -525,5 +526,32 @@
         "webSearch": "Kullanıcılar bu asistanla web'de arayabilir",
         "webSearchHelp": "Kullanıcılar, model takma adında olduğu gibi, her mesaj için ayrıca açar.",
         "webSearchAliasOff": "Asistanın model takma adı web aramasına izin vermiyor; önce orada açın."
+    },
+    "feedback": {
+        "title": "Memnuniyet",
+        "description": "Kullanıcıların yanıtları nasıl değerlendirdiği; model takma adı, model ya da asistana göre.",
+        "votes": "Oy",
+        "satisfaction": "Memnun",
+        "tooFew": "Yetersiz oy",
+        "reasonsTitle": "Beğenmeme nedenleri",
+        "byTitle": "Döküm",
+        "per": {
+            "alias": "Takma ad",
+            "model": "Model",
+            "assistant": "Asistan"
+        },
+        "up": "Beğendi",
+        "down": "Beğenmedi",
+        "topReasons": "En sık nedenler",
+        "none": "Bu dönemde oy yok.",
+        "reasonCount": "{{reason}} ({{count}})",
+        "reasons": {
+            "inaccurate": "Yanlış bilgi",
+            "unhelpful": "İşe yaramadı",
+            "incomplete": "Eksik",
+            "too_long": "Çok uzun",
+            "other": "Diğer"
+        },
+        "privacy": "Yalnızca oylar: mesaj, sohbet ya da isim yok. Oran {{count}} oydan itibaren gösterilir."
     }
 }

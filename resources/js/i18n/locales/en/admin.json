@@ -14,7 +14,8 @@
         "auditLog": "Audit log",
         "reports": "Reports",
         "privacy": "Privacy",
-        "assistants": "Assistants"
+        "assistants": "Assistants",
+        "feedback": "Satisfaction"
     },
     "index": {
         "intro": "This month at a glance."
@@ -525,5 +526,32 @@
         "webSearch": "Users may search the web with this assistant",
         "webSearchHelp": "Users turn it on for each message, as with the model alias.",
         "webSearchAliasOff": "The assistant's model alias does not allow web search; turn it on there first."
+    },
+    "feedback": {
+        "title": "Satisfaction",
+        "description": "How users rate the answers, by model alias, model or assistant.",
+        "votes": "Votes",
+        "satisfaction": "Satisfied",
+        "tooFew": "Too few votes",
+        "reasonsTitle": "Reasons for a thumbs down",
+        "byTitle": "Breakdown",
+        "per": {
+            "alias": "Alias",
+            "model": "Model",
+            "assistant": "Assistant"
+        },
+        "up": "Thumbs up",
+        "down": "Thumbs down",
+        "topReasons": "Most given reasons",
+        "none": "No votes in this period.",
+        "reasonCount": "{{reason}} ({{count}})",
+        "reasons": {
+            "inaccurate": "Inaccurate",
+            "unhelpful": "Not helpful",
+            "incomplete": "Incomplete",
+            "too_long": "Too long",
+            "other": "Other"
+        },
+        "privacy": "Votes only: no messages, conversations or names. A rate is shown from {{count}} votes on."
     }
 }

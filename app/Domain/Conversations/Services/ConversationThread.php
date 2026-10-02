@@ -18,7 +18,7 @@ final class ConversationThread
     public static function active(Conversation $conversation): Collection
     {
         /** @var Collection<string, Message> $messages */
-        $messages = $conversation->messages()->with('attachments')->orderBy('id')->get()->keyBy('id');
+        $messages = $conversation->messages()->with(['attachments', 'feedback'])->orderBy('id')->get()->keyBy('id');
 
         $thread = [];
         $current = $messages->last();
