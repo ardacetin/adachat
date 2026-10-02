@@ -1,0 +1,77 @@
+{
+    "about": "Prices in USD per million tokens from the providers' official pricing pages, standard (non-batch, global) rates. cache_write is the 5-minute cache write. Ada updates this file with each release; administrators can always override prices in the advanced mode of the model form.",
+    "models": [
+        {
+            "driver": "anthropic",
+            "id": "claude-fable-5-1",
+            "name": "Claude Fable 5.1",
+            "context_window": 1000000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "10",
+                "output": "50",
+                "cached_input": "0.25",
+                "cache_write": "12.50"
+            },
+            "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-10-01"
+        },
+        {
+            "driver": "anthropic",
+            "id": "claude-opus-5-5",
+            "name": "Claude Opus 5.5",
+            "context_window": 1000000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "4",
+                "output": "20",
+                "cached_input": "0.20",
+                "cache_write": "5"
+            },
+            "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-10-01"
+        },
+        {
+            "driver": "anthropic",
+            "id": "claude-sonnet-5-5",
+            "name": "Claude Sonnet 5.5",
+            "context_window": 1000000,
+            "max_output_tokens": 128000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "2",
+                "output": "10",
+                "cached_input": "0.20",
+                "cache_write": "2.50"
+            },
+            "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-10-01"
+        },
+        {
+            "driver": "anthropic",
+            "id": "claude-haiku-4-5-20251001",
+            "name": "Claude Haiku 4.5",
+            "context_window": 200000,
+            "max_output_tokens": 64000,
+            "supports_vision": true,
+            "supports_files": true,
+            "supports_reasoning": true,
+            "prices": {
+                "input": "1",
+                "output": "5",
+                "cached_input": "0.10",
+                "cache_write": "1.25"
+            },
+            "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-10-01"
+        }
+    ]
+}

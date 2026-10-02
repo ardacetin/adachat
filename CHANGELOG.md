@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Easy model pricing: in Admin → Models, a model is added by choosing it
+  from Ada's price catalog, without typing prices. The catalog
+  (`resources/catalog/models.json`) holds official prices with their source
+  and date; `ADA_MODEL_CATALOG` points to an institution's own copy. The
+  former form is the "Advanced" mode.
+- When a release updates catalog prices, the model list and `ada:doctor`
+  point out the models concerned; "Use new prices" takes them over.
+
 ## [1.1.0] - 2026-10-01
 
 An institution-wide spending cap with e-mail alerts, CSV exports and a

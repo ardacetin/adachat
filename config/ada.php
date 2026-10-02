@@ -84,6 +84,12 @@ return [
         'trusted_proxies' => env('TRUSTED_PROXIES'),
     ],
 
+    // The model price catalog the "easy" model form uses. An institution can
+    // point to its own copy, e.g. to add models or negotiated prices.
+    'catalog' => [
+        'path' => env('ADA_MODEL_CATALOG', resource_path('catalog/models.json')),
+    ],
+
     'chat' => [
         // Longest message a user can send, in characters.
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),

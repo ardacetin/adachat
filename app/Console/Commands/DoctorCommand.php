@@ -2,11 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\AI\Catalog\ModelCatalog;
 use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
+use App\Models\AiModel;
 use App\Models\Group;
 use App\Models\Provider;
 use Carbon\CarbonImmutable;
@@ -82,6 +84,12 @@ class DoctorCommand extends Command
             ->exists();
         $this->check('An enabled provider can be used (API key, or a keyless OpenAI-compatible server)', $usable, hint: 'Admin > Providers.');
         $this->check('The default group can use a model', Group::default()->modelAliases()->where('enabled', true)->exists(), warnOnly: true, hint: 'Admin > Model aliases: assign an alias to the Default group.');
+
+        $catalog = app(ModelCatalog::class);
+        $outdated = AiModel::query()->with('provider')->where('enabled', true)->get()
+            ->filter(fn (AiModel $model) => $catalog->newerPrices($model) !== null)
+            ->pluck('display_name');
+        $this->check('Catalog prices are current', $outdated->isEmpty(), warnOnly: true, hint: 'New catalog prices for: '.$outdated->implode(', ').'. Admin > Models: "Use new prices".');
 
         $this->newLine();
 

@@ -14,6 +14,10 @@ return [
     'primary_color_contrast' => 'This colour is too light: it needs a contrast of at least 3:1 against white so buttons stay readable.',
     'alias_max_tokens' => 'The output limit cannot exceed the model maximum (:max tokens).',
 
+    'models' => [
+        'catalog_unknown' => "This model is not in Ada's price catalog. Choose one from the list, or enter its prices in the advanced mode.",
+    ],
+
     'provider_check' => [
         'ok' => 'Connection successful: the API key works.',
         'failed' => 'Connection failed: :reason',

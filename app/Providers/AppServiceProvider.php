@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\AI\Catalog\ModelCatalog;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ModelCatalog::class, fn () => new ModelCatalog((string) config('ada.catalog.path')));
     }
 
     /**

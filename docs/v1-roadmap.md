@@ -167,8 +167,22 @@ Chosen from the candidates below, one pull request per step:
 
 Then the v1.1.0 release notes ✅ ([docs/releases/v1.1.0.md](releases/v1.1.0.md)).
 
+## v1.2
+
+Planned with the pilot's feedback, one pull request per step:
+
+| Step | Scope | Status |
+|---|---|---|
+| P1 | Easy pricing: models chosen from a built-in price catalog with sources; the manual form becomes "Advanced" | 🚧 |
+| P2 | Sign-in with OIDC, with a Microsoft Entra ID preset (next to Google SAML) | |
+| P3 | Chat: search, pinned conversations, export (Markdown, print / PDF) | |
+| P4 | Institutional assistants part 1: instructions, model, groups, gallery | |
+| P5 | Institutional assistants part 2: fixed documents added to the context | |
+
+Then the v1.2.0 release notes.
+
 ## Candidates for V2
 
 - OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).
-- Generic OIDC / Entra ID, LDAP.
+- LDAP.
 - Azure OpenAI, AWS Bedrock as dedicated drivers.

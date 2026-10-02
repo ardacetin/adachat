@@ -178,7 +178,25 @@
             "calculatorTotal": "{{count}} mesaj",
             "calculatorFits": "{{budget}} bütçeye sığan mesaj",
             "tokensNote": "Pratik kural: 1 token ≈ ¾ İngilizce kelime; Türkçe metin aynı uzunluk için yaklaşık %30–50 daha fazla token gerektirir."
-        }
+        },
+        "mode": "Fiyatlar nasıl belirlensin?",
+        "modeEasy": "Kolay: fiyatlar katalogdan",
+        "modeAdvanced": "Gelişmiş: fiyatları ben girerim",
+        "modeEasyHelp": "Modeli seçin; Ada resmî fiyatlarını, bağlam penceresini ve yeteneklerini doldurur. Her kullanıcının ne kadar kullanabileceğini aylık bütçesi belirler.",
+        "modeAdvancedHelp": "Milyon token başına fiyatları ve sınırları kendiniz girin; örneğin katalogda olmayan modeller ya da anlaşmalı fiyatlar için.",
+        "modeNoCatalog": "Ada'nın fiyat kataloğunda bu sağlayıcı için model yok; fiyatları kendiniz girin.",
+        "catalogModel": "Model",
+        "catalogChoose": "Bir model seçin…",
+        "catalogChooseFirst": "Fiyatlarını görmek için bir model seçin.",
+        "catalogPrices": "1M token: girdi {{input}} / çıktı {{output}}",
+        "catalogSummary": "Milyon token başına girdi {{input}} · çıktı {{output}} · bağlam penceresi {{window}} token.",
+        "catalogSource": "{{date}} tarihli resmî fiyatlar:",
+        "free": "Ücretsiz (kendi sunucunuzdaki model)",
+        "catalogUpdate": "Yeni katalog fiyatları",
+        "catalogUpdateHelp": "Ada'nın kataloğunda bu model için daha yeni fiyatlar var: 1M token başına girdi {{input}} / çıktı {{output}}.",
+        "catalogUpdateAction": "Yeni fiyatları kullan",
+        "pricingCatalog": "Katalog",
+        "pricingManual": "Elle"
     },
     "aliases": {
         "title": "Model takma adları",

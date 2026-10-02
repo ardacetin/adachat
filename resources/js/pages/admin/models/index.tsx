@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { create, edit, index } from '@/routes/admin/models';
+import { catalogSync, create, edit, index } from '@/routes/admin/models';
 
 type ModelRow = {
     id: number;
@@ -22,6 +22,11 @@ type ModelRow = {
     output_price_per_million: string;
     context_window: number;
     enabled: boolean;
+    pricing_source: 'catalog' | 'manual';
+    catalog_update: {
+        input_price_per_million: string;
+        output_price_per_million: string;
+    } | null;
 };
 
 /** Prices arrive as decimal strings; format for display only. */
@@ -77,10 +82,58 @@ export default function ModelsIndex({ models }: { models: ModelRow[] }) {
                                         <div className="font-mono text-xs text-muted-foreground">
                                             {model.provider_model_id}
                                         </div>
+                                        {model.catalog_update && (
+                                            <div
+                                                className="mt-2 flex flex-wrap items-center gap-2 text-xs font-normal"
+                                                data-test="catalog-update"
+                                            >
+                                                <Badge>
+                                                    {t('models.catalogUpdate')}
+                                                </Badge>
+                                                <span className="text-muted-foreground">
+                                                    {t(
+                                                        'models.catalogUpdateHelp',
+                                                        {
+                                                            input: price(
+                                                                model
+                                                                    .catalog_update
+                                                                    .input_price_per_million,
+                                                            ),
+                                                            output: price(
+                                                                model
+                                                                    .catalog_update
+                                                                    .output_price_per_million,
+                                                            ),
+                                                        },
+                                                    )}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        router.post(
+                                                            catalogSync.url(
+                                                                model.id,
+                                                            ),
+                                                        )
+                                                    }
+                                                >
+                                                    {t(
+                                                        'models.catalogUpdateAction',
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell>{model.provider}</TableCell>
                                     <TableCell className="text-right tabular-nums">
                                         {price(model.input_price_per_million)}
+                                        <div className="text-xs text-muted-foreground">
+                                            {model.pricing_source === 'catalog'
+                                                ? t('models.pricingCatalog')
+                                                : t('models.pricingManual')}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-right tabular-nums">
                                         {price(model.output_price_per_million)}
