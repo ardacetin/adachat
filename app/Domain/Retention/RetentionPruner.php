@@ -2,12 +2,14 @@
 
 namespace App\Domain\Retention;
 
+use App\Domain\Assistants\AssistantDocumentStore;
 use App\Domain\Attachments\AttachmentStore;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Budget\Enums\ReservationStatus;
 use App\Domain\Budget\Services\PeriodCalculator;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Domain\Institution\Settings\PrivacySettings;
+use App\Models\AssistantDocument;
 use App\Models\MessageAttachment;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -139,18 +141,25 @@ final class RetentionPruner
         $disk = AttachmentStore::disk();
         $count = 0;
 
-        foreach (array_chunk($disk->allFiles(AttachmentStore::DIRECTORY), self::CHUNK) as $paths) {
-            $known = MessageAttachment::query()->whereIn('path', $paths)->pluck('path')->all();
-            $orphans = array_filter(
-                array_diff($paths, $known),
-                fn (string $path) => $disk->lastModified($path) < $now->subHour()->getTimestamp(),
-            );
+        // Chat attachments and assistant documents.
+        $directories = [
+            AttachmentStore::DIRECTORY => fn (array $paths) => MessageAttachment::query()->whereIn('path', $paths)->pluck('path')->all(),
+            AssistantDocumentStore::DIRECTORY => fn (array $paths) => AssistantDocument::query()->whereIn('path', $paths)->pluck('path')->all(),
+        ];
 
-            if (! $dryRun) {
-                $disk->delete(array_values($orphans));
+        foreach ($directories as $directory => $known) {
+            foreach (array_chunk($disk->allFiles($directory), self::CHUNK) as $paths) {
+                $orphans = array_filter(
+                    array_diff($paths, $known($paths)),
+                    fn (string $path) => $disk->lastModified($path) < $now->subHour()->getTimestamp(),
+                );
+
+                if (! $dryRun) {
+                    $disk->delete(array_values($orphans));
+                }
+
+                $count += count($orphans);
             }
-
-            $count += count($orphans);
         }
 
         return $count;

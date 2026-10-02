@@ -496,6 +496,16 @@
         "enabled": "Enabled",
         "groups": "Groups",
         "groupsHelp": "Members of these groups see the assistant.",
-        "noAliases": "Create a model alias first."
+        "noAliases": "Create a model alias first.",
+        "documents": "Documents",
+        "documentsHelp": "Fixed documents the assistant knows: a guide, a syllabus, regulations. Their text (PDF, Word, Excel, PowerPoint, text) is sent with the instructions in every message, so keep them short. Anthropic models cache it, which makes repeated messages cheaper.",
+        "documentTokens": "≈ {{tokens}} tokens",
+        "documentsTotal": "Documents: {{used}} of {{max}} tokens.",
+        "perMessage": "Every message sends ≈ {{tokens}} tokens of instructions and documents (≈ {{cost}} per message without caching).",
+        "addDocument": "Add document",
+        "uploading": "Uploading…",
+        "removeDocumentTitle": "Remove {{name}}?",
+        "removeDocumentHelp": "The assistant no longer receives this document. The file is deleted.",
+        "documentsAfterSave": "Save the assistant first; documents can be added afterwards."
     }
 }

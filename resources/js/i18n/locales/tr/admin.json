@@ -496,6 +496,16 @@
         "enabled": "Etkin",
         "groups": "Gruplar",
         "groupsHelp": "Bu grupların üyeleri asistanı görür.",
-        "noAliases": "Önce bir model takma adı oluşturun."
+        "noAliases": "Önce bir model takma adı oluşturun.",
+        "documents": "Belgeler",
+        "documentsHelp": "Asistanın bildiği sabit belgeler: bir kılavuz, ders planı, yönetmelik. Metinleri (PDF, Word, Excel, PowerPoint, metin) her mesajda talimatlarla birlikte gönderilir; bu yüzden kısa tutun. Anthropic modelleri bu metni önbelleğe alır, tekrar eden mesajlar daha ucuza gelir.",
+        "documentTokens": "≈ {{tokens}} token",
+        "documentsTotal": "Belgeler: {{used}} / {{max}} token.",
+        "perMessage": "Her mesaj ≈ {{tokens}} token talimat ve belge gönderir (önbelleksiz ≈ mesaj başına {{cost}}).",
+        "addDocument": "Belge ekle",
+        "uploading": "Yükleniyor…",
+        "removeDocumentTitle": "{{name}} kaldırılsın mı?",
+        "removeDocumentHelp": "Asistan bu belgeyi artık almaz. Dosya silinir.",
+        "documentsAfterSave": "Önce asistanı kaydedin; belgeler ardından eklenebilir."
     }
 }

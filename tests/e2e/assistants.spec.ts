@@ -42,6 +42,20 @@ test('an assistant is created and used with a starter prompt', async ({
         page.getByRole('cell', { name: new RegExp(name) }),
     ).toBeVisible();
 
+    // A fixed document; its text goes with the instructions.
+    await page
+        .getByRole('row', { name: new RegExp(name) })
+        .getByRole('link', { name: 'Edit' })
+        .click();
+    await page.locator('#assistant-document').setInputFiles({
+        name: 'kilavuz.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from(`Tez kılavuzu.\nBelge kodu: K${run}\n`),
+    });
+    await expect(
+        page.getByTestId('assistant-documents').getByText('kilavuz.txt'),
+    ).toBeVisible();
+
     // Switch to a regular user.
     await page.context().clearCookies();
     await signInAs(page, 'Sample User');
@@ -56,6 +70,7 @@ test('an assistant is created and used with a starter prompt', async ({
         .click();
     await page.waitForURL(/\/c\/[0-9a-z-]+$/);
     await expect(page.getByText(`Asistan ${run} burada.`)).toBeVisible();
+    await expect(page.getByText(`Belge K${run} okundu.`)).toBeVisible();
     await expect(page.getByTestId('conversation-assistant')).toContainText(
         name,
     );

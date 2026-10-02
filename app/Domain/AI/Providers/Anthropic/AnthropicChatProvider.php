@@ -44,7 +44,11 @@ final class AnthropicChatProvider extends HttpChatProvider
     {
         return array_filter([
             'model' => $request->model,
-            'system' => $request->systemPrompt,
+            // Assistant documents: the system prompt is cached for five
+            // minutes; reads cost a tenth of the input price.
+            'system' => $request->cacheSystemPrompt && $request->systemPrompt !== null
+                ? [['type' => 'text', 'text' => $request->systemPrompt, 'cache_control' => ['type' => 'ephemeral']]]
+                : $request->systemPrompt,
             'messages' => array_map(self::message(...), $request->messages),
             'max_tokens' => $request->maxOutputTokens,
             'temperature' => $request->temperature,

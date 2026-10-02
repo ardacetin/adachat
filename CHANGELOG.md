@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Administration → Assistants). Users open them from the Assistants
   gallery; the conversation keeps the assistant's model and instructions,
   which follow the alias system prompt ([docs/assistants.md](docs/assistants.md)).
+- Assistant documents: fixed PDF, Office or text files whose text is sent
+  with the assistant's instructions (up to `ADA_ASSISTANT_MAX_DOCUMENT_TOKENS`,
+  default 50,000 tokens). The form shows the tokens and cost per message;
+  Anthropic models cache them.
 - Chat: pin conversations (they stay on top of the sidebar), search your
   own conversations by title, message text or file name (Ctrl+K / ⌘K), and
   export a conversation as Markdown or print it / save it as PDF.

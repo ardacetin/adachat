@@ -2,13 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Assistants\AssistantDocumentStore;
+use App\Domain\Attachments\Exceptions\AttachmentRejected;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Conversations\Services\ContextBuilder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AssistantRequest;
 use App\Models\Assistant;
+use App\Models\AssistantDocument;
 use App\Models\Group;
 use App\Models\ModelAlias;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -83,6 +91,41 @@ class AssistantController extends Controller
     }
 
     /**
+     * Adds a fixed document; its text is sent with the instructions.
+     */
+    public function storeDocument(Request $request, Assistant $assistant, AssistantDocumentStore $documents, AuditLogger $audit): RedirectResponse
+    {
+        Gate::authorize('manage-system');
+
+        $request->validate(['file' => ['required', 'file', 'max:'.(int) ceil((float) config('ada.attachments.max_document_mb') * 1024)]]);
+        $file = $request->file('file');
+        abort_unless($file instanceof UploadedFile, 422);
+
+        try {
+            $document = $documents->store($assistant, $file);
+        } catch (AttachmentRejected $rejected) {
+            throw ValidationException::withMessages(['file' => $rejected->userMessage()]);
+        }
+
+        $audit->record('assistant.document_added', $assistant, [], ['document' => $document->original_name, 'sha256' => $document->sha256, 'tokens' => $document->token_estimate]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('admin.saved')]);
+
+        return back();
+    }
+
+    public function destroyDocument(Assistant $assistant, AssistantDocument $document, AssistantDocumentStore $documents, AuditLogger $audit): RedirectResponse
+    {
+        Gate::authorize('manage-system');
+        abort_unless($document->assistant_id === $assistant->id, 404);
+
+        $documents->delete($document);
+        $audit->record('assistant.document_removed', $assistant, ['document' => $document->original_name, 'sha256' => $document->sha256], []);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('admin.saved')]);
+
+        return back();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function values(AssistantRequest $request): array
@@ -126,7 +169,11 @@ class AssistantController extends Controller
                 ...$assistant->only(['id', ...self::FIELDS]),
                 'starter_prompts' => $assistant->starter_prompts ?? [],
                 'group_ids' => $assistant->groups()->pluck('groups.id')->map(intval(...))->all(),
+                'documents' => $assistant->documents()->get()->map(fn (AssistantDocument $document) => $document->toAdmin())->values(),
+                'fixed_tokens' => ContextBuilder::estimateTokens((string) ContextBuilder::systemPrompt($assistant->modelAlias, $assistant->systemInstructions())),
+                'input_price_per_million' => $assistant->modelAlias->aiModel->input_price_per_million,
             ],
+            'maxDocumentTokens' => (int) config('ada.assistants.max_document_tokens'),
             'aliases' => ModelAlias::query()->orderBy('sort_order')->orderBy('slug')->get()
                 ->map(fn (ModelAlias $alias) => ['id' => $alias->id, 'name' => $alias->localizedName($locale), 'enabled' => $alias->enabled]),
             'groups' => Group::query()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),

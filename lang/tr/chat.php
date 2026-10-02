@@ -15,6 +15,9 @@ return [
         'too_many_pending' => 'Gönderilmemiş çok fazla dosya var. Önce bazılarını gönderin ya da kaldırın.',
         'too_many' => 'Bir mesaja en çok :max dosya eklenebilir.',
         'invalid' => 'Eklenen dosyalardan biri artık kullanılamıyor. Kaldırıp yeniden ekleyin.',
+        'no_text' => 'Bu dosyadan metin okunamadı. Taranmış PDF\'ler asistan belgesi olarak desteklenmiyor.',
+        'document_limit' => 'Asistanın belgeleri her mesaja en çok :max token ekleyebilir. Bir belgeyi kaldırın veya kısaltın.',
+        'context_limit' => 'Bu belgeyle asistanın talimatları modelin bağlam penceresinin yarısından fazlasını kullanırdı.',
         'vision_unsupported' => 'Bu model görselleri okuyamaz. Başka bir model seçin ya da görselleri kaldırın.',
     ],
     'export' => [

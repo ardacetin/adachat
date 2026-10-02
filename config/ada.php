@@ -105,6 +105,12 @@ return [
         'path' => env('ADA_MODEL_CATALOG', resource_path('catalog/models.json')),
     ],
 
+    'assistants' => [
+        // Text an assistant's documents may add to every request, in tokens
+        // (estimate). Documents are sent again with each message.
+        'max_document_tokens' => (int) env('ADA_ASSISTANT_MAX_DOCUMENT_TOKENS', 50000),
+    ],
+
     'chat' => [
         // Longest message a user can send, in characters.
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),
