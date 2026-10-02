@@ -10,8 +10,22 @@ export type ChatMessage = {
     output_capped: boolean;
     attachments?: AttachmentInfo[];
     sources?: Source[];
+    /** The user's own vote on an answer. */
+    feedback?: MessageFeedback | null;
     /** Searches the provider runs while the answer streams. */
     searches?: (string | null)[];
+};
+
+export type FeedbackReason =
+    | 'inaccurate'
+    | 'unhelpful'
+    | 'incomplete'
+    | 'too_long'
+    | 'other';
+
+export type MessageFeedback = {
+    rating: 'up' | 'down';
+    reason: FeedbackReason | null;
 };
 
 /** A web page an answer is based on. */

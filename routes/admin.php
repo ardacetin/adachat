@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuthSettingsController;
 use App\Http\Controllers\Admin\BudgetPolicyController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FeedbackReportController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstitutionSettingsController;
 use App\Http\Controllers\Admin\ModelAliasController;
@@ -20,6 +21,7 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
     Route::get('/', DashboardController::class)->name('index');
     Route::get('reports', ReportController::class)->name('reports.index');
     Route::get('reports/export', ReportExportController::class)->name('reports.export');
+    Route::get('feedback', FeedbackReportController::class)->name('feedback.index');
 
     // Administrators and super administrators (docs/authentication.md §4);
     // UserPolicy decides per action.

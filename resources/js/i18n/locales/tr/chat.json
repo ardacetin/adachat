@@ -146,5 +146,18 @@
         "searchingUnknown": "Web'de aranıyor…",
         "sources": "Kaynaklar",
         "sourceLink": "{{title}} (yeni sekmede açılır)"
+    },
+    "feedback": {
+        "up": "İyi yanıt",
+        "down": "Kötü yanıt",
+        "downGiven": "Kötü yanıt: {{reason}} (geri almak için tıklayın)",
+        "why": "Sorun neydi?",
+        "reasons": {
+            "inaccurate": "Yanlış bilgi",
+            "unhelpful": "İşe yaramadı",
+            "incomplete": "Eksik",
+            "too_long": "Çok uzun",
+            "other": "Başka bir şey"
+        }
     }
 }

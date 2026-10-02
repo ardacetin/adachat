@@ -11,6 +11,7 @@ use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\ConversationExportController;
 use App\Http\Controllers\Chat\MessageController;
+use App\Http\Controllers\Chat\MessageFeedbackController;
 use App\Http\Controllers\Chat\SearchController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
@@ -88,6 +89,10 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::post('chat/messages/{message}/cancel', [MessageController::class, 'cancel'])
         ->middleware('throttle:120,1,messages-cancel:')
         ->name('messages.cancel');
+
+    Route::put('chat/messages/{message}/feedback', MessageFeedbackController::class)
+        ->middleware('throttle:60,1,messages-feedback:')
+        ->name('messages.feedback');
 });
 
 require __DIR__.'/settings.php';

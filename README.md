@@ -121,6 +121,7 @@ error when something needs fixing.
 | [Architecture](docs/architecture.md) | Overall design, domain boundaries, request and streaming flow, deployment |
 | [Database design](docs/database-design.md) | Tables, relations, indexes, money precision, MySQL conventions |
 | [Budget engine](docs/budget-engine.md) | Budget periods, token counting, reservations, settlement, concurrency |
+| [Answer feedback](docs/feedback.md) | Thumbs up / down and the satisfaction report, without content |
 | [Authentication](docs/authentication.md) | SAML (Google Workspace) and OpenID Connect (Entra ID) sign-in, roles |
 | [Assistants](docs/assistants.md) | Institutional assistants: instructions, access, conversations |
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |

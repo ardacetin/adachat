@@ -1,6 +1,7 @@
 import { Check, Copy, Globe, RefreshCw } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import AnswerFeedback from '@/components/chat/answer-feedback';
 import FileIcon from '@/components/chat/file-icon';
 import Markdown from '@/components/chat/markdown';
 import { Button } from '@/components/ui/button';
@@ -125,6 +126,13 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
                             <Copy className="size-4" />
                         )}
                     </Button>
+                    {message.status === 'completed' &&
+                        !message.id.startsWith('pending-') && (
+                            <AnswerFeedback
+                                messageId={message.id}
+                                initial={message.feedback ?? null}
+                            />
+                        )}
                     {onRegenerate && (
                         <Button
                             type="button"

@@ -180,6 +180,10 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   Privacy.
 - Retention: conversation retention and usage retention configured separately
   (see [database-design.md §7](database-design.md#7-retention-readiness)).
+- **Answer feedback (v1.3)** is stored without the user and without
+  text (fixed reasons only); the satisfaction report shows counts per
+  alias, model and assistant and never links to messages
+  ([feedback.md](feedback.md)).
 - **Web search (v1.3)** is off unless an administrator allows it on an alias
   (and, for an assistant, on the assistant), and then off for every message
   until the user turns it on. With it on, the provider sends search queries
