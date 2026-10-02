@@ -18,6 +18,7 @@ async function signInAs(page: Page, user: string): Promise<void> {
 
 test('a user rates an answer and administrators see the totals', async ({
     page,
+    browser,
 }) => {
     await signInAs(page, 'Sample User');
 
@@ -40,12 +41,20 @@ test('a user rates an answer and administrators see the totals', async ({
         'true',
     );
 
-    await page.context().clearCookies();
-    await signInAs(page, 'Sample Super Admin');
-    await page.goto('/admin/feedback');
-    await expect(
-        page.getByRole('heading', { name: 'Satisfaction' }),
-    ).toBeVisible();
-    await expect(page.getByTestId('feedback-rows')).toContainText('Smart');
-    await expect(page.getByTestId('feedback-votes')).not.toHaveText('0');
+    // A separate browser: a late response from the user's page can never
+    // put the user's session back into the administrator's cookies.
+    const adminContext = await browser.newContext();
+    const admin = await adminContext.newPage();
+
+    try {
+        await signInAs(admin, 'Sample Super Admin');
+        await admin.goto('/admin/feedback');
+        await expect(
+            admin.getByRole('heading', { name: 'Satisfaction' }),
+        ).toBeVisible();
+        await expect(admin.getByTestId('feedback-rows')).toContainText('Smart');
+        await expect(admin.getByTestId('feedback-votes')).not.toHaveText('0');
+    } finally {
+        await adminContext.close();
+    }
 });
