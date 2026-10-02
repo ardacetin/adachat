@@ -24,8 +24,10 @@ operators with server access (ultimately trusted); compromised dependencies.
   assertion from the configured IdP certificate, issuer, audience,
   destination/recipient and validity window checked; schema validation, no
   DOCTYPE (XXE).
-- Every AuthnRequest ID is single-use and expires after 10 minutes (cache),
-  so responses cannot be replayed or injected; unsolicited (IdP-initiated)
+- Every AuthnRequest ID is single-use, expires after 10 minutes (cache) and
+  is bound to the starting browser by the `ada_saml_binding` cookie, so
+  responses cannot be replayed, injected or completed in another browser
+  (login CSRF); unsolicited (IdP-initiated)
   responses are not trusted and restart an SP-initiated sign-in.
 - E-mail domain ∈ allowed domains (see [authentication.md](authentication.md)).
 - No password login → no credential stuffing surface. Break-glass via CLI only.
@@ -56,8 +58,8 @@ operators with server access (ultimately trusted); compromised dependencies.
   `X-XSRF-TOKEN` automatically; the SSE `fetch` sends it explicitly.
 - The chat stream is `POST` (never a state-changing `GET`).
 - The SAML ACS (`POST /auth/saml/acs`) is exempt from CSRF tokens because
-  the IdP posts cross-site; it is authenticated by the response signature and
-  the single-use request ID.
+  the IdP posts cross-site; it is authenticated by the response signature,
+  the single-use request ID and the browser binding cookie.
 
 ## 5. XSS
 

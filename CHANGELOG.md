@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   row to that column, and a workbook could list the same worksheet any
   number of times. Spreadsheets are now read within fixed bounds (100
   sheets, each part once, columns up to `XFD`, no more text than is kept).
+- A SAML response for Ada's sign-in request was accepted from any browser.
+  Someone could start a sign-in, sign in at the IdP and have another
+  person's browser post the response, signing that browser into their
+  account (login CSRF). The request is now bound to the browser that
+  started it with a short-lived `ada_saml_binding` cookie.
 
 ## [1.3.0] - 2026-10-02
 

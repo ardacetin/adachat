@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Models\User;
 use App\Models\UserIdentity;
 use Illuminate\Testing\TestResponse;
@@ -46,7 +47,16 @@ beforeEach(function () {
  */
 function startSignIn(): string
 {
-    $location = test()->get(route('auth.redirect', 'saml'))->assertRedirect()->headers->get('Location');
+    $redirect = test()->get(route('auth.redirect', 'saml'))->assertRedirect();
+    $location = $redirect->headers->get('Location');
+
+    // The browser keeps the binding cookie and sends it with the ACS POST.
+    $cookie = $redirect->getCookie(SamlIdentityProvider::BINDING_COOKIE, decrypt: true);
+    expect($cookie->getPath())->toBe('/auth/saml/acs')
+        ->and($cookie->isSecure())->toBeTrue()
+        ->and($cookie->isHttpOnly())->toBeTrue()
+        ->and($cookie->getSameSite())->toBe('none');
+    test()->withCookie(SamlIdentityProvider::BINDING_COOKIE, (string) $cookie->getValue());
 
     expect($location)->toStartWith(IDP_SSO);
     parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
@@ -157,6 +167,30 @@ test('responses to requests Ada never made are refused', function () {
 
     postAcs(samlResponse('_not-our-request'))->assertRedirect(route('login'))->assertSessionHasErrors('auth');
     $this->assertGuest();
+});
+
+test('a response is accepted only in the browser that started the sign-in', function () {
+    // Another browser sends its own binding value: refused.
+    $response = samlResponse(startSignIn());
+    $this->withCookie(SamlIdentityProvider::BINDING_COOKIE, str_repeat('x', 40));
+    postAcs($response)->assertRedirect(route('login'))->assertSessionHasErrors('auth');
+
+    // Or none at all: refused too.
+    $response = samlResponse(startSignIn());
+    $this->defaultCookies = [];
+    postAcs($response)->assertRedirect(route('login'))->assertSessionHasErrors('auth');
+
+    $this->assertGuest();
+});
+
+test('sign-ins started in two tabs of one browser both complete', function () {
+    $first = samlResponse(startSignIn());
+    $second = samlResponse(startSignIn());
+
+    postAcs($first)->assertRedirect(route('home'));
+    auth()->logout();
+    postAcs($second)->assertRedirect(route('home'));
+    $this->assertAuthenticated();
 });
 
 test('unsolicited responses restart a normal sign-in', function () {
