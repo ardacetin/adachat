@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AddUsersDialog from '@/components/admin/add-users-dialog';
+import UserRowActions from '@/components/admin/user-row-actions';
 import Pagination from '@/components/admin/pagination';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,7 @@ type UserRow = {
     remaining_usd: string;
     last_active_at: string | null;
     invitation_pending: boolean;
+    can: { changeStatus: boolean; changeRole: boolean };
 };
 
 type Filters = {
@@ -256,6 +258,11 @@ export default function UsersIndex({ users, filters, groups, access }: Props) {
                             <TableHead className="hidden xl:table-cell">
                                 {t('users.lastActive')}
                             </TableHead>
+                            <TableHead className="w-10">
+                                <span className="sr-only">
+                                    {t('common.actions')}
+                                </span>
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -308,6 +315,9 @@ export default function UsersIndex({ users, filters, groups, access }: Props) {
                                 </TableCell>
                                 <TableCell className="hidden text-sm xl:table-cell">
                                     {lastActive(user.last_active_at)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <UserRowActions user={user} />
                                 </TableCell>
                             </TableRow>
                         ))}

@@ -46,6 +46,9 @@ class UserController extends Controller
     {
         Gate::authorize('viewAny', User::class);
 
+        /** @var User $actor */
+        $actor = $request->user();
+
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'group_id' => ['nullable', 'integer'],
@@ -75,7 +78,7 @@ class UserController extends Controller
             ->orderBy('users.id')
             ->paginate(self::PER_PAGE)
             ->withQueryString()
-            ->through(fn (User $user) => $this->row($user));
+            ->through(fn (User $user) => $this->row($user, $actor));
 
         return Inertia::render('admin/users/index', [
             'users' => $users,
@@ -190,7 +193,7 @@ class UserController extends Controller
             throw ValidationException::withMessages(['status' => __('admin.last_super_admin')]);
         }
 
-        return $this->saved($user);
+        return $this->saved($user, $request->boolean('stay'));
     }
 
     public function updateRole(Request $request, User $user, UserAdministration $users): RedirectResponse
@@ -205,7 +208,7 @@ class UserController extends Controller
             throw ValidationException::withMessages(['role' => __('admin.last_super_admin')]);
         }
 
-        return $this->saved($user);
+        return $this->saved($user, $request->boolean('stay'));
     }
 
     public function storeAdjustment(Request $request, User $user, BudgetEngine $engine): RedirectResponse
@@ -323,7 +326,7 @@ class UserController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function row(User $user): array
+    private function row(User $user, User $actor): array
     {
         $periodLimit = $user->getAttribute('period_limit_usd');
         $limit = is_string($periodLimit) ? Usd::of($periodLimit) : EffectiveLimit::for($user);
@@ -343,13 +346,21 @@ class UserController extends Controller
             'remaining_usd' => BudgetSummary::cents($limit->minus($spent)->minus($reserved)->max(Usd::zero()), RoundingMode::Down),
             'last_active_at' => $user->last_active_at?->toIso8601String(),
             'invitation_pending' => $user->invitationPending(),
+            // Quick actions in the list; every action is authorized again.
+            'can' => [
+                'changeStatus' => $actor->can('changeStatus', $user),
+                'changeRole' => $actor->can('changeRole', $user),
+            ],
         ];
     }
 
-    private function saved(User $user): RedirectResponse
+    /**
+     * @param  bool  $stay  back to the page the action came from (the list)
+     */
+    private function saved(User $user, bool $stay = false): RedirectResponse
     {
         Inertia::flash('toast', ['type' => 'success', 'message' => __('admin.saved')]);
 
-        return to_route('admin.users.show', $user);
+        return $stay ? back() : to_route('admin.users.show', $user);
     }
 }

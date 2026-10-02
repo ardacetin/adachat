@@ -352,7 +352,10 @@
         "removeInvitationHelp": "The account has never been used and is deleted. The address can no longer sign in unless its domain is allowed.",
         "accessDomains": "Who can sign in: everyone with an address in {{domains}}, and the users added here.",
         "accessListed": "Who can sign in: only the users listed here.",
-        "accessChange": "Change in Sign-in settings"
+        "accessChange": "Change in Sign-in settings",
+        "actionsFor": "Actions for {{name}}",
+        "disableTitle": "Disable {{name}}?",
+        "actionFailed": "The change could not be saved."
     },
     "auditLog": {
         "title": "Audit log",
