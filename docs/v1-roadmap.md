@@ -191,9 +191,9 @@ Chosen with the pilot, one pull request per step:
 | Q2 | Web search part 2: "Web" button, search progress and sources in the chat, alias, model and assistant settings, reports | ✅ |
 | Q3 | Budget alerts for users at 80 % and 100 % (in the app and by e-mail) | ✅ |
 | Q4 | Answer feedback (thumbs up / down with a reason), satisfaction by alias, model and assistant without content | ✅ |
-| Q5 | Sharing a read-only snapshot of a conversation with signed-in colleagues | 🚧 |
+| Q5 | Sharing a read-only snapshot of a conversation with signed-in colleagues | ✅ |
 
-Then the v1.3.0 release notes.
+Then the v1.3.0 release notes ✅ ([docs/releases/v1.3.0.md](releases/v1.3.0.md)).
 
 ## Candidates for V2
 

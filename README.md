@@ -7,7 +7,10 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.2.0** ([release notes](docs/releases/v1.2.0.md)). Version 1.2 adds
+> **Status: 1.3.0** ([release notes](docs/releases/v1.3.0.md)). Version 1.3 adds
+> web search through the providers' own tools, budget alerts for users, answer
+> feedback with a satisfaction report and read-only sharing of conversations.
+> Version 1.2 added
 > easy model pricing from a price catalog, sign-in with Microsoft Entra ID and
 > OpenID Connect, users added by e-mail address, chat search, pinning and
 > export, and institutional assistants with instructions and documents.
@@ -52,6 +55,8 @@ numbers.
 - Institutional assistants (instructions and documents on a model, per
   group) and chat
   search, pinning and Markdown/PDF export
+- Read-only links to a snapshot of a conversation, for signed-in colleagues
+- Answer feedback (thumbs up / down) and a satisfaction report without content
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
 - OpenAI, Anthropic and Google Gemini through a provider abstraction, and
@@ -62,14 +67,14 @@ numbers.
 - Web search with cited sources through the providers' own search tools,
   turned on per message and charged to the budget
 - Monthly USD budgets with hard enforcement (provider token counting,
-  reservations, output capping)
+  reservations, output capping), with warnings to users at 80 % and 100 %
 - Usage accounting with pricing snapshots, usage reports and an admin dashboard
 - An institution-wide monthly spending cap, CSV exports and a monthly e-mail report
 - Encrypted provider credentials and audit logging
 - Deployment on Ubuntu + Nginx + PHP-FPM + MySQL + Redis, or with Docker
 
-Not included: RAG, web search, agents, tools, image generation, voice and
-multi-tenant SaaS.
+Not included: RAG, agents, tools other than web search, image generation,
+voice and multi-tenant SaaS.
 
 ## Technology
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-02
+
+Web search through the providers' own tools, budget alerts for users,
+answer feedback with a satisfaction report, and read-only sharing of
+conversations. Release notes:
+[docs/releases/v1.3.0.md](docs/releases/v1.3.0.md).
+
 ### Added
 
 - Conversation sharing: the owner creates a read-only link to a snapshot
@@ -278,6 +285,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/ardacetin/adachat/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/ardacetin/adachat/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ardacetin/adachat/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ardacetin/adachat/releases/tag/v1.0.0
