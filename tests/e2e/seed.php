@@ -42,6 +42,8 @@ $model->forceFill([
     'max_output_tokens' => 4096,
     'supports_vision' => true,
     'supports_files' => true,
+    'supports_web_search' => true,
+    'web_search_price_per_thousand' => '10',
 ])->save();
 
 $alias = new ModelAlias;
@@ -50,6 +52,8 @@ $alias->forceFill([
     'name' => ['en' => 'Smart', 'tr' => 'Akıllı'],
     'description' => ['en' => 'Everyday questions', 'tr' => 'Günlük sorular'],
     'ai_model_id' => $model->id,
+    'web_search_enabled' => true,
+    'web_search_max_uses' => 2,
 ])->save();
 $alias->groups()->attach(Group::default());
 

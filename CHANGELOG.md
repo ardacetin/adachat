@@ -9,15 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Web search, part 1 (no user interface yet): a message can use the
-  provider's own search tool (Anthropic web search, OpenAI web search,
-  Gemini Grounding with Google Search). The answer streams the search
-  queries (`search`) and the cited pages (`source`) and keeps the sources
-  with the message. Models have a search capability and a price per 1,000
-  searches (catalog: Anthropic and OpenAI $10, Gemini $14); aliases allow
-  search with up to 5 searches per message. The budget reserves the allowed
-  searches and charges those the provider billed; usage records keep their
-  number and price ([provider-architecture.md §10](docs/provider-architecture.md#10-web-search)).
+- Web search: users turn on "Web search" for a message when its model alias
+  (and assistant) allows it; the provider's own search tool is used
+  (Anthropic web search, OpenAI web search; Gemini Grounding with Google
+  Search is supported but off in the catalog, see below). The chat shows
+  each search while the answer streams and lists the cited pages under the
+  answer; the Markdown export includes them. Models have a search
+  capability and a price per 1,000 searches (catalog: Anthropic and OpenAI
+  $10); aliases allow up to 5 searches per message; assistants have their
+  own switch. The budget reserves the allowed searches and charges those
+  the provider billed; reports and their CSV count web searches, and
+  `ada:doctor` warns about an alias that allows search on a model that
+  cannot ([provider-architecture.md §10](docs/provider-architecture.md#10-web-search)).
+  Google's terms require its Search Suggestions with grounded Gemini
+  answers, which Ada does not show yet, so Gemini models are listed
+  without web search.
 
 ## [1.2.0] - 2026-10-02
 

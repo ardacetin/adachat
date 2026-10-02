@@ -54,6 +54,7 @@ test('super administrators create and edit assistants, audited', function () {
         'instructions' => 'Give feedback, never write the text.',
         'model_alias_id' => $this->alias->id,
         'starter_prompts' => ['Check my introduction', '', '  '],
+        'web_search_enabled' => true,
         'icon' => 'pen-line',
         'sort_order' => 5,
         'enabled' => true,
@@ -62,6 +63,7 @@ test('super administrators create and edit assistants, audited', function () {
 
     $coach = Assistant::query()->where('slug', 'writing-coach')->sole();
     expect($coach->starter_prompts)->toBe(['Check my introduction'])
+        ->and($coach->web_search_enabled)->toBeTrue()
         ->and($coach->description)->toBe(['en' => 'Feedback on drafts'])
         ->and($coach->groups()->pluck('groups.id')->all())->toBe([$group->id]);
 

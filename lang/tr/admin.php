@@ -52,6 +52,7 @@ return [
         'requests' => 'İstek',
         'input_tokens' => 'Girdi token',
         'output_tokens' => 'Çıktı token',
+        'web_searches' => 'Web aramaları',
         'cost' => 'Maliyet (USD)',
     ],
     'users' => [

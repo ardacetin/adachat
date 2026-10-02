@@ -5,6 +5,8 @@ export type Totals = {
     users: number;
     input_tokens: number;
     output_tokens: number;
+    web_searches: number;
+    web_search_usd: string;
     cost_usd: string;
     estimated: number;
     adjustments_usd: string;
@@ -17,6 +19,7 @@ export type BreakdownRow = {
     requests: number;
     input_tokens: number;
     output_tokens: number;
+    web_searches: number;
     cost_usd: string;
 };
 

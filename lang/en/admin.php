@@ -52,6 +52,7 @@ return [
         'requests' => 'Requests',
         'input_tokens' => 'Input tokens',
         'output_tokens' => 'Output tokens',
+        'web_searches' => 'Web searches',
         'cost' => 'Cost (USD)',
     ],
     'users' => [

@@ -37,7 +37,15 @@ test('the shipped catalog is complete and well formed', function () {
         }
 
         // A model that can search has a search price.
-        expect($entry->supportsWebSearch)->toBe($entry->webSearchPrice !== null);
+        if ($entry->supportsWebSearch) {
+            expect($entry->webSearchPrice)->not->toBeNull();
+        }
+
+        // Grounding with Google Search needs Google's Search Suggestions shown
+        // with the answer (Gemini API terms), which Ada does not do yet.
+        if ($entry->driver === ProviderDriver::Gemini) {
+            expect($entry->supportsWebSearch)->toBeFalse();
+        }
     }
 
     expect($keys)->toBe(array_values(array_unique($keys)));

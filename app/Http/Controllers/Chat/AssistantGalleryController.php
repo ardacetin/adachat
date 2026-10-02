@@ -46,7 +46,7 @@ class AssistantGalleryController extends Controller
     }
 
     /**
-     * @return array{id: int, slug: string, name: string, description: string|null, icon: string, model_alias_id: int, starter_prompts: list<string>}
+     * @return array{id: int, slug: string, name: string, description: string|null, icon: string, model_alias_id: int, starter_prompts: list<string>, web_search: bool}
      */
     public static function summary(Assistant $assistant): array
     {
@@ -60,6 +60,7 @@ class AssistantGalleryController extends Controller
             'icon' => $assistant->icon,
             'model_alias_id' => $assistant->model_alias_id,
             'starter_prompts' => $assistant->starter_prompts ?? [],
+            'web_search' => $assistant->web_search_enabled,
         ];
     }
 

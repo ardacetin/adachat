@@ -68,7 +68,8 @@
         "forbidden": "This model is not available to you.",
         "unknown": "Something went wrong. Please try again.",
         "attachments_invalid": "An attached file is no longer available. Attach it again.",
-        "validation": "The message could not be sent."
+        "validation": "The message could not be sent.",
+        "web_search_unavailable": "Web search is not available with this model."
     },
     "budget": {
         "title": "Monthly budget",
@@ -133,5 +134,15 @@
         "title": "Assistants",
         "description": "Assistants prepared by your institution for particular tasks. They use one of your models.",
         "none": "No assistants are available to you yet."
+    },
+    "webSearch": {
+        "toggle": "Web search",
+        "on": "Web search on for this message",
+        "off": "Search the web for this message",
+        "hint": "Up to {{count}} searches, about ${{price}} each. Your question goes to the search provider.",
+        "searching": "Searching: {{query}}",
+        "searchingUnknown": "Searching the web…",
+        "sources": "Sources",
+        "sourceLink": "{{title}} (opens in a new tab)"
     }
 }

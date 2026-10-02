@@ -7,7 +7,8 @@
  *   POST /v1/responses/input_tokens  → token count
  *   POST /v1/responses               → SSE stream (slow when the prompt contains "long";
  *                                       names the assistant when the instructions
- *                                       contain "Talimat: <name>")
+ *                                       contain "Talimat: <name>"; with the web_search
+ *                                       tool, searches for the prompt and cites a page)
  *   POST /v1/chat/completions        → SSE stream, data-only chunks ending in [DONE];
  *                                       refuses a request with credentials (keyless server)
  *   GET  /v1/models                  → connection check
@@ -235,6 +236,35 @@ const server = createServer(async (request, response) => {
         });
 
         let output = 0;
+        const searching = (body.tools ?? []).some(
+            (tool) => tool.type === 'web_search',
+        );
+        const search = {
+            type: 'web_search_call',
+            id: 'ws_mock',
+            status: 'completed',
+            action: { type: 'search', query: text.slice(0, 80) },
+        };
+
+        if (searching) {
+            await sleep(40);
+            event(response, 'response.output_item.done', {
+                output_index: 0,
+                item: search,
+            });
+            event(response, 'response.output_text.delta', {
+                delta: "Web'de buldum. ",
+            });
+            event(response, 'response.output_text.annotation.added', {
+                annotation: {
+                    type: 'url_citation',
+                    url: 'https://example.org/ada-lovelace',
+                    title: 'Ada Lovelace – Örnek Ansiklopedi',
+                    start_index: 0,
+                    end_index: 14,
+                },
+            });
+        }
 
         for (const delta of chunks) {
             if (closed) {
@@ -250,6 +280,7 @@ const server = createServer(async (request, response) => {
             response: {
                 id: 'resp_mock',
                 status: 'completed',
+                output: searching ? [search] : [],
                 usage: {
                     input_tokens: 42,
                     input_tokens_details: { cached_tokens: 0 },

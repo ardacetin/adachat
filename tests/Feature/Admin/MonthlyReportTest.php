@@ -107,7 +107,7 @@ test('the report renders in the institution language with its attachments', func
     $attachments['ada-usage-user-2026-09.csv']->attachWith(fn () => null, function ($data) use (&$csv) {
         $csv = $data();
     });
-    expect($csv)->toContain('"Ayşe Yılmaz";ayse@example.edu;1;10000;1000;0,02');
+    expect($csv)->toContain('"Ayşe Yılmaz";ayse@example.edu;1;10000;1000;0;0,02');
 });
 
 test('the monthly report is scheduled hourly', function () {

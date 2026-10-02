@@ -27,6 +27,8 @@ type Alias = {
     temperature: string | null;
     system_prompt: string | null;
     show_model_details: boolean;
+    web_search_enabled: boolean;
+    web_search_max_uses: number;
     sort_order: number;
     enabled: boolean;
     group_ids: number[];
@@ -36,11 +38,22 @@ type Group = { id: number; name: string; is_default: boolean };
 
 type Props = {
     alias: Alias | null;
-    models: { id: number; label: string; max_output_tokens: number }[];
+    models: {
+        id: number;
+        label: string;
+        max_output_tokens: number;
+        web_search: boolean;
+    }[];
     groups: Group[];
+    webSearchMaxUsesLimit: number;
 };
 
-export default function AliasForm({ alias, models, groups }: Props) {
+export default function AliasForm({
+    alias,
+    models,
+    groups,
+    webSearchMaxUsesLimit,
+}: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
     const { locale } = usePage().props;
@@ -59,6 +72,8 @@ export default function AliasForm({ alias, models, groups }: Props) {
         temperature: alias?.temperature ?? '',
         system_prompt: alias?.system_prompt ?? '',
         show_model_details: alias?.show_model_details ?? false,
+        web_search_enabled: alias?.web_search_enabled ?? false,
+        web_search_max_uses: String(alias?.web_search_max_uses ?? 3),
         sort_order: String(alias?.sort_order ?? 0),
         enabled: alias?.enabled ?? true,
         // New aliases start available to the default group.
@@ -278,6 +293,54 @@ export default function AliasForm({ alias, models, groups }: Props) {
                         form.setData('show_model_details', checked)
                     }
                 />
+                <fieldset className="space-y-3" data-test="alias-web-search">
+                    <legend className="text-sm font-medium">
+                        {t('aliases.webSearch')}
+                    </legend>
+                    {models.find(
+                        (model) => String(model.id) === form.data.ai_model_id,
+                    )?.web_search ? (
+                        <>
+                            <CheckboxField
+                                id="web_search_enabled"
+                                label={t('aliases.webSearchEnabled')}
+                                checked={form.data.web_search_enabled}
+                                onChange={(checked) =>
+                                    form.setData('web_search_enabled', checked)
+                                }
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                {t('aliases.webSearchHelp')}
+                            </p>
+                            {form.data.web_search_enabled && (
+                                <FormField
+                                    id="web_search_max_uses"
+                                    label={t('aliases.webSearchMaxUses')}
+                                    error={form.errors.web_search_max_uses}
+                                >
+                                    <Input
+                                        id="web_search_max_uses"
+                                        type="number"
+                                        min={1}
+                                        max={webSearchMaxUsesLimit}
+                                        className="w-32"
+                                        value={form.data.web_search_max_uses}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'web_search_max_uses',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </FormField>
+                            )}
+                        </>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            {t('aliases.webSearchUnavailable')}
+                        </p>
+                    )}
+                </fieldset>
                 <CheckboxField
                     id="enabled"
                     label={t('aliases.enabled')}

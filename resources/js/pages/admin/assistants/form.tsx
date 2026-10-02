@@ -28,6 +28,7 @@ type Assistant = {
     instructions: string;
     model_alias_id: number;
     starter_prompts: string[];
+    web_search_enabled: boolean;
     icon: string;
     sort_order: number;
     enabled: boolean;
@@ -39,7 +40,12 @@ type Assistant = {
 
 type Props = {
     assistant: Assistant | null;
-    aliases: { id: number; name: string; enabled: boolean }[];
+    aliases: {
+        id: number;
+        name: string;
+        enabled: boolean;
+        web_search: boolean;
+    }[];
     groups: { id: number; name: string; is_default: boolean }[];
     icons: string[];
     maxDocumentTokens: number;
@@ -75,6 +81,7 @@ export default function AssistantForm({
             { length: STARTERS },
             (_, position) => assistant?.starter_prompts[position] ?? '',
         ),
+        web_search_enabled: assistant?.web_search_enabled ?? false,
         icon: assistant?.icon ?? 'sparkles',
         sort_order: String(assistant?.sort_order ?? 0),
         enabled: assistant?.enabled ?? true,
@@ -271,6 +278,26 @@ export default function AssistantForm({
                         </p>
                     )}
                 </fieldset>
+
+                <div className="space-y-1" data-test="assistant-web-search">
+                    <CheckboxField
+                        id="web_search_enabled"
+                        label={t('assistants.webSearch')}
+                        checked={form.data.web_search_enabled}
+                        onChange={(checked) =>
+                            form.setData('web_search_enabled', checked)
+                        }
+                    />
+                    <p className="text-sm text-muted-foreground">
+                        {aliases.find(
+                            (alias) =>
+                                String(alias.id) ===
+                                String(form.data.model_alias_id),
+                        )?.web_search
+                            ? t('assistants.webSearchHelp')
+                            : t('assistants.webSearchAliasOff')}
+                    </p>
+                </div>
 
                 <fieldset className="space-y-2">
                     <legend className="text-sm font-medium">

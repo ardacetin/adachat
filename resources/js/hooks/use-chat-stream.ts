@@ -1,9 +1,22 @@
 import { createParser } from 'eventsource-parser';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { xsrfToken } from '@/lib/xsrf';
-import type { CompletedEvent, ErrorEvent, StartedEvent } from '@/types/chat';
+import type {
+    CompletedEvent,
+    ErrorEvent,
+    Source,
+    StartedEvent,
+} from '@/types/chat';
 
 export type StreamStatus = 'idle' | 'streaming';
+
+/** Web searches and sources of the answer being streamed. */
+export type StreamActivity = {
+    searches: (string | null)[];
+    sources: Source[];
+};
+
+const NO_ACTIVITY: StreamActivity = { searches: [], sources: [] };
 
 type Handlers = {
     onStarted?: (event: StartedEvent) => void;
@@ -38,6 +51,7 @@ const STOP_GRACE_MS = 5000;
 export function useChatStream() {
     const [status, setStatus] = useState<StreamStatus>('idle');
     const [draft, setDraft] = useState('');
+    const [activity, setActivity] = useState<StreamActivity>(NO_ACTIVITY);
     const bufferRef = useRef('');
     const frameRef = useRef<number | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
@@ -59,6 +73,7 @@ export function useChatStream() {
             assistantIdRef.current = null;
             bufferRef.current = '';
             setDraft('');
+            setActivity(NO_ACTIVITY);
             setStatus('streaming');
 
             const parser = createParser({
@@ -77,6 +92,21 @@ export function useChatStream() {
                                 data as { text: string }
                             ).text;
                             frameRef.current ??= requestAnimationFrame(flush);
+                            break;
+                        case 'search':
+                            setActivity((current) => ({
+                                ...current,
+                                searches: [
+                                    ...current.searches,
+                                    (data as { query?: string }).query ?? null,
+                                ],
+                            }));
+                            break;
+                        case 'source':
+                            setActivity((current) => ({
+                                ...current,
+                                sources: [...current.sources, data as Source],
+                            }));
                             break;
                         case 'message.completed':
                             handlers.onCompleted?.(data as CompletedEvent);
@@ -192,5 +222,5 @@ export function useChatStream() {
     // Leaving the page drops the connection; the server stops and settles.
     useEffect(() => () => controllerRef.current?.abort(), []);
 
-    return { status, draft, run, stop };
+    return { status, draft, activity, run, stop };
 }

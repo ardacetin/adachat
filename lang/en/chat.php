@@ -27,5 +27,6 @@ return [
         'you' => 'You',
         'assistant' => 'Assistant (:model)',
         'attachments' => 'Attachments: :names',
+        'sources' => 'Sources',
     ],
 ];

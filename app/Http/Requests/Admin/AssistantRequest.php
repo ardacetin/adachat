@@ -40,6 +40,7 @@ class AssistantRequest extends FormRequest
             'model_alias_id' => ['required', 'integer', 'exists:model_aliases,id'],
             'starter_prompts' => ['array', 'max:4'],
             'starter_prompts.*' => ['string', 'max:200'],
+            'web_search_enabled' => ['sometimes', 'boolean'],
             'icon' => ['required', Rule::in(Assistant::ICONS)],
             'sort_order' => ['required', 'integer', 'min:-1000', 'max:1000'],
             'enabled' => ['required', 'boolean'],

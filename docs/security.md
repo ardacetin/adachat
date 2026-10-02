@@ -180,6 +180,20 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   Privacy.
 - Retention: conversation retention and usage retention configured separately
   (see [database-design.md §7](database-design.md#7-retention-readiness)).
+- **Web search (v1.3)** is off unless an administrator allows it on an alias
+  (and, for an assistant, on the assistant), and then off for every message
+  until the user turns it on. With it on, the provider sends search queries
+  derived from the conversation to its search engine. Ada stores only the
+  cited pages (http(s) URL and title) with the answer; queries and page
+  contents are not stored. Source links open in a new tab with
+  `rel="noopener noreferrer nofollow"`.
+- **Gemini (Grounding with Google Search):** Google's Gemini API terms
+  require Google's Search Suggestions to be shown with every grounded
+  answer, and limit how long grounded answers may be kept (chat history up
+  to two years). Ada does not show Search Suggestions yet, so the catalog
+  lists Gemini models without web search; administrators who turn it on
+  in the advanced model form must review those terms and the retention
+  setting first.
 
 ## 10. Audit logging
 

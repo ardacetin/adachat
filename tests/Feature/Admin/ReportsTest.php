@@ -79,7 +79,7 @@ test('totals and breakdowns cover the chosen range and filters', function () {
             ->where('totals.requests', 1)
             ->where('breakdown', [[
                 'id' => $this->bob->id, 'label' => 'Bob', 'detail' => 'bob@example.edu',
-                'requests' => 1, 'input_tokens' => 10000, 'output_tokens' => 1000, 'cost_usd' => '0.02',
+                'requests' => 1, 'input_tokens' => 10000, 'output_tokens' => 1000, 'web_searches' => 0, 'cost_usd' => '0.02',
             ]]));
 
     $this->actingAs($this->admin)->get(route('admin.reports.index', ['user_id' => $this->ada->id, 'ai_model_id' => $this->gpt->id]))

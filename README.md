@@ -59,6 +59,8 @@ numbers.
 - Model registry, model aliases and per-group model permissions
 - Streaming chat with Markdown rendering and conversation history
 - Attachments: images, PDF, Word, Excel, PowerPoint, text and code files
+- Web search with cited sources through the providers' own search tools,
+  turned on per message and charged to the budget
 - Monthly USD budgets with hard enforcement (provider token counting,
   reservations, output capping)
 - Usage accounting with pricing snapshots, usage reports and an admin dashboard

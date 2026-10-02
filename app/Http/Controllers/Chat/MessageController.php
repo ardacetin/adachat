@@ -76,7 +76,7 @@ class MessageController extends Controller
             throw ValidationException::withMessages(['content' => __('validation.required', ['attribute' => 'content'])]);
         }
 
-        $webSearch = $this->webSearch($alias, $request->boolean('web_search'));
+        $webSearch = $this->webSearch($alias, $request->boolean('web_search'), $assistant);
 
         return $this->sse(fn (callable $clientGone) => $this->chat->send($user, $conversation, $alias, $content, $clientGone(...), $attachments, $assistant, $webSearch));
     }
@@ -89,7 +89,7 @@ class MessageController extends Controller
         $validated = $request->validate(['model_alias_id' => ['nullable', 'integer'], 'web_search' => ['sometimes', 'boolean']]);
         $assistant = $this->assistant($user, $message->conversation, null);
         $alias = $this->alias($user, $assistant->model_alias_id ?? $validated['model_alias_id'] ?? $message->model_alias_id);
-        $webSearch = $this->webSearch($alias, $request->boolean('web_search'));
+        $webSearch = $this->webSearch($alias, $request->boolean('web_search'), $assistant);
 
         return $this->sse(fn (callable $clientGone) => $this->chat->regenerate($user, $message, $alias, $clientGone(...), $webSearch));
     }
@@ -193,16 +193,18 @@ class MessageController extends Controller
 
     /**
      * Searches allowed for this message: null when the user did not ask for
-     * web search. Asking for it where the alias does not allow it is an error.
+     * web search. Asking for it where the alias (or the assistant) does not
+     * allow it is an error.
      */
-    private function webSearch(ModelAlias $alias, bool $requested): ?int
+    private function webSearch(ModelAlias $alias, bool $requested, ?Assistant $assistant): ?int
     {
         if (! $requested) {
             return null;
         }
 
-        return $alias->webSearchMaxUses()
-            ?? throw ValidationException::withMessages(['web_search' => __('chat.web_search_unavailable')]);
+        $maxUses = $assistant === null || $assistant->web_search_enabled ? $alias->webSearchMaxUses() : null;
+
+        return $maxUses ?? throw ValidationException::withMessages(['web_search' => __('chat.web_search_unavailable')]);
     }
 
     private function alias(User $user, mixed $aliasId): ModelAlias

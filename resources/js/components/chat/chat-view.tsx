@@ -71,8 +71,10 @@ export default function ChatView({
 }: Props) {
     const { t } = useTranslation('chat');
     const { budget, locale } = usePage().props;
-    const { status, draft, run, stop } = useChatStream();
+    const { status, draft, activity, run, stop } = useChatStream();
     const [input, setInput] = useState('');
+    // Off for every new message: searching costs money and sends the question out.
+    const [webSearch, setWebSearch] = useState(false);
     // An assistant always answers with its own model.
     const [aliasId, setAliasId] = useState<number | null>(() =>
         assistant
@@ -84,6 +86,9 @@ export default function ChatView({
     const bottom = useRef<HTMLDivElement>(null);
     const streaming = status === 'streaming';
     const alias = aliases.find((candidate) => candidate.id === aliasId);
+    const searchOptions =
+        assistant && !assistant.web_search ? null : (alias?.web_search ?? null);
+    const searching = webSearch && searchOptions !== null;
     const attachments = useAttachments({
         imagesAllowed: alias?.supports_vision ?? false,
         messages: {
@@ -115,11 +120,13 @@ export default function ChatView({
             list.push({
                 ...pending.assistant,
                 content: streaming ? draft : pending.assistant.content || draft,
+                searches: activity.searches,
+                sources: activity.sources,
             });
         }
 
         return list;
-    }, [messages, pending, draft, streaming]);
+    }, [messages, pending, draft, streaming, activity]);
 
     // Follow the answer while it streams, unless the user scrolled up.
     useEffect(() => {
@@ -252,6 +259,7 @@ export default function ChatView({
 
         setInput('');
         attachments.clear();
+        setWebSearch(false);
         start(
             store.url(),
             {
@@ -261,6 +269,7 @@ export default function ChatView({
                 assistant_id:
                     conversationId === null ? (assistant?.id ?? null) : null,
                 attachment_ids: files.map((file) => file.id),
+                web_search: searching,
             },
             {
                 user: {
@@ -279,10 +288,11 @@ export default function ChatView({
         );
     };
 
-    const regenerateLast = (message: ChatMessage) =>
+    const regenerateLast = (message: ChatMessage) => {
+        setWebSearch(false);
         start(
             regenerate.url(message.id),
-            { model_alias_id: aliasId },
+            { model_alias_id: aliasId, web_search: searching },
             {
                 user: null,
                 assistant: assistantPlaceholder(),
@@ -290,6 +300,7 @@ export default function ChatView({
             },
             null,
         );
+    };
 
     const last = shown.at(-1);
     const exhausted = budget?.exhausted === true && !streaming;
@@ -422,6 +433,14 @@ export default function ChatView({
                             onAdd: attachments.add,
                             onRemove: attachments.remove,
                         }}
+                        webSearch={
+                            searchOptions && {
+                                enabled: webSearch,
+                                onToggle: () => setWebSearch((on) => !on),
+                                maxUses: searchOptions.max_uses,
+                                pricePerSearch: searchOptions.price_per_search,
+                            }
+                        }
                         toolbar={
                             <ModelSelector
                                 aliases={aliases}

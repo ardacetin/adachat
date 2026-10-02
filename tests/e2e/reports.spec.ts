@@ -31,6 +31,6 @@ test('reports can be downloaded as CSV', async ({ page }) => {
     const csv = Buffer.concat(chunks).toString('utf8');
 
     expect(csv.split('\n')[0]).toBe(
-        '\uFEFFGroup,Requests,"Input tokens","Output tokens","Cost (USD)"',
+        '\uFEFFGroup,Requests,"Input tokens","Output tokens","Web searches","Cost (USD)"',
     );
 });

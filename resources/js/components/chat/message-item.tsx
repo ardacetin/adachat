@@ -1,4 +1,4 @@
-import { Check, Copy, RefreshCw } from 'lucide-react';
+import { Check, Copy, Globe, RefreshCw } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import FileIcon from '@/components/chat/file-icon';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { cn } from '@/lib/utils';
-import type { AttachmentInfo, ChatMessage } from '@/types/chat';
+import type { AttachmentInfo, ChatMessage, Source } from '@/types/chat';
 
 type Props = {
     message: ChatMessage;
@@ -37,10 +37,30 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
 
     const failed = message.status === 'failed';
     const waiting = streaming && message.content === '';
+    const searches = streaming ? (message.searches ?? []) : [];
+    const sources = message.sources ?? [];
 
     return (
         <div className="group/message flex flex-col gap-2">
             <span className="sr-only">{t('message.assistant')}:</span>
+
+            {searches.length > 0 && (
+                <ul
+                    className="flex flex-col gap-1 text-sm text-muted-foreground"
+                    data-test="web-searches"
+                >
+                    {searches.map((query, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                            <Globe className="size-3.5 shrink-0" />
+                            <span className="truncate">
+                                {query
+                                    ? t('webSearch.searching', { query })
+                                    : t('webSearch.searchingUnknown')}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             {waiting ? (
                 <div
@@ -53,6 +73,8 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
             ) : (
                 <Markdown content={message.content} streaming={streaming} />
             )}
+
+            {sources.length > 0 && <Sources sources={sources} />}
 
             {message.output_capped && (
                 <p className="text-xs text-muted-foreground">
@@ -118,6 +140,61 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
                 </div>
             )}
         </div>
+    );
+}
+
+function hostOf(url: string): string {
+    try {
+        return new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+        return url;
+    }
+}
+
+/** The web pages an answer is based on, numbered, opening in a new tab. */
+function Sources({ sources }: { sources: Source[] }) {
+    const { t } = useTranslation('chat');
+
+    return (
+        <section
+            className="rounded-xl border bg-muted/30 px-3 py-2"
+            aria-label={t('webSearch.sources')}
+            data-test="sources"
+        >
+            <h3 className="mb-1 text-xs font-medium text-muted-foreground">
+                {t('webSearch.sources')}
+            </h3>
+            <ol className="flex flex-col gap-1 text-sm">
+                {sources.map((source, index) => {
+                    const host = hostOf(source.url);
+                    const title = source.title ?? host;
+
+                    return (
+                        <li key={source.url} className="flex min-w-0 gap-2">
+                            <span className="shrink-0 text-muted-foreground tabular-nums">
+                                {index + 1}.
+                            </span>
+                            <a
+                                href={source.url}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="min-w-0 truncate underline-offset-4 hover:underline"
+                                aria-label={t('webSearch.sourceLink', {
+                                    title,
+                                })}
+                            >
+                                {title}
+                                {source.title && (
+                                    <span className="ml-1.5 text-xs text-muted-foreground">
+                                        {host}
+                                    </span>
+                                )}
+                            </a>
+                        </li>
+                    );
+                })}
+            </ol>
+        </section>
     );
 }
 

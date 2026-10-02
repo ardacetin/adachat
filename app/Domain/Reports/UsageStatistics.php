@@ -36,12 +36,12 @@ final class UsageStatistics
     public const DIMENSIONS = ['user', 'group', 'provider', 'model'];
 
     /**
-     * @return array{requests: int, users: int, input_tokens: int, output_tokens: int, cost_usd: string, estimated: int, adjustments_usd: string}
+     * @return array{requests: int, users: int, input_tokens: int, output_tokens: int, web_searches: int, web_search_usd: string, cost_usd: string, estimated: int, adjustments_usd: string}
      */
     public function totals(ReportFilters $filters): array
     {
         $row = $this->charges($filters)
-            ->selectRaw('COUNT(*) AS requests, COUNT(DISTINCT e.user_id) AS users, COALESCE(SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens), 0) AS input_tokens, COALESCE(SUM(e.output_tokens), 0) AS output_tokens, COALESCE(SUM(e.total_cost_usd), 0) AS cost, COALESCE(SUM(e.is_estimated), 0) AS estimated')
+            ->selectRaw('COUNT(*) AS requests, COUNT(DISTINCT e.user_id) AS users, COALESCE(SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens), 0) AS input_tokens, COALESCE(SUM(e.output_tokens), 0) AS output_tokens, COALESCE(SUM(e.web_search_requests), 0) AS web_searches, COALESCE(SUM(e.other_cost_usd), 0) AS web_search_cost, COALESCE(SUM(e.total_cost_usd), 0) AS cost, COALESCE(SUM(e.is_estimated), 0) AS estimated')
             ->first();
 
         $adjustments = $this->events($filters)
@@ -53,6 +53,9 @@ final class UsageStatistics
             'users' => (int) ($row->users ?? 0),
             'input_tokens' => (int) ($row->input_tokens ?? 0),
             'output_tokens' => (int) ($row->output_tokens ?? 0),
+            // Web search is the only cost besides tokens so far.
+            'web_searches' => (int) ($row->web_searches ?? 0),
+            'web_search_usd' => self::money($row->web_search_cost ?? '0'),
             'cost_usd' => self::money($row->cost ?? '0'),
             'estimated' => (int) ($row->estimated ?? 0),
             'adjustments_usd' => self::money($adjustments),
@@ -63,7 +66,7 @@ final class UsageStatistics
      * The biggest spenders by user, group, provider or model; every row
      * when $limit is null (CSV export).
      *
-     * @return list<array{id: int|null, label: string, detail: string|null, requests: int, input_tokens: int, output_tokens: int, cost_usd: string}>
+     * @return list<array{id: int|null, label: string, detail: string|null, requests: int, input_tokens: int, output_tokens: int, web_searches: int, cost_usd: string}>
      */
     public function breakdown(ReportFilters $filters, string $dimension, ?int $limit = self::TOP_ROWS): array
     {
@@ -95,7 +98,7 @@ final class UsageStatistics
         };
 
         return array_values($query
-            ->selectRaw("{$key} AS id, MAX({$label}) AS label, MAX({$detail}) AS detail, COUNT(*) AS requests, SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens) AS input_tokens, SUM(e.output_tokens) AS output_tokens, SUM(e.total_cost_usd) AS cost")
+            ->selectRaw("{$key} AS id, MAX({$label}) AS label, MAX({$detail}) AS detail, COUNT(*) AS requests, SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens) AS input_tokens, SUM(e.output_tokens) AS output_tokens, SUM(e.web_search_requests) AS web_searches, SUM(e.total_cost_usd) AS cost")
             ->groupBy($key)
             ->orderByDesc('cost')
             ->orderBy($key)
@@ -108,6 +111,7 @@ final class UsageStatistics
                 'requests' => (int) $row->requests,
                 'input_tokens' => (int) $row->input_tokens,
                 'output_tokens' => (int) $row->output_tokens,
+                'web_searches' => (int) $row->web_searches,
                 'cost_usd' => self::money($row->cost),
             ])
             ->all());

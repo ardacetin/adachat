@@ -54,10 +54,10 @@ test('the breakdown is exported in full, with the page filters', function () {
         ->assertDownload('ada-usage-user-2026-10-01_2026-10-31.csv');
 
     $rows = csvRows($response->streamedContent());
-    expect($rows[0])->toBe(['User', 'E-mail', 'Requests', 'Input tokens', 'Output tokens', 'Cost (USD)'])
+    expect($rows[0])->toBe(['User', 'E-mail', 'Requests', 'Input tokens', 'Output tokens', 'Web searches', 'Cost (USD)'])
         ->and($rows)->toHaveCount(UsageStatistics::TOP_ROWS + 3)
         ->and($rows[1][2])->toBe('1')
-        ->and($rows[1][5])->toBe('0.02')
+        ->and($rows[1][6])->toBe('0.02')
         ->and(AuditLog::query()->where('action', 'reports.exported')->sole()->new_values)->toMatchArray(['dataset' => 'breakdown', 'kind' => 'user']);
 });
 
@@ -70,8 +70,8 @@ test('Turkish exports use the separators Turkish Excel expects', function () {
         ->streamedContent();
 
     expect(csvRows($body, ';'))->toBe([
-        ['Grup', 'İstek', 'Girdi token', 'Çıktı token', 'Maliyet (USD)'],
-        ['Öğrenciler', '1', '10000', '1000', '0,02'],
+        ['Grup', 'İstek', 'Girdi token', 'Çıktı token', 'Web aramaları', 'Maliyet (USD)'],
+        ['Öğrenciler', '1', '10000', '1000', '0', '0,02'],
     ]);
 });
 

@@ -214,7 +214,12 @@
         "catalogUpdateHelp": "Ada'nın kataloğunda bu model için daha yeni fiyatlar var: 1M token başına girdi {{input}} / çıktı {{output}}.",
         "catalogUpdateAction": "Yeni fiyatları kullan",
         "pricingCatalog": "Katalog",
-        "pricingManual": "Elle"
+        "pricingManual": "Elle",
+        "webSearch": "Web araması (sağlayıcının kendi arama aracı)",
+        "webSearchPrice": "Web araması (1000 arama başına USD)",
+        "webSearchPriceHelp": "Sağlayıcının yaptığı her arama için, sonuçların eklediği tokenlara ek olarak düşülür.",
+        "catalogWebSearch": "Web araması: 1000 arama başına {{price}}.",
+        "webSearchGeminiTerms": "Google'ın Gemini API şartları, Google Arama'ya dayanan her yanıtla birlikte Google'ın arama önerilerinin (Search Suggestions) gösterilmesini istiyor. Ada bunları henüz göstermiyor; açmadan önce şartları inceleyin."
     },
     "aliases": {
         "title": "Model takma adları",
@@ -237,7 +242,12 @@
         "enabled": "Etkin",
         "groups": "Kullanabilecek gruplar",
         "groupsHelp": "Bu takma adı yalnızca seçilen grupların üyeleri kullanabilir.",
-        "noModels": "Önce bir model ekleyin."
+        "noModels": "Önce bir model ekleyin.",
+        "webSearch": "Web araması",
+        "webSearchEnabled": "Kullanıcılar web aramasını açabilir",
+        "webSearchHelp": "Kullanıcılar her mesaj için ayrıca açar. Soru ve arama sorguları sağlayıcının arama servisine gider; her arama ücretlidir ve kullanıcının bütçesinden düşer.",
+        "webSearchMaxUses": "Mesaj başına arama (en çok)",
+        "webSearchUnavailable": "Seçilen model web'de arayamıyor ya da arama fiyatı girilmemiş (Yönetim → Modeller)."
     },
     "groups": {
         "title": "Gruplar",
@@ -434,7 +444,10 @@
         "download_provider": "Sağlayıcıya göre döküm",
         "download_user": "Kullanıcıya göre döküm (tüm kullanıcılar)",
         "downloadDaily": "Günlük harcama",
-        "downloadMonthly": "Aylık harcama"
+        "downloadMonthly": "Aylık harcama",
+        "searches": "Web aramaları",
+        "webSearches_one": "{{formatted}} web araması · {{cost}}",
+        "webSearches_other": "{{formatted}} web araması · {{cost}}"
     },
     "dashboard": {
         "spend": "Bu ayki harcama",
@@ -506,6 +519,9 @@
         "uploading": "Yükleniyor…",
         "removeDocumentTitle": "{{name}} kaldırılsın mı?",
         "removeDocumentHelp": "Asistan bu belgeyi artık almaz. Dosya silinir.",
-        "documentsAfterSave": "Önce asistanı kaydedin; belgeler ardından eklenebilir."
+        "documentsAfterSave": "Önce asistanı kaydedin; belgeler ardından eklenebilir.",
+        "webSearch": "Kullanıcılar bu asistanla web'de arayabilir",
+        "webSearchHelp": "Kullanıcılar, model takma adında olduğu gibi, her mesaj için ayrıca açar.",
+        "webSearchAliasOff": "Asistanın model takma adı web aramasına izin vermiyor; önce orada açın."
     }
 }
