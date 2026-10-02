@@ -46,7 +46,26 @@
         "pin": "Sabitle",
         "unpin": "Sabitlemeyi kaldır",
         "exportMarkdown": "Markdown olarak indir",
-        "print": "Yazdır veya PDF olarak kaydet"
+        "print": "Yazdır veya PDF olarak kaydet",
+        "share": {
+            "button": "Paylaş",
+            "title": "Sohbeti paylaş",
+            "description": "Kurumunuzda Ada'ya oturum açmış ve bağlantıya sahip herkes bu sohbetin şu anki bir kopyasını okuyabilir. Sonra yazdığınız mesajlar paylaşılmaz. Ekli dosyalar yalnızca adlarıyla görünür.",
+            "create": "Bağlantı oluştur",
+            "creating": "Oluşturuluyor…",
+            "copy": "Bağlantıyı kopyala",
+            "copied": "Bağlantı kopyalandı",
+            "newLink": "Yeni bağlantı — şimdi kopyalayın, bir daha gösterilmez.",
+            "links": "Etkin bağlantılar",
+            "none": "Etkin bağlantı yok.",
+            "created": "{{date}} tarihinde oluşturuldu",
+            "views_one": "{{count}} görüntüleme",
+            "views_other": "{{count}} görüntüleme",
+            "revoke": "İptal et",
+            "revoked": "Bağlantı iptal edildi",
+            "failed": "Bağlantı oluşturulamadı. Yeniden deneyin.",
+            "close": "Kapat"
+        }
     },
     "errors": {
         "budget_exhausted": "Aylık bütçeniz doldu. Gelecek ayın başında yenilenir.",
@@ -159,5 +178,13 @@
             "too_long": "Çok uzun",
             "other": "Başka bir şey"
         }
+    },
+    "shared": {
+        "label": "Paylaşılan sohbet",
+        "by": "{{name}} tarafından {{date}} tarihinde paylaşıldı",
+        "readOnly": "Bu, sohbet paylaşıldığında alınmış salt okunur bir kopyadır.",
+        "copy": "Sohbetlerime kopyala",
+        "own": "Bu sohbeti siz paylaştınız.",
+        "attachments": "Ekli dosyalar (paylaşılmadı): {{names}}"
     }
 }

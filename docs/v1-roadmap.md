@@ -190,8 +190,8 @@ Chosen with the pilot, one pull request per step:
 | Q1 | Web search part 1: the providers' search tools (Anthropic, OpenAI, Gemini), search prices in the catalog, searches in the budget and the usage records | ✅ |
 | Q2 | Web search part 2: "Web" button, search progress and sources in the chat, alias, model and assistant settings, reports | ✅ |
 | Q3 | Budget alerts for users at 80 % and 100 % (in the app and by e-mail) | ✅ |
-| Q4 | Answer feedback (thumbs up / down with a reason), satisfaction by alias, model and assistant without content | 🚧 |
-| Q5 | Sharing a read-only snapshot of a conversation with signed-in colleagues | |
+| Q4 | Answer feedback (thumbs up / down with a reason), satisfaction by alias, model and assistant without content | ✅ |
+| Q5 | Sharing a read-only snapshot of a conversation with signed-in colleagues | 🚧 |
 
 Then the v1.3.0 release notes.
 

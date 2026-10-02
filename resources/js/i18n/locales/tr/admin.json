@@ -59,7 +59,10 @@
         "testMail": "Deneme e-postası gönder",
         "mailNotConfigured": "Bu sunucuda e-posta yapılandırılmamış (MAIL_MAILER log): iletiler yalnızca log kaydına yazılır. Kurulum rehberine bakın.",
         "userBudgetEmails": "Kullanıcılara aylık bütçelerinin %80'inde ve %100'ünde e-posta gönder",
-        "userBudgetEmailsHelp": "Her ay ve her eşik için bir kez. Kullanıcılar bu e-postaları kendileri için kapatabilir; sohbet ekranı aynı uyarıyı her durumda gösterir."
+        "userBudgetEmailsHelp": "Her ay ve her eşik için bir kez. Kullanıcılar bu e-postaları kendileri için kapatabilir; sohbet ekranı aynı uyarıyı her durumda gösterir.",
+        "sharing": "Paylaşım",
+        "conversationSharing": "Kullanıcıların sohbet paylaşmasına izin ver",
+        "conversationSharingHelp": "Paylaşılan bağlantı, sohbetin paylaşıldığı andaki salt okunur bir kopyasını yalnızca bu kurumun oturum açmış kullanıcılarına gösterir. Bu ayarı kapatmak mevcut bütün bağlantıları durdurur."
     },
     "authentication": {
         "title": "Giriş",

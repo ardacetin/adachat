@@ -46,7 +46,26 @@
         "pin": "Pin",
         "unpin": "Unpin",
         "exportMarkdown": "Download as Markdown",
-        "print": "Print or save as PDF"
+        "print": "Print or save as PDF",
+        "share": {
+            "button": "Share",
+            "title": "Share conversation",
+            "description": "Anyone signed in to Ada at your institution who has the link can read a copy of this conversation as it is now. Messages you write later are not shared. Attached files are shown by name only.",
+            "create": "Create link",
+            "creating": "Creating…",
+            "copy": "Copy link",
+            "copied": "Link copied",
+            "newLink": "New link — copy it now, it is not shown again.",
+            "links": "Active links",
+            "none": "No active links.",
+            "created": "Created {{date}}",
+            "views_one": "{{count}} view",
+            "views_other": "{{count}} views",
+            "revoke": "Revoke",
+            "revoked": "Link revoked",
+            "failed": "The link could not be created. Try again.",
+            "close": "Close"
+        }
     },
     "errors": {
         "budget_exhausted": "Your monthly budget is used up. It renews at the start of next month.",
@@ -159,5 +178,13 @@
             "too_long": "Too long",
             "other": "Something else"
         }
+    },
+    "shared": {
+        "label": "Shared conversation",
+        "by": "Shared by {{name}} on {{date}}",
+        "readOnly": "This is a read-only copy made when the conversation was shared.",
+        "copy": "Copy to my conversations",
+        "own": "You shared this conversation.",
+        "attachments": "Attached files (not shared): {{names}}"
     }
 }

@@ -2,9 +2,15 @@ import { Head, router } from '@inertiajs/react';
 import { Download, Pin, PinOff, Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ChatView from '@/components/chat/chat-view';
+import ShareDialog from '@/components/chat/share-dialog';
 import { Button } from '@/components/ui/button';
 import { exportMethod, update } from '@/routes/conversations';
-import type { AliasOption, AssistantSummary, ChatMessage } from '@/types/chat';
+import type {
+    AliasOption,
+    AssistantSummary,
+    ChatMessage,
+    ShareLink,
+} from '@/types/chat';
 
 type Props = {
     conversation: {
@@ -16,6 +22,8 @@ type Props = {
     messages: ChatMessage[];
     aliases: AliasOption[];
     assistant: AssistantSummary | null;
+    /** Null when the institution does not allow sharing. */
+    sharing: { links: ShareLink[] } | null;
 };
 
 export default function ChatShow({
@@ -23,6 +31,7 @@ export default function ChatShow({
     messages,
     aliases,
     assistant,
+    sharing,
 }: Props) {
     const { t } = useTranslation('chat');
     const title = conversation.title ?? t('untitled');
@@ -88,6 +97,12 @@ export default function ChatShow({
                             <Download />
                         </a>
                     </Button>
+                    {sharing && (
+                        <ShareDialog
+                            conversationId={conversation.id}
+                            links={sharing.links}
+                        />
+                    )}
                     <Button
                         type="button"
                         variant="ghost"

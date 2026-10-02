@@ -26,8 +26,12 @@ const KB = 1024;
 const BUDGETS = {
     entry: 230,
     page: 40,
-    // The chat renders Markdown (react-markdown + remark-gfm).
-    pages: { 'chat/index.tsx': 75, 'chat/show.tsx': 75 },
+    // The chat and shared conversations render Markdown (react-markdown + remark-gfm).
+    pages: {
+        'chat/index.tsx': 75,
+        'chat/show.tsx': 75,
+        'shares/show.tsx': 75,
+    },
 };
 
 const root = new URL('..', import.meta.url).pathname;

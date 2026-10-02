@@ -118,6 +118,7 @@ biter.
 | [Bütçe motoru](docs/budget-engine.md) | Bütçe dönemleri, token sayımı, rezervasyon, settlement, eşzamanlılık |
 | [Kimlik doğrulama](docs/authentication.md) | SAML (Google Workspace) ve OpenID Connect (Entra ID) ile giriş, roller |
 | [Yanıt geri bildirimi](docs/feedback.md) | Beğen / beğenme ve içeriksiz memnuniyet raporu |
+| [Sohbet paylaşımı](docs/sharing.md) | Oturum açmış kullanıcılar için sohbetin salt okunur anlık kopyasına bağlantı |
 | [Asistanlar](docs/assistants.md) | Kurum içi asistanlar: talimatlar, erişim, sohbetler |
 | [Provider mimarisi](docs/provider-architecture.md) | Provider arayüzü, adapter'lar, token sayaçları, kullanım normalizasyonu |
 | [Frontend mimarisi](docs/frontend-architecture.md) | React/Inertia yapısı, streaming state, i18n, tema |

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Domain\Conversations\Services\ChatPageProps;
+use App\Domain\Conversations\Services\ConversationSharing;
 use App\Domain\Conversations\Services\ConversationThread;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\ConversationShare;
 use App\Models\Message;
 use App\Models\MessageAttachment;
 use App\Models\User;
@@ -27,7 +29,7 @@ class ConversationController extends Controller
         return Inertia::render('chat/index', $this->page->for($this->user($request)));
     }
 
-    public function show(Request $request, Conversation $conversation): Response
+    public function show(Request $request, Conversation $conversation, ConversationSharing $sharing): Response
     {
         Gate::authorize('view', $conversation);
 
@@ -57,6 +59,11 @@ class ConversationController extends Controller
                 ],
                 'attachments' => $message->attachments->map(fn (MessageAttachment $attachment) => $attachment->toClient())->values(),
             ])->values(),
+            // The owner's live links; null when sharing is turned off.
+            'sharing' => $sharing->enabled() ? [
+                'links' => $conversation->shares()->whereNull('revoked_at')->latest('id')->get()
+                    ->map(fn (ConversationShare $share) => ConversationShareController::link($share))->values(),
+            ] : null,
         ]);
     }
 

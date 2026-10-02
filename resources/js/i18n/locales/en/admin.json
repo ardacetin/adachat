@@ -59,7 +59,10 @@
         "testMail": "Send a test e-mail",
         "mailNotConfigured": "E-mail is not configured on this server (MAIL_MAILER is log): messages are only written to the log. See the deployment guide.",
         "userBudgetEmails": "E-mail users at 80 % and 100 % of their monthly budget",
-        "userBudgetEmailsHelp": "Once per month and threshold. Users can turn these e-mails off for themselves; the chat shows the same warning in any case."
+        "userBudgetEmailsHelp": "Once per month and threshold. Users can turn these e-mails off for themselves; the chat shows the same warning in any case.",
+        "sharing": "Sharing",
+        "conversationSharing": "Allow users to share conversations",
+        "conversationSharingHelp": "A shared link shows a read-only copy of the conversation as it was when shared, to signed-in users of this institution only. Turning this off stops every existing link."
     },
     "authentication": {
         "title": "Sign-in",

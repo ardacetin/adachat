@@ -67,6 +67,14 @@ class Conversation extends Model
     }
 
     /**
+     * @return HasMany<ConversationShare, $this>
+     */
+    public function shares(): HasMany
+    {
+        return $this->hasMany(ConversationShare::class);
+    }
+
+    /**
      * The assistant the conversation was started with, if any.
      *
      * @return BelongsTo<Assistant, $this>
@@ -74,6 +82,17 @@ class Conversation extends Model
     public function assistant(): BelongsTo
     {
         return $this->belongsTo(Assistant::class);
+    }
+
+    /**
+     * A deleted conversation is no longer shared: its links stop working at
+     * once, not only when retention removes it for good.
+     */
+    protected static function booted(): void
+    {
+        static::softDeleted(function (Conversation $conversation): void {
+            $conversation->shares()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        });
     }
 
     /**

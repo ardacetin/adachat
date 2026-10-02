@@ -122,6 +122,7 @@ error when something needs fixing.
 | [Database design](docs/database-design.md) | Tables, relations, indexes, money precision, MySQL conventions |
 | [Budget engine](docs/budget-engine.md) | Budget periods, token counting, reservations, settlement, concurrency |
 | [Answer feedback](docs/feedback.md) | Thumbs up / down and the satisfaction report, without content |
+| [Conversation sharing](docs/sharing.md) | Read-only links to a snapshot of a conversation, for signed-in users |
 | [Authentication](docs/authentication.md) | SAML (Google Workspace) and OpenID Connect (Entra ID) sign-in, roles |
 | [Assistants](docs/assistants.md) | Institutional assistants: instructions, access, conversations |
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |

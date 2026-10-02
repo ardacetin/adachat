@@ -41,6 +41,7 @@ class InstitutionSettingsController extends Controller
                 ...array_combine(self::TEXT_FIELDS, array_map(fn (string $field) => $settings->{$field}, self::TEXT_FIELDS)),
                 'notification_emails' => $settings->notification_emails,
                 'user_budget_emails' => $settings->user_budget_emails,
+                'conversation_sharing' => $settings->conversation_sharing,
                 'has_logo' => $settings->logo_path !== null,
                 'has_logo_dark' => $settings->logo_dark_path !== null,
                 'has_favicon' => $settings->favicon_path !== null,
@@ -70,6 +71,10 @@ class InstitutionSettingsController extends Controller
 
         if ($request->exists('user_budget_emails')) {
             $settings->user_budget_emails = $request->boolean('user_budget_emails');
+        }
+
+        if ($request->exists('conversation_sharing')) {
+            $settings->conversation_sharing = $request->boolean('conversation_sharing');
         }
 
         foreach (self::ASSETS as $input => $property) {
