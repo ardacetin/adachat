@@ -179,6 +179,10 @@ addresses are set but mail is not configured.
 - [ ] Google Admin: 2-step verification is enforced for the users of the SAML
       app (Security → Authentication → 2-step verification). Ada has no
       passwords; the IdP is the only way in.
+- [ ] Microsoft Entra ID (if used): a single-tenant app registration,
+      multi-factor authentication required by Conditional Access, and the
+      client secret's expiry date in your calendar
+      ([authentication.md §1a](authentication.md#1a-openid-connect-microsoft-entra-id-generic)).
 - [ ] Firewall: only 80 and 443 are open; MySQL and Redis listen on
       localhost or a private network only.
 - [ ] `TRUSTED_PROXIES` lists only your own proxies (or is empty).
@@ -297,7 +301,8 @@ new version's migrations changed data (the changelog says so).
   monitor at it.
 - `php artisan ada:doctor` exits non-zero on a problem; run it from cron or
   your monitoring and alert on failure. It also warns 30 days before the SAML
-  certificate expires.
+  certificate expires, and checks that the OpenID Connect provider can be
+  reached and that the clocks agree.
 - Admin → Overview shows spending, active users and unusual usage; the audit
   log shows every administrative change.
 - Logs: JSON lines (§3.4); search for `AI provider request failed` when users

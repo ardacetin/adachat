@@ -18,7 +18,7 @@ Actors: anonymous internet users; authenticated staff (curious or abusive);
 admins (trusted for accounting, **not** for content); super admins;
 operators with server access (ultimately trusted); compromised dependencies.
 
-## 2. Authentication (SAML 2.0)
+## 2. Authentication (SAML 2.0, OpenID Connect)
 
 - SP-initiated SAML with onelogin/php-saml in strict mode: signed response or
   assertion from the configured IdP certificate, issuer, audience,
@@ -30,7 +30,15 @@ operators with server access (ultimately trusted); compromised dependencies.
 - E-mail domain ∈ allowed domains (see [authentication.md](authentication.md)).
 - No password login → no credential stuffing surface. Break-glass via CLI only.
 - Login route throttled per IP.
-- Future OIDC: ID token signature (JWKS), `iss`, `aud`, `exp`, `nonce`.
+- OpenID Connect (authentication.md §1a): authorization code flow with PKCE
+  (S256); state, nonce and verifier are single-use and expire after 10
+  minutes. The ID token's signature is verified against the provider's JWKS
+  with an allow-list of algorithms (RS256, ES256: no `none`, no HMAC with the
+  client secret); `iss`, `aud`, `azp`, `exp`, `nbf`, `iat` (60 s leeway) and
+  `nonce` are checked. Discovery and keys only over https. Entra ID: single
+  tenant only, `tid` pinned, `email` trusted only with `xms_edov`, guest
+  accounts refused. The client secret lives in `.env` only and is never
+  shown, stored or logged.
 
 ## 3. Sessions
 
@@ -127,7 +135,8 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 | Administration (`throttle:admin`) | 120 |
 | Chat: send / regenerate (plus the group's requests per minute) | 60 each |
 | Chat: stop | 120 |
-| Login page / SAML redirect / ACS | 60 / 20 / 20 |
+| Login page / sign-in redirect / SAML ACS / OIDC callback | 60 / 20 / 20 / 20 |
+| OIDC connection test (admin) | 10 |
 | Usage notice acknowledgment | 10 |
 | Provider connection check | 10 |
 
@@ -232,7 +241,7 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
 ## 15. Security testing
 
 - Feature tests for every policy (role matrix, owner-only content).
-- SAML response validation and domain restriction tests.
+- SAML response and OIDC ID token validation, and domain restriction tests.
 - Markdown XSS tests (raw HTML, `javascript:` links).
 - Budget concurrency and abuse tests.
 - Header/CSP assertions.

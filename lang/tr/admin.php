@@ -4,6 +4,9 @@ return [
 
     'saved' => 'Ayarlar kaydedildi.',
     'test_mail_sent' => 'Deneme e-postası gönderildi: :to.',
+    'oidc_test_ok' => 'Bağlantı başarılı: keşif belgesi ve imza anahtarları alındı.',
+    'oidc_test_skew' => 'Bağlantı başarılı, ancak bu sunucunun saati kimlik sağlayıcınınkinden :seconds saniye farklı. 60 saniyenin üzerinde giriş başarısız olur: saat eşitlemesini (NTP) kontrol edin.',
+    'oidc_test_failed' => 'Bağlantı kurulamadı: :error',
     'test_mail_failed' => 'Deneme e-postası gönderilemedi. MAIL_* ayarlarını kontrol edin; nedeni log kaydında.',
     'policy_in_use' => 'Bu bütçe politikası bir grup tarafından kullanılıyor, silinemez.',
     'group_not_deletable' => 'Varsayılan grup ve üyesi olan gruplar silinemez.',

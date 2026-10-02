@@ -44,7 +44,8 @@ numbers.
 
 ## Features
 
-- Google Workspace sign-in (SAML 2.0) restricted to allowed domains
+- Sign-in with Google Workspace (SAML 2.0) and/or Microsoft Entra ID and
+  other OpenID Connect providers, restricted to allowed domains
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
 - OpenAI, Anthropic and Google Gemini through a provider abstraction, and
@@ -87,6 +88,8 @@ Sign-in uses SAML 2.0 with a custom SAML app in Google Workspace: set
 `AUTH_ALLOWED_DOMAINS`, and enter Ada's ACS URL (`<APP_URL>/auth/saml/acs`)
 and Entity ID (`<APP_URL>/auth/saml/metadata`) in Google Admin (see
 [authentication](docs/authentication.md#setting-up-the-google-workspace-saml-app));
+OpenID Connect (Microsoft Entra ID and others) is set up with the `OIDC_*`
+values ([authentication §1a](docs/authentication.md#1a-openid-connect-microsoft-entra-id-generic));
 locally you can also use the development login. Run all checks with
 `composer ci:check`.
 
@@ -110,7 +113,7 @@ error when something needs fixing.
 | [Architecture](docs/architecture.md) | Overall design, domain boundaries, request and streaming flow, deployment |
 | [Database design](docs/database-design.md) | Tables, relations, indexes, money precision, MySQL conventions |
 | [Budget engine](docs/budget-engine.md) | Budget periods, token counting, reservations, settlement, concurrency |
-| [Authentication](docs/authentication.md) | SAML sign-in with Google Workspace, roles, future OIDC/LDAP |
+| [Authentication](docs/authentication.md) | SAML (Google Workspace) and OpenID Connect (Entra ID) sign-in, roles |
 | [Provider architecture](docs/provider-architecture.md) | Provider interface, adapters, token counters, usage normalization |
 | [Frontend architecture](docs/frontend-architecture.md) | React/Inertia structure, streaming state, i18n, theming |
 | [Security](docs/security.md) | Threats and controls |

@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/admin/form-field';
 import CopyField from '@/components/admin/copy-field';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { edit, update } from '@/routes/admin/authentication';
+import { edit, oidcTest, update } from '@/routes/admin/authentication';
 
 type Props = {
     settings: {
@@ -26,9 +26,19 @@ type Props = {
         idp_sso_url: string | null;
         certificate: { fingerprint: string; expires_at: string | null } | null;
     };
+    oidc: {
+        enabled: boolean;
+        configured: boolean;
+        problem: string | null;
+        preset: string;
+        issuer: string | null;
+        client_id: string | null;
+        redirect_uri: string;
+        scopes: string;
+    };
 };
 
-export default function Authentication({ settings, saml }: Props) {
+export default function Authentication({ settings, saml, oidc }: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
 
@@ -174,6 +184,111 @@ export default function Authentication({ settings, saml }: Props) {
                         ) : (
                             <p className="text-sm text-muted-foreground">
                                 {t('authentication.noProviders')}
+                            </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                            {t('authentication.secretsNote')}
+                        </p>
+                    </div>
+                </section>
+
+                <section className="space-y-4" data-test="oidc-section">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-medium">
+                            {t('authentication.oidc.title')}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            {t('authentication.oidc.description')}
+                        </p>
+                    </div>
+
+                    <CopyField
+                        id="oidc-redirect"
+                        label={t('authentication.oidc.redirectUri')}
+                        value={oidc.redirect_uri}
+                    />
+
+                    <div className="space-y-2 rounded-lg border p-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                                {t('authentication.oidc.status')}
+                            </span>
+                            <Badge
+                                variant={
+                                    oidc.configured
+                                        ? 'secondary'
+                                        : oidc.enabled
+                                          ? 'destructive'
+                                          : 'outline'
+                                }
+                            >
+                                {oidc.configured
+                                    ? t('authentication.providerConfigured')
+                                    : oidc.enabled
+                                      ? t('authentication.oidc.invalid')
+                                      : t('authentication.oidc.off')}
+                            </Badge>
+                        </div>
+                        {oidc.enabled ? (
+                            <>
+                                {oidc.problem && (
+                                    <p
+                                        className="text-sm text-destructive"
+                                        role="alert"
+                                    >
+                                        {oidc.problem}
+                                    </p>
+                                )}
+                                <dl className="grid gap-1 text-xs">
+                                    <dt className="text-muted-foreground">
+                                        {t('authentication.oidc.preset')}
+                                    </dt>
+                                    <dd>
+                                        {oidc.preset === 'entra'
+                                            ? t(
+                                                  'authentication.oidc.presetEntra',
+                                              )
+                                            : t(
+                                                  'authentication.oidc.presetGeneric',
+                                              )}
+                                    </dd>
+                                    <dt className="text-muted-foreground">
+                                        {t('authentication.oidc.issuer')}
+                                    </dt>
+                                    <dd className="font-mono break-all">
+                                        {oidc.issuer ?? '—'}
+                                    </dd>
+                                    <dt className="text-muted-foreground">
+                                        {t('authentication.oidc.clientId')}
+                                    </dt>
+                                    <dd className="font-mono break-all">
+                                        {oidc.client_id ?? '—'}
+                                    </dd>
+                                    <dt className="text-muted-foreground">
+                                        {t('authentication.oidc.scopes')}
+                                    </dt>
+                                    <dd className="font-mono">{oidc.scopes}</dd>
+                                </dl>
+                                {oidc.configured && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            router.post(
+                                                oidcTest.url(),
+                                                {},
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        {t('authentication.oidc.test')}
+                                    </Button>
+                                )}
+                            </>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                {t('authentication.oidc.notConfigured')}
                             </p>
                         )}
                         <p className="text-xs text-muted-foreground">

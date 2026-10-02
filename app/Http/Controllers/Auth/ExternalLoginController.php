@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 /**
- * Sign-in through redirect-based identity providers (SAML 2.0 against the
- * institution's Google Workspace in V1).
+ * Sign-in through redirect-based identity providers: SAML 2.0 (Google
+ * Workspace) and OpenID Connect (Microsoft Entra ID and others).
  */
 class ExternalLoginController extends Controller
 {
@@ -31,7 +31,8 @@ class ExternalLoginController extends Controller
     }
 
     /**
-     * The IdP's answer (SAML assertion consumer service, HTTP-POST binding).
+     * The IdP's answer: the SAML assertion consumer service (HTTP-POST
+     * binding) or the OpenID Connect redirect URI (GET with the code).
      */
     public function callback(Request $request, string $provider, LoginUser $loginUser): RedirectResponse
     {

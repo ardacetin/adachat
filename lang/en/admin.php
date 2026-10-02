@@ -4,6 +4,9 @@ return [
 
     'saved' => 'Settings saved.',
     'test_mail_sent' => 'Test e-mail sent to :to.',
+    'oidc_test_ok' => 'Connection successful: the discovery document and the signing keys were loaded.',
+    'oidc_test_skew' => 'Connection successful, but this server\'s clock differs from the identity provider\'s by :seconds seconds. Sign-in fails above 60 seconds: check the time synchronization (NTP).',
+    'oidc_test_failed' => 'Connection failed: :error',
     'test_mail_failed' => 'The test e-mail could not be sent. Check the MAIL_* settings; the reason is in the log.',
     'policy_in_use' => 'This budget policy is used by a group and cannot be deleted.',
     'group_not_deletable' => 'The default group and groups with members cannot be deleted.',

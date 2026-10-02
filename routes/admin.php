@@ -42,6 +42,9 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
 
         Route::get('authentication', [AuthSettingsController::class, 'edit'])->name('authentication.edit');
         Route::put('authentication', [AuthSettingsController::class, 'update'])->name('authentication.update');
+        Route::post('authentication/oidc-test', [AuthSettingsController::class, 'testOidc'])
+            ->middleware('throttle:10,1,oidc-test:')
+            ->name('authentication.oidc-test');
 
         Route::get('privacy', [PrivacySettingsController::class, 'edit'])->name('privacy.edit');
         Route::put('privacy', [PrivacySettingsController::class, 'update'])->name('privacy.update');

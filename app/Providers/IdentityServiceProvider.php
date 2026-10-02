@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Domain\Identity\Actions\LoginUser;
+use App\Domain\Identity\Oidc\IdTokenVerifier;
+use App\Domain\Identity\Oidc\OidcDiscovery;
+use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\AllowedDomainPolicy;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
@@ -31,8 +34,21 @@ class IdentityServiceProvider extends ServiceProvider
             (string) config('app.url'),
         ));
 
+        $this->app->bind(OidcIdentityProvider::class, fn (Application $app): OidcIdentityProvider => new OidcIdentityProvider(
+            (array) config('ada.auth.oidc'),
+            new OidcDiscovery(
+                trim((string) config('ada.auth.oidc.issuer')),
+                // Plain http only for a local test identity provider.
+                (bool) $app->environment('local', 'testing'),
+                $app->make(Cache::class),
+            ),
+            new IdTokenVerifier,
+            (string) config('app.url'),
+        ));
+
         $this->app->bind(IdentityProviderRegistry::class, fn (Application $app): IdentityProviderRegistry => new IdentityProviderRegistry([
             $app->make(SamlIdentityProvider::class),
+            $app->make(OidcIdentityProvider::class),
         ]));
 
         $this->app->bind(LoginUser::class, fn (Application $app): LoginUser => new LoginUser(

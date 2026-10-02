@@ -20,7 +20,7 @@ beforeEach(function () {
 
 function signInCallback(): TestResponse
 {
-    return test()->post(route('auth.acs', 'google'));
+    return test()->post(route('auth.acs', 'saml'));
 }
 
 test('unknown providers are not found', function () {
@@ -29,12 +29,12 @@ test('unknown providers are not found', function () {
 });
 
 test('the redirect is delegated to the provider', function () {
-    $this->get(route('auth.redirect', 'google'))->assertRedirect('https://idp.test/authorize');
+    $this->get(route('auth.redirect', 'saml'))->assertRedirect('https://idp.test/authorize');
 });
 
 test('the login page lists enabled providers', function () {
     $this->get(route('login'))
-        ->assertInertia(fn ($page) => $page->where('providers', [['key' => 'google', 'label' => 'Fake IdP']]));
+        ->assertInertia(fn ($page) => $page->where('providers', [['key' => 'saml', 'label' => 'Fake IdP']]));
 });
 
 test('a first sign-in provisions the user in the default group', function () {

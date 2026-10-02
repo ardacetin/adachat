@@ -185,6 +185,10 @@ adresler tanımlı ama e-posta yapılandırılmamışsa `ada:doctor` uyarır.
 - [ ] Google Admin: SAML uygulamasının kullanıcıları için 2 adımlı doğrulama
       zorunlu (Güvenlik → Kimlik doğrulama → 2 Adımlı Doğrulama). Ada'da
       parola yoktur; tek giriş yolu kimlik sağlayıcıdır.
+- [ ] Microsoft Entra ID (kullanılıyorsa): tek kiracılı uygulama kaydı,
+      Koşullu Erişim ile zorunlu çok faktörlü kimlik doğrulama ve takvimde
+      istemci gizli anahtarının (client secret) son kullanma tarihi
+      ([authentication.md §1a](authentication.md#1a-openid-connect-microsoft-entra-id-generic)).
 - [ ] Güvenlik duvarı: yalnızca 80 ve 443 açık; MySQL ve Redis yalnızca
       localhost'u veya özel ağı dinliyor.
 - [ ] `TRUSTED_PROXIES` yalnızca kendi proxy'lerinizi içeriyor (veya boş).
@@ -308,7 +312,8 @@ yükleyin.
   izleyicisini buraya yönlendirin.
 - `php artisan ada:doctor` bir sorun olduğunda sıfırdan farklı kodla çıkar;
   cron'dan veya izleme sisteminizden çalıştırıp hata durumunda uyarı alın.
-  SAML sertifikasının süresi dolmadan 30 gün önce de uyarır.
+  SAML sertifikasının süresi dolmadan 30 gün önce de uyarır; OpenID Connect
+  sağlayıcısına erişilebildiğini ve saatlerin uyuştuğunu da denetler.
 - Yönetim → Genel bakış harcamaları, aktif kullanıcıları ve olağandışı
   kullanımı gösterir; denetim kaydı her yönetimsel değişikliği gösterir.
 - Loglar: JSON satırları (§3.4); kullanıcılar hata bildirdiğinde

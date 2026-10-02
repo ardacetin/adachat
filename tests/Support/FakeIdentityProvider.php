@@ -18,7 +18,7 @@ final class FakeIdentityProvider implements RedirectIdentityProvider
     public ExternalIdentity|IdentityRejected|null $next = null;
 
     public function __construct(
-        private readonly string $key = 'google',
+        private readonly string $key = 'saml',
         private readonly bool $requiresHostedDomain = true,
     ) {}
 

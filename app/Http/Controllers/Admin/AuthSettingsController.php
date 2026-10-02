@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Identity\Oidc\OidcUnavailable;
+use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Http\Controllers\Controller;
@@ -13,7 +15,7 @@ use Inertia\Response;
 
 class AuthSettingsController extends Controller
 {
-    public function edit(AuthSettings $settings, SamlIdentityProvider $saml): Response
+    public function edit(AuthSettings $settings, SamlIdentityProvider $saml, OidcIdentityProvider $oidc): Response
     {
         return Inertia::render('admin/authentication', [
             'settings' => [
@@ -22,7 +24,27 @@ class AuthSettingsController extends Controller
             ],
             // Values to enter in the IdP, plus the (public) IdP values read from .env.
             'saml' => $saml->setupDetails(),
+            'oidc' => $oidc->setupDetails(),
         ]);
+    }
+
+    /**
+     * Loads the identity provider's discovery document and keys, bypassing
+     * the cache, and compares the clocks.
+     */
+    public function testOidc(OidcIdentityProvider $oidc): RedirectResponse
+    {
+        try {
+            $skew = $oidc->discovery()->test();
+
+            Inertia::flash('toast', $skew !== null && abs($skew) > 30
+                ? ['type' => 'error', 'message' => __('admin.oidc_test_skew', ['seconds' => abs($skew)])]
+                : ['type' => 'success', 'message' => __('admin.oidc_test_ok')]);
+        } catch (OidcUnavailable $exception) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('admin.oidc_test_failed', ['error' => $exception->getMessage()])]);
+        }
+
+        return to_route('admin.authentication.edit');
     }
 
     public function update(UpdateAuthSettingsRequest $request, AuthSettings $settings, AuditLogger $audit): RedirectResponse

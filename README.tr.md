@@ -42,7 +42,8 @@ iş görebileceğini öngörmüştür.
 
 ## Özellikler
 
-- İzin verilen domainlerle sınırlı Google Workspace girişi (SAML 2.0)
+- İzin verilen domainlerle sınırlı giriş: Google Workspace (SAML 2.0) ve/veya
+  Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
 - Roller (super admin, admin, user) ve gruplar
 - Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini; ayrıca
@@ -85,6 +86,8 @@ yapılır: `SAML_IDP_ENTITY_ID`, `SAML_IDP_SSO_URL`, `SAML_IDP_CERT` ve
 `AUTH_ALLOWED_DOMAINS` değerlerini ayarlayın; Google Admin'e Ada'nın ACS
 URL'sini (`<APP_URL>/auth/saml/acs`) ve varlık kimliğini
 (`<APP_URL>/auth/saml/metadata`) girin (bkz. [kimlik doğrulama](docs/authentication.md#setting-up-the-google-workspace-saml-app));
+OpenID Connect (Microsoft Entra ID ve diğerleri) `OIDC_*` değerleriyle
+kurulur ([kimlik doğrulama §1a](docs/authentication.md#1a-openid-connect-microsoft-entra-id-generic));
 yerelde geliştirme girişini de kullanabilirsiniz. Tüm kontroller:
 `composer ci:check`.
 
@@ -105,7 +108,7 @@ biter.
 | [Mimari](docs/architecture.md) | Genel tasarım, domain sınırları, istek ve streaming akışı, deployment |
 | [Veritabanı tasarımı](docs/database-design.md) | Tablolar, ilişkiler, index'ler, para hassasiyeti, MySQL kuralları |
 | [Bütçe motoru](docs/budget-engine.md) | Bütçe dönemleri, token sayımı, rezervasyon, settlement, eşzamanlılık |
-| [Kimlik doğrulama](docs/authentication.md) | Google Workspace akışı, roller, gelecekte OIDC/SAML/LDAP |
+| [Kimlik doğrulama](docs/authentication.md) | SAML (Google Workspace) ve OpenID Connect (Entra ID) ile giriş, roller |
 | [Provider mimarisi](docs/provider-architecture.md) | Provider arayüzü, adapter'lar, token sayaçları, kullanım normalizasyonu |
 | [Frontend mimarisi](docs/frontend-architecture.md) | React/Inertia yapısı, streaming state, i18n, tema |
 | [Güvenlik](docs/security.md) | Tehditler ve kontroller |

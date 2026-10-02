@@ -9,7 +9,15 @@
  *   POST /v1/chat/completions        → SSE stream, data-only chunks ending in [DONE];
  *                                       refuses a request with credentials (keyless server)
  *   GET  /v1/models                  → connection check
+ *
+ * It also plays an OpenID Connect provider (issuer http://127.0.0.1:<port>/oidc)
+ * that signs in one user without asking:
+ *
+ *   GET  /oidc/.well-known/openid-configuration, /oidc/keys
+ *   GET  /oidc/authorize → redirects back with a code at once
+ *   POST /oidc/token     → RS256 ID token (checks the PKCE verifier)
  */
+import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto';
 import { createServer } from 'node:http';
 
 const port = Number(process.env.MOCK_PROVIDER_PORT ?? 8765);
@@ -41,8 +49,114 @@ function event(response, name, data) {
     );
 }
 
+const issuer = `http://127.0.0.1:${port}/oidc`;
+const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+});
+// A new key ID per start, as a provider rotating its key would use: Ada
+// may still have the previous run's key set cached.
+const kid = randomUUID();
+const jwk = { ...publicKey.export({ format: 'jwk' }), kid, use: 'sig' };
+const oidcCodes = new Map();
+
+const base64Url = (value) => Buffer.from(value).toString('base64url');
+
+function idToken(claims) {
+    const input = `${base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid }))}.${base64Url(JSON.stringify(claims))}`;
+
+    return `${input}.${sign('sha256', Buffer.from(input), privateKey).toString('base64url')}`;
+}
+
+function json(response, status, body) {
+    response.writeHead(status, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify(body));
+}
+
+function readForm(request) {
+    return new Promise((resolve) => {
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => resolve(new URLSearchParams(body)));
+    });
+}
+
+async function oidc(request, response, url) {
+    const path = url.pathname.slice('/oidc'.length);
+
+    if (path === '/.well-known/openid-configuration') {
+        return json(response, 200, {
+            issuer,
+            authorization_endpoint: `${issuer}/authorize`,
+            token_endpoint: `${issuer}/token`,
+            jwks_uri: `${issuer}/keys`,
+            token_endpoint_auth_methods_supported: ['client_secret_basic'],
+        });
+    }
+
+    if (path === '/keys') {
+        return json(response, 200, { keys: [jwk] });
+    }
+
+    if (path === '/authorize') {
+        const code = randomUUID();
+        oidcCodes.set(code, {
+            nonce: url.searchParams.get('nonce'),
+            challenge: url.searchParams.get('code_challenge'),
+            clientId: url.searchParams.get('client_id'),
+        });
+        const back = new URL(url.searchParams.get('redirect_uri'));
+        back.searchParams.set('code', code);
+        back.searchParams.set('state', url.searchParams.get('state'));
+        response.writeHead(302, { Location: back.toString() });
+
+        return response.end();
+    }
+
+    if (path === '/token' && request.method === 'POST') {
+        const form = await readForm(request);
+        const pending = oidcCodes.get(form.get('code'));
+        oidcCodes.delete(form.get('code'));
+        const verifier = form.get('code_verifier') ?? '';
+        const challenge = createHash('sha256')
+            .update(verifier)
+            .digest('base64url');
+
+        if (
+            !pending ||
+            challenge !== pending.challenge ||
+            !request.headers.authorization?.startsWith('Basic ')
+        ) {
+            return json(response, 400, { error: 'invalid_grant' });
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+
+        return json(response, 200, {
+            access_token: 'e2e',
+            token_type: 'Bearer',
+            id_token: idToken({
+                iss: issuer,
+                aud: pending.clientId,
+                sub: 'oidc-e2e-user',
+                iat: now,
+                exp: now + 300,
+                nonce: pending.nonce,
+                name: 'Zeynep OIDC',
+                email: 'zeynep.oidc@example.edu',
+                email_verified: true,
+            }),
+        });
+    }
+
+    return json(response, 404, { error: 'not_found' });
+}
+
 const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? '/', `http://localhost:${port}`);
+
+    if (url.pathname.startsWith('/oidc/')) {
+        return oidc(request, response, url);
+    }
 
     if (request.method === 'GET' && url.pathname === '/v1/models') {
         response.writeHead(200, { 'Content-Type': 'application/json' });
