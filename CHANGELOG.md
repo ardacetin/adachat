@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   person's browser post the response, signing that browser into their
   account (login CSRF). The request is now bound to the browser that
   started it with a short-lived `ada_saml_binding` cookie.
+- With the Docker default `TRUSTED_PROXIES=*`, any client could choose the
+  IP address recorded in the audit log and used by per-IP rate limits by
+  sending its own `X-Forwarded-For`: Laravel read `*` as "trust every
+  address", and the shipped host nginx appended to the client's header.
+  `*` now trusts only the immediate peer, and
+  `deploy/nginx/ada-docker-proxy.conf` overwrites the header with the
+  client address. **Docker installations:** copy the new
+  `proxy_set_header X-Forwarded-For $remote_addr;` line into your host
+  nginx configuration.
 
 ## [1.3.0] - 2026-10-02
 

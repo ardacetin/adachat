@@ -250,7 +250,10 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   (one year) on https requests.
 - Behind a reverse proxy, `X-Forwarded-*` headers are trusted only from
   `TRUSTED_PROXIES` (M11); otherwise a client could fake its address in the
-  audit log and rate limits, or the https flag.
+  audit log and rate limits, or the https flag. `*` trusts only the
+  immediate peer, so a client-supplied `X-Forwarded-For` entry further left
+  is never taken as its address, and the shipped Docker proxy file
+  overwrites the header.
 - `APP_DEBUG=false` and `APP_ENV=production` verified by `ada:doctor`;
   debug tools (e.g. Telescope) not installed in production.
 
