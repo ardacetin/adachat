@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('ada:budget:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('ada:budget:reconcile')->dailyAt('03:17');
 Schedule::command('ada:budget:cap-alerts')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('ada:budget:user-alerts')->everyFiveMinutes()->withoutOverlapping();
 // Hourly: sends last month's report once that month has ended in the
 // institution's time zone (idempotent).
 Schedule::command('ada:reports:monthly')->hourly()->withoutOverlapping();

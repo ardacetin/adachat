@@ -1,5 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import CheckboxField from '@/components/admin/checkbox-field';
 import FormField from '@/components/admin/form-field';
 import ImageUploadField from '@/components/admin/image-upload-field';
 import Heading from '@/components/heading';
@@ -31,6 +32,7 @@ type Settings = {
     budget_display: BudgetDisplay;
     monthly_cap_usd: string | null;
     notification_emails: string[];
+    user_budget_emails: boolean;
     has_logo: boolean;
     has_logo_dark: boolean;
     has_favicon: boolean;
@@ -55,6 +57,7 @@ type InstitutionForm = {
     budget_display: BudgetDisplay;
     monthly_cap_usd: string;
     notification_emails: string;
+    user_budget_emails: boolean;
     logo: File | null;
     logo_dark: File | null;
     favicon: File | null;
@@ -97,6 +100,7 @@ export default function Institution({
         budget_display: settings.budget_display,
         monthly_cap_usd: settings.monthly_cap_usd ?? '',
         notification_emails: settings.notification_emails.join('\n'),
+        user_budget_emails: settings.user_budget_emails,
         logo: null,
         logo_dark: null,
         favicon: null,
@@ -342,6 +346,19 @@ export default function Institution({
                             }
                         />
                     </FormField>
+                    <div className="space-y-1">
+                        <CheckboxField
+                            id="user_budget_emails"
+                            label={t('institution.userBudgetEmails')}
+                            checked={form.data.user_budget_emails}
+                            onChange={(checked) =>
+                                form.setData('user_budget_emails', checked)
+                            }
+                        />
+                        <p className="text-sm text-muted-foreground">
+                            {t('institution.userBudgetEmailsHelp')}
+                        </p>
+                    </div>
                     {!mailConfigured && (
                         <Alert>
                             <AlertDescription>

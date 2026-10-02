@@ -326,6 +326,28 @@ A Redis lock would add a second source of truth and fail open or closed when
 Redis restarts. The database row is already the thing we must update
 atomically, so it is the natural lock. Redis is used only for rate limiting.
 
+### 7.6 User budget alerts (v1.3)
+
+Users learn that their budget is running out in two ways:
+
+- **In the chat**, at once: from the budget summary (`percent_used`), a
+  banner appears at 80 % until the user closes it (per period, kept in the
+  browser); at 100 % the existing "budget used up" notice takes over.
+- **By e-mail**, once per period and threshold: `ada:budget:user-alerts`
+  (scheduler, every five minutes) finds current periods whose *spent*
+  amount (reservations are not counted) reached 80 % or 100 % of the limit,
+  claims the threshold on the period row (`budget_periods.alerted_80_at`,
+  `alerted_100_at`; a conditional `UPDATE … WHERE alerted_… IS NULL`, so
+  parallel runs send nothing twice; 100 % also marks 80 %) and e-mails the
+  user in their language. With the institution's "percent" display the
+  e-mail shows no amounts.
+- When a raised limit (or an adjustment) brings spending back under a
+  threshold, the threshold is cleared and announced again when reached.
+- No e-mail when the institution turned them off (Admin → Institution,
+  `user_budget_emails`), the user turned them off (Settings →
+  Notifications, `users.budget_emails`) or the account is disabled. The
+  alerts never run inside a chat request.
+
 ## 8. Settlement
 
 Called exactly once per reservation, from the generation's `finally` path or

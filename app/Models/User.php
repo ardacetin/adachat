@@ -30,6 +30,7 @@ use Illuminate\Notifications\Notifiable;
  * @property Usd|null $monthly_limit_override_usd Individual limit; null → the group's policy.
  * @property string|null $locale
  * @property Appearance $appearance
+ * @property bool $budget_emails E-mails at 80 % and 100 % of the monthly budget.
  * @property UserStatus $status
  * @property CarbonImmutable|null $disabled_at
  * @property CarbonImmutable|null $invited_at Added by an administrator before the first sign-in.
@@ -60,6 +61,7 @@ class User extends Authenticatable
         'locale' => null,
         'role' => 'user',
         'appearance' => 'system',
+        'budget_emails' => true,
         'status' => 'active',
         'monthly_limit_override_usd' => null,
     ];
@@ -74,6 +76,7 @@ class User extends Authenticatable
         return [
             'role' => UserRole::class,
             'appearance' => Appearance::class,
+            'budget_emails' => 'boolean',
             'status' => UserStatus::class,
             'monthly_limit_override_usd' => UsdCast::class,
             'disabled_at' => 'datetime',

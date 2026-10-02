@@ -4,7 +4,8 @@
     "nav": {
         "profile": "Profil",
         "language": "Dil",
-        "appearance": "Görünüm"
+        "appearance": "Görünüm",
+        "notifications": "Bildirimler"
     },
     "profile": {
         "title": "Profil",
@@ -23,5 +24,12 @@
         "light": "Açık",
         "dark": "Koyu",
         "system": "Sistem"
+    },
+    "notifications": {
+        "title": "Bildirimler",
+        "description": "Ada'nın size hangi e-postaları göndereceğini seçin.",
+        "budgetEmails": "Aylık bütçemin %80'inde ve %100'ünde bana e-posta gönder",
+        "budgetEmailsHelp": "Her ay her eşik için en çok bir e-posta. Sohbet ekranı aynı uyarıyı her durumda gösterir.",
+        "notOffered": "Kurumunuz şu anda bütçe e-postası göndermiyor."
     }
 }

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Budget alerts for users: at 80 % of the monthly budget the chat shows a
+  warning (until it is closed), and users get an e-mail at 80 % and 100 %,
+  once per month each, in their language (`ada:budget:user-alerts`, every
+  five minutes). Users turn the e-mails off in Settings → Notifications;
+  administrators for everyone in Admin → Institution. A raised limit
+  announces a threshold again when it is reached
+  ([budget-engine.md §7.6](docs/budget-engine.md#76-user-budget-alerts-v13)).
 - Web search: users turn on "Web search" for a message when its model alias
   (and assistant) allows it; the provider's own search tool is used
   (Anthropic web search, OpenAI web search; Gemini Grounding with Google
@@ -24,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Google's terms require its Search Suggestions with grounded Gemini
   answers, which Ada does not show yet, so Gemini models are listed
   without web search.
+
+### Fixed
+
+- Settings are cached whole: after an upgrade added a setting, the cached
+  copy lacked it ("must not be accessed before initialization") until the
+  cache was cleared by hand. Every migration run now clears the settings
+  cache.
 
 ## [1.2.0] - 2026-10-02
 

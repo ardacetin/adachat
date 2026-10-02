@@ -3,6 +3,17 @@
 return [
     'footer' => 'Ada Chat — this message was sent automatically.',
 
+    'user_budget' => [
+        'subject_80' => ':institution: you have used 80 % of your monthly AI budget',
+        'subject_100' => ':institution: your monthly AI budget is used up',
+        'heading_80' => '80 % of your monthly budget is used',
+        'heading_100' => 'Your monthly budget is used up',
+        'body_80' => 'You have used 80 % of your monthly budget for Ada Chat. When it is used up, new messages are refused until it renews on :date.',
+        'body_100' => 'You have used your whole monthly budget for Ada Chat. New messages are refused until it renews on :date. Ask your administrator if you need more.',
+        'amounts' => 'Used so far: :spent of :limit.',
+        'button' => 'See your usage',
+        'settings' => 'You can turn these e-mails off in Settings → Notifications.',
+    ],
     'cap_alert' => [
         'subject_80' => ':institution: 80 % of the monthly AI budget is used',
         'subject_100' => ':institution: the monthly AI budget is used up',

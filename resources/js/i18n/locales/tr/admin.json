@@ -56,7 +56,9 @@
         "notificationEmails": "Bildirim e-postaları",
         "notificationEmailsHelp": "Her satıra bir adres. Tavan uyarılarını (%80 ve %100) ve aylık raporu alırlar.",
         "testMail": "Deneme e-postası gönder",
-        "mailNotConfigured": "Bu sunucuda e-posta yapılandırılmamış (MAIL_MAILER log): iletiler yalnızca log kaydına yazılır. Kurulum rehberine bakın."
+        "mailNotConfigured": "Bu sunucuda e-posta yapılandırılmamış (MAIL_MAILER log): iletiler yalnızca log kaydına yazılır. Kurulum rehberine bakın.",
+        "userBudgetEmails": "Kullanıcılara aylık bütçelerinin %80'inde ve %100'ünde e-posta gönder",
+        "userBudgetEmailsHelp": "Her ay ve her eşik için bir kez. Kullanıcılar bu e-postaları kendileri için kapatabilir; sohbet ekranı aynı uyarıyı her durumda gösterir."
     },
     "authentication": {
         "title": "Giriş",

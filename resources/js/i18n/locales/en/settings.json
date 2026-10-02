@@ -4,7 +4,8 @@
     "nav": {
         "profile": "Profile",
         "language": "Language",
-        "appearance": "Appearance"
+        "appearance": "Appearance",
+        "notifications": "Notifications"
     },
     "profile": {
         "title": "Profile",
@@ -23,5 +24,12 @@
         "light": "Light",
         "dark": "Dark",
         "system": "System"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "description": "Choose which e-mails Ada sends you.",
+        "budgetEmails": "E-mail me at 80 % and 100 % of my monthly budget",
+        "budgetEmailsHelp": "At most one e-mail per threshold each month. The chat shows the same warning in any case.",
+        "notOffered": "Your institution does not send budget e-mails at the moment."
     }
 }

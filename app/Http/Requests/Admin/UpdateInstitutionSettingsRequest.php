@@ -58,6 +58,7 @@ class UpdateInstitutionSettingsRequest extends FormRequest
             'monthly_cap_usd' => ['nullable', 'string', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
             'notification_emails' => ['nullable', 'array', 'max:20'],
             'notification_emails.*' => ['string', 'email:rfc', 'max:255'],
+            'user_budget_emails' => ['sometimes', 'boolean'],
             'logo' => $image,
             'logo_dark' => $image,
             'favicon' => ['nullable', 'image', 'mimes:png', 'max:256', 'dimensions:min_width=16,max_width=512,ratio=1'],

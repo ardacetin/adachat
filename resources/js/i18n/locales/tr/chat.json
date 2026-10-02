@@ -77,7 +77,9 @@
         "used": "%{{percent}} kullanıldı",
         "renews": "{{date}} tarihinde yenilenir",
         "exhausted": "Aylık bütçeniz doldu. {{date}} tarihinde yenilenir.",
-        "details": "Kullanım ayrıntıları"
+        "details": "Kullanım ayrıntıları",
+        "nearLimit": "Aylık bütçenizin %{{percent}} kadarını kullandınız. Bütçe {{date}} tarihinde yenilenir.",
+        "dismiss": "Kapat"
     },
     "usage": {
         "title": "Kullanım",
