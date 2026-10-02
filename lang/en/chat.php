@@ -15,4 +15,11 @@ return [
         'invalid' => 'An attached file is no longer available. Remove it and attach it again.',
         'vision_unsupported' => 'This model cannot read images. Choose another model or remove the images.',
     ],
+    'export' => [
+        'untitled' => 'Untitled conversation',
+        'exported' => 'Exported from Ada Chat on :date',
+        'you' => 'You',
+        'assistant' => 'Assistant (:model)',
+        'attachments' => 'Attachments: :names',
+    ],
 ];

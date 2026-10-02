@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Chat;
 
-use App\Domain\AI\Services\AliasAccess;
+use App\Domain\Conversations\Services\ChatPageProps;
 use App\Domain\Conversations\Services\ConversationThread;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
-use App\Models\ModelAlias;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,14 +17,14 @@ use Inertia\Response;
 
 class ConversationController extends Controller
 {
-    public function __construct(private readonly AliasAccess $aliases) {}
+    public function __construct(private readonly ChatPageProps $page) {}
 
     /**
      * New conversation.
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('chat/index', $this->shared($this->user($request)));
+        return Inertia::render('chat/index', $this->page->for($this->user($request)));
     }
 
     public function show(Request $request, Conversation $conversation): Response
@@ -33,11 +32,12 @@ class ConversationController extends Controller
         Gate::authorize('view', $conversation);
 
         return Inertia::render('chat/show', [
-            ...$this->shared($this->user($request)),
+            ...$this->page->for($this->user($request)),
             'conversation' => [
                 'id' => $conversation->id,
                 'title' => $conversation->title,
                 'model_alias_id' => $conversation->model_alias_id,
+                'pinned' => $conversation->pinned_at !== null,
             ],
             'messages' => ConversationThread::active($conversation)->map(fn (Message $message) => [
                 'id' => $message->id,
@@ -56,8 +56,20 @@ class ConversationController extends Controller
     {
         Gate::authorize('update', $conversation);
 
-        $validated = $request->validate(['title' => ['required', 'string', 'max:255']]);
-        $conversation->forceFill(['title' => trim($validated['title'])])->save();
+        $validated = $request->validate([
+            'title' => ['required_without:pinned', 'string', 'max:255'],
+            'pinned' => ['sometimes', 'boolean'],
+        ]);
+
+        if (isset($validated['title'])) {
+            $conversation->title = trim($validated['title']);
+        }
+
+        if ($request->has('pinned')) {
+            $conversation->pinned_at = $request->boolean('pinned') ? ($conversation->pinned_at ?? now()) : null;
+        }
+
+        $conversation->save();
 
         return back();
     }
@@ -69,37 +81,6 @@ class ConversationController extends Controller
         $conversation->delete();
 
         return to_route('home');
-    }
-
-    /**
-     * Props every chat page needs: the history sidebar and the model selector.
-     *
-     * @return array<string, mixed>
-     */
-    private function shared(User $user): array
-    {
-        $locale = app()->getLocale();
-
-        return [
-            'aliases' => $this->aliases->availableFor($user)->map(fn (ModelAlias $alias) => [
-                'id' => $alias->id,
-                'name' => $alias->localizedName($locale),
-                'description' => $alias->description[$locale] ?? $alias->description['en'] ?? null,
-                'supports_vision' => $alias->aiModel->supports_vision,
-                // The underlying model is shown only when the admin allows it.
-                'details' => $alias->show_model_details
-                    ? "{$alias->aiModel->display_name} · {$alias->aiModel->provider->name}"
-                    : null,
-            ])->values(),
-            'conversations' => Inertia::defer(fn () => $user->conversations()
-                ->orderByDesc('last_message_at')
-                ->limit(50)
-                ->get(['id', 'title', 'last_message_at'])
-                ->map(fn (Conversation $conversation) => [
-                    'id' => $conversation->id,
-                    'title' => $conversation->title,
-                ])),
-        ];
     }
 
     private function user(Request $request): User

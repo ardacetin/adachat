@@ -33,6 +33,7 @@ export type AliasOption = {
 export type ConversationSummary = {
     id: string;
     title: string | null;
+    pinned: boolean;
 };
 
 export type StartedEvent = {

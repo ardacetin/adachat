@@ -53,6 +53,9 @@ for (const scheme of ['light', 'dark'] as const) {
         await page.goto('/usage');
         await expectNoViolations(page, 'usage');
 
+        await page.goto('/search?q=merhaba');
+        await expectNoViolations(page, 'search');
+
         await page.goto('/settings/language');
         await expectNoViolations(page, 'settings');
     });

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $title
  * @property int|null $model_alias_id
  * @property CarbonImmutable $last_message_at
+ * @property CarbonImmutable|null $pinned_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -70,6 +71,7 @@ class Conversation extends Model
     {
         return [
             'last_message_at' => 'datetime',
+            'pinned_at' => 'datetime',
         ];
     }
 }

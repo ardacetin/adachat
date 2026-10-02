@@ -155,3 +155,41 @@
 .dark .shiki-block .shiki span {
     color: var(--shiki-dark);
 }
+
+/*
+ * Printing a conversation ("Print or save as PDF"): only the messages, with
+ * code wrapped and images kept small.
+ */
+@media print {
+    [data-slot='sidebar'],
+    [data-slot='sidebar-trigger'],
+    [data-slot='sidebar-inset'] > header,
+    [data-print-hide] {
+        display: none !important;
+    }
+
+    [data-slot='sidebar-inset'] {
+        margin: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    body {
+        background: white !important;
+    }
+
+    pre,
+    code {
+        white-space: pre-wrap !important;
+        word-break: break-word;
+    }
+
+    pre {
+        break-inside: avoid;
+    }
+
+    img {
+        max-width: 50% !important;
+        max-height: 12cm;
+    }
+}

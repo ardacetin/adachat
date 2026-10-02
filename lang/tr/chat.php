@@ -15,4 +15,11 @@ return [
         'invalid' => 'Eklenen dosyalardan biri artık kullanılamıyor. Kaldırıp yeniden ekleyin.',
         'vision_unsupported' => 'Bu model görselleri okuyamaz. Başka bir model seçin ya da görselleri kaldırın.',
     ],
+    'export' => [
+        'untitled' => 'Adsız sohbet',
+        'exported' => 'Ada Chat\'ten :date tarihinde dışa aktarıldı',
+        'you' => 'Siz',
+        'assistant' => 'Asistan (:model)',
+        'attachments' => 'Ekler: :names',
+    ],
 ];
