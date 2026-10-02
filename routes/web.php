@@ -10,6 +10,7 @@ use App\Http\Controllers\Chat\AssistantGalleryController;
 use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\ConversationExportController;
+use App\Http\Controllers\Chat\ConversationShareController;
 use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\Chat\MessageFeedbackController;
 use App\Http\Controllers\Chat\SearchController;
@@ -93,6 +94,20 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::put('chat/messages/{message}/feedback', MessageFeedbackController::class)
         ->middleware('throttle:60,1,messages-feedback:')
         ->name('messages.feedback');
+
+    // Read-only links to a conversation (docs/sharing.md).
+    Route::post('c/{conversation}/shares', [ConversationShareController::class, 'store'])
+        ->middleware('throttle:20,1,shares:')
+        ->name('conversations.shares.store');
+    Route::delete('shares/{share}', [ConversationShareController::class, 'destroy'])->name('shares.destroy');
+    Route::get('s/{token}', [ConversationShareController::class, 'show'])
+        ->where('token', '[A-Za-z0-9_-]{43}')
+        ->middleware('throttle:60,1,share-views:')
+        ->name('shares.show');
+    Route::post('s/{token}/copy', [ConversationShareController::class, 'copy'])
+        ->where('token', '[A-Za-z0-9_-]{43}')
+        ->middleware('throttle:20,1,share-copies:')
+        ->name('shares.copy');
 });
 
 require __DIR__.'/settings.php';

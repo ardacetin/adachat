@@ -59,6 +59,7 @@ class UpdateInstitutionSettingsRequest extends FormRequest
             'notification_emails' => ['nullable', 'array', 'max:20'],
             'notification_emails.*' => ['string', 'email:rfc', 'max:255'],
             'user_budget_emails' => ['sometimes', 'boolean'],
+            'conversation_sharing' => ['sometimes', 'boolean'],
             'logo' => $image,
             'logo_dark' => $image,
             'favicon' => ['nullable', 'image', 'mimes:png', 'max:256', 'dimensions:min_width=16,max_width=512,ratio=1'],

@@ -16,6 +16,15 @@ export function formatDate(date: string, locale: string): string {
     }).format(new Date(`${date}T00:00:00Z`));
 }
 
+/** A moment (ISO 8601) as a date in the viewer's time zone. */
+export function formatMoment(iso: string, locale: string): string {
+    return new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(iso));
+}
+
 /** A month "YYYY-MM". */
 export function formatMonth(month: string, locale: string): string {
     return new Intl.DateTimeFormat(locale, {

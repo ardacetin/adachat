@@ -52,6 +52,9 @@ class InstitutionSettings extends Settings
     /** Users get an e-mail at 80 % and 100 % of their monthly budget. */
     public bool $user_budget_emails;
 
+    /** Users may share a read-only copy of a conversation with signed-in users. */
+    public bool $conversation_sharing;
+
     public static function group(): string
     {
         return 'institution';

@@ -184,6 +184,13 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   text (fixed reasons only); the satisfaction report shows counts per
   alias, model and assistant and never links to messages
   ([feedback.md](feedback.md)).
+- **Conversation sharing (v1.3)** lets the owner, and only the owner, create
+  a read-only link to a frozen copy of a conversation. Only signed-in,
+  active users can open it; only a SHA-256 hash of the 256-bit token is
+  stored; attachments appear by name and are never served through a link;
+  the response is `private, no-store` and `noindex`. Revoking, deleting the
+  conversation or turning sharing off in Admin → Institution stops a link
+  (404). Administrators get no list of shares ([sharing.md](sharing.md)).
 - **Web search (v1.3)** is off unless an administrator allows it on an alias
   (and, for an assistant, on the assistant), and then off for every message
   until the user turns it on. With it on, the provider sends search queries

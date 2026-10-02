@@ -33,6 +33,7 @@ type Settings = {
     monthly_cap_usd: string | null;
     notification_emails: string[];
     user_budget_emails: boolean;
+    conversation_sharing: boolean;
     has_logo: boolean;
     has_logo_dark: boolean;
     has_favicon: boolean;
@@ -58,6 +59,7 @@ type InstitutionForm = {
     monthly_cap_usd: string;
     notification_emails: string;
     user_budget_emails: boolean;
+    conversation_sharing: boolean;
     logo: File | null;
     logo_dark: File | null;
     favicon: File | null;
@@ -101,6 +103,7 @@ export default function Institution({
         monthly_cap_usd: settings.monthly_cap_usd ?? '',
         notification_emails: settings.notification_emails.join('\n'),
         user_budget_emails: settings.user_budget_emails,
+        conversation_sharing: settings.conversation_sharing,
         logo: null,
         logo_dark: null,
         favicon: null,
@@ -380,6 +383,27 @@ export default function Institution({
                     >
                         {t('institution.testMail')}
                     </Button>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-4">
+                    <h3 className="text-sm font-medium">
+                        {t('institution.sharing')}
+                    </h3>
+                    <div className="space-y-1">
+                        <CheckboxField
+                            id="conversation_sharing"
+                            label={t('institution.conversationSharing')}
+                            checked={form.data.conversation_sharing}
+                            onChange={(checked) =>
+                                form.setData('conversation_sharing', checked)
+                            }
+                        />
+                        <p className="text-sm text-muted-foreground">
+                            {t('institution.conversationSharingHelp')}
+                        </p>
+                    </div>
                 </section>
 
                 <Separator />

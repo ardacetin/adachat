@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Conversation sharing: the owner creates a read-only link to a snapshot
+  of a conversation as it is now; signed-in users of the institution read
+  it and can copy it into their own conversations (the model is kept only
+  where they may use it). Attachments show by name only, later messages
+  are never shown, and only a hash of the link's token is stored. Links
+  are revoked by the owner, by deleting the conversation, or all at once by
+  turning sharing off in Admin → Institution
+  ([docs/sharing.md](docs/sharing.md)).
 - Answer feedback: 👍 / 👎 on every answer, with a reason for a thumbs
   down (inaccurate, not helpful, incomplete, too long, something else; no
   free text). Admin → Satisfaction shows votes, the share of thumbs up and

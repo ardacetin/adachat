@@ -160,7 +160,7 @@ function hostOf(url: string): string {
 }
 
 /** The web pages an answer is based on, numbered, opening in a new tab. */
-function Sources({ sources }: { sources: Source[] }) {
+export function Sources({ sources }: { sources: Source[] }) {
     const { t } = useTranslation('chat');
 
     return (

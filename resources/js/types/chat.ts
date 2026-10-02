@@ -102,3 +102,19 @@ export type AssistantSummary = {
     /** Whether the assistant's users may search the web. */
     web_search: boolean;
 };
+
+/** A live read-only link to a conversation (its URL is shown only once). */
+export type ShareLink = {
+    id: number;
+    created_at: string | null;
+    view_count: number;
+};
+
+/** A message of a shared conversation, as frozen when it was shared. */
+export type SharedMessage = {
+    role: 'user' | 'assistant';
+    content: string;
+    model: string | null;
+    attachments: string[];
+    sources: Source[];
+};
