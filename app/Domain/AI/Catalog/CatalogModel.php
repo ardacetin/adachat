@@ -5,7 +5,9 @@ namespace App\Domain\AI\Catalog;
 use App\Domain\AI\Enums\ProviderDriver;
 
 /**
- * A model of the built-in price catalog (resources/catalog/models.json).
+ * A model of the built-in price catalog (resources/catalog/models.json),
+ * with the prices in effect today. A price change the provider has already
+ * announced is in $nextChange.
  */
 final readonly class CatalogModel
 {
@@ -24,6 +26,8 @@ final readonly class CatalogModel
         public ?string $cacheWritePrice,
         public string $source,
         public string $asOf,
+        /** @var array{from: string, input: string, output: string, cached_input: string|null, cache_write: string|null}|null */
+        public ?array $nextChange = null,
     ) {}
 
     /**
@@ -58,6 +62,11 @@ final readonly class CatalogModel
             'source' => $this->source,
             'as_of' => $this->asOf,
             ...$this->attributes(),
+            'next_change' => $this->nextChange === null ? null : [
+                'from' => $this->nextChange['from'],
+                'input_price_per_million' => $this->nextChange['input'],
+                'output_price_per_million' => $this->nextChange['output'],
+            ],
         ];
     }
 }

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   former form is the "Advanced" mode.
 - When a release updates catalog prices, the model list and `ada:doctor`
   point out the models concerned; "Use new prices" takes them over.
+- The catalog covers Anthropic, OpenAI (GPT-6 Astra, GPT-6.1 Sol, GPT-6
+  Luna) and Google Gemini (3.1 Pro Preview, 3.8 Flash, 3.5 and 3.1
+  Flash-Lite), including price changes the provider has announced.
 - Sign-in with OpenID Connect, next to or instead of Google SAML: a preset
   for Microsoft Entra ID (single tenant, tenant pinned, guest accounts
   refused) and a generic mode for Keycloak, Okta and others. Authorization

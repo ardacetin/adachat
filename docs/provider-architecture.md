@@ -299,6 +299,16 @@ release is prepared, never from memory, and they change only with a release.
 An institution can point `ADA_MODEL_CATALOG` to its own copy, for example to
 add models or negotiated prices.
 
+- **Prompt-size surcharges.** Some providers charge more for long prompts
+  (OpenAI above 272K input tokens, Gemini 3.1 Pro above 200K). Ada has one
+  price per model, so the catalog sets `context_window` to that size: the
+  context builder never sends a longer prompt, and the listed price always
+  applies.
+- **Announced price changes** (`price_changes`, e.g. Gemini Flash
+  promotional prices that end on a fixed date) take effect in the catalog on
+  their day (UTC). The model form shows them in advance; from that day,
+  models added earlier are flagged as described below.
+
 The model form has two modes:
 
 - **Easy** (`pricing_source: catalog` in `ai_models.metadata`): the

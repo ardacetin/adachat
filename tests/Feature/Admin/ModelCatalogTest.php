@@ -6,6 +6,7 @@ use App\Models\AiModel;
 use App\Models\AuditLog;
 use App\Models\Provider;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 function useCatalog(string $path): void
 {
@@ -37,6 +38,53 @@ test('the shipped catalog is complete and well formed', function () {
     }
 
     expect($keys)->toBe(array_values(array_unique($keys)));
+
+    // Every provider with a catalog has entries; long-context surcharges are
+    // avoided by the context window (resources/catalog/models.json "about").
+    $drivers = array_unique(array_map(fn ($entry) => $entry->driver, $entries), SORT_REGULAR);
+    expect($drivers)->toHaveCount(3);
+
+    foreach ($catalog->forDriver(ProviderDriver::OpenAI) as $entry) {
+        expect($entry->contextWindow)->toBeLessThanOrEqual(272000);
+    }
+
+    expect($catalog->find(ProviderDriver::Gemini, 'gemini-3.1-pro-preview')->contextWindow)->toBeLessThanOrEqual(200000);
+
+    // Announced changes lie ahead and are well formed.
+    $raw = json_decode(file_get_contents(resource_path('catalog/models.json')), true);
+
+    foreach ($raw['models'] as $model) {
+        foreach ($model['price_changes'] ?? [] as $change) {
+            expect($change['from'])->toMatch('/^\d{4}-\d{2}-\d{2}$/')->toBeGreaterThan($model['as_of'])
+                ->and($change['prices'])->toHaveKeys(['input', 'output']);
+        }
+    }
+});
+
+test('announced price changes take effect on their day and are flagged', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-12-31 23:00', 'UTC'));
+    $catalog = app(ModelCatalog::class);
+    $flash = $catalog->find(ProviderDriver::Gemini, 'gemini-3.8-flash');
+
+    expect($flash->inputPrice)->toBe('0.75')
+        ->and($flash->nextChange)->toMatchArray(['from' => '2027-01-01', 'input' => '1.50', 'output' => '7.50']);
+
+    $model = AiModel::factory()->for(Provider::factory()->create(['driver' => 'gemini']))->create([
+        'provider_model_id' => 'gemini-3.8-flash',
+        ...$flash->attributes(),
+        'metadata' => ['pricing_source' => 'catalog', 'catalog_as_of' => $flash->asOf],
+    ]);
+
+    expect($catalog->newerPrices($model))->toBeNull();
+
+    // The same (long-lived) catalog instance switches at midnight UTC.
+    $this->travelTo(CarbonImmutable::parse('2027-01-01 00:30', 'UTC'));
+    $flash = $catalog->find(ProviderDriver::Gemini, 'gemini-3.8-flash');
+
+    expect($flash->inputPrice)->toBe('1.50')
+        ->and($flash->cachedInputPrice)->toBe('0.15')
+        ->and($flash->nextChange)->toBeNull()
+        ->and($catalog->newerPrices($model)?->outputPrice)->toBe('7.50');
 });
 
 test('easy mode takes prices and limits from the catalog, not from the browser', function () {

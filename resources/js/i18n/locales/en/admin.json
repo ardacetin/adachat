@@ -207,6 +207,7 @@
         "catalogPrices": "{{input}} in / {{output}} out per 1M tokens",
         "catalogSummary": "Input {{input}} · output {{output}} per million tokens · context window {{window}} tokens.",
         "catalogSource": "Official prices as of {{date}}:",
+        "catalogNextChange": "The provider has announced new prices from {{date}}: input {{input}} · output {{output}} per million tokens. Ada will then show “New catalog prices” for this model.",
         "free": "Free (self-hosted model)",
         "catalogUpdate": "New catalog prices",
         "catalogUpdateHelp": "Ada's catalog has newer prices for this model: {{input}} in / {{output}} out per 1M tokens.",
