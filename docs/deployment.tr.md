@@ -325,8 +325,9 @@ yakalar. Kontrol listesi (Beykoz Üniversitesi'ndeki ilk geçiş için):
 - [ ] Google Workspace SAML uygulaması: başta yalnızca bir pilot organizasyon
       birimi veya grubu için açık (Google Admin → uygulama → Kullanıcı
       erişimi).
-- [ ] Sağlayıcılar ve modeller güncel fiyatlarla eklendi; takma adların
-      adları ve açıklamaları anlaşılır ("Hızlı", "Gelişmiş").
+- [ ] Sağlayıcılar ve modeller eklendi (Yönetim → Modeller, "Kolay" mod
+      fiyatları Ada'nın kataloğundan alır); takma adların adları ve
+      açıklamaları anlaşılır ("Hızlı", "Gelişmiş").
 - [ ] Gruplar ve politikalar: kendi bütçe politikası olan bir **Pilot**
       grubu; Varsayılan grupta temkinli bir limit (veya henüz takma ad yok).
 - [ ] Kullanım bildirimi metni kişisel verilerin korunmasından sorumlu kişi

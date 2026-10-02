@@ -14,6 +14,10 @@ return [
     'primary_color_contrast' => 'Bu renk çok açık: düğmelerin okunabilir kalması için beyaza karşı en az 3:1 kontrast gerekir.',
     'alias_max_tokens' => 'Çıktı sınırı modelin üst sınırını (:max token) aşamaz.',
 
+    'models' => [
+        'catalog_unknown' => "Bu model Ada'nın fiyat kataloğunda yok. Listeden bir model seçin ya da fiyatlarını gelişmiş modda girin.",
+    ],
+
     'provider_check' => [
         'ok' => 'Bağlantı başarılı: API anahtarı çalışıyor.',
         'failed' => 'Bağlantı başarısız: :reason',

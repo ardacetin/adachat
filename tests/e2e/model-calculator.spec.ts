@@ -16,6 +16,9 @@ test('the model cost calculator updates as numbers are typed', async ({
         .click();
     await page.waitForURL('/');
     await page.goto('/admin/models/create');
+    // Prices are typed in the advanced mode (easy mode takes them from the
+    // catalog, see model-catalog.spec.ts).
+    await page.getByTestId('mode-advanced').click();
 
     await page.locator('#input_price_per_million').fill('2');
     await page.locator('#output_price_per_million').fill('8');

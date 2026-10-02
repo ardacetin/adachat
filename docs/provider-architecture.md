@@ -287,10 +287,34 @@ description ("Best for research and analysis"), optional detail (tooltip) =
 ## 8. Pricing
 
 Prices per million tokens live on `ai_models` (`input`, `output`,
-`cached_input`, `cache_write`, optional tiers in `metadata`). Admins maintain
-them; Ada ships **no** hard-coded prices, only an optional seeder with example
-models that admins must confirm. At settlement the prices are snapshotted onto
-the usage event.
+`cached_input`, `cache_write`, optional tiers in `metadata`). At settlement
+the prices are snapshotted onto the usage event, so later price changes never
+rewrite past costs.
+
+**Price catalog.** Ada ships a catalog of common models with their official
+prices: [`resources/catalog/models.json`](../resources/catalog/models.json).
+Every entry names its source page and the date the prices were read
+(`source`, `as_of`). Prices are copied from the providers' pages when a
+release is prepared, never from memory, and they change only with a release.
+An institution can point `ADA_MODEL_CATALOG` to its own copy, for example to
+add models or negotiated prices.
+
+The model form has two modes:
+
+- **Easy** (`pricing_source: catalog` in `ai_models.metadata`): the
+  administrator chooses a catalog model. The server takes the prices, the
+  context window, the output limit and the capabilities from the catalog and
+  ignores any such values the browser sends. Budgets are then all an
+  administrator sets.
+- **Advanced** (`pricing_source: manual`): the administrator enters every
+  value. Needed for models outside the catalog, negotiated prices and
+  OpenAI-compatible servers, which have no catalog (their prices are the
+  institution's; "Free" sets all prices to 0 for self-hosted models).
+
+When a release brings new prices for a model added from the catalog, the
+model list shows "New catalog prices" and `ada:doctor` warns. Nothing changes
+until an administrator presses "Use new prices" (audited as
+`ai_model.updated`): costs never move without someone confirming them.
 
 ## 9. OpenAI-compatible servers
 

@@ -178,7 +178,25 @@
             "calculatorTotal": "{{count}} messages",
             "calculatorFits": "Messages that fit in {{budget}}",
             "tokensNote": "Rules of thumb: 1 token ≈ ¾ of an English word; Turkish text needs roughly 30–50 % more tokens for the same length."
-        }
+        },
+        "mode": "How are prices set?",
+        "modeEasy": "Easy: prices from the catalog",
+        "modeAdvanced": "Advanced: I enter the prices",
+        "modeEasyHelp": "Choose the model; Ada fills in its official prices, context window and capabilities. Each user's monthly budget then limits how much they can use.",
+        "modeAdvancedHelp": "Enter the prices per million tokens and the limits yourself, e.g. for models not in the catalog or negotiated prices.",
+        "modeNoCatalog": "Ada's price catalog has no models for this provider; enter the prices yourself.",
+        "catalogModel": "Model",
+        "catalogChoose": "Choose a model…",
+        "catalogChooseFirst": "Choose a model to see its prices.",
+        "catalogPrices": "{{input}} in / {{output}} out per 1M tokens",
+        "catalogSummary": "Input {{input}} · output {{output}} per million tokens · context window {{window}} tokens.",
+        "catalogSource": "Official prices as of {{date}}:",
+        "free": "Free (self-hosted model)",
+        "catalogUpdate": "New catalog prices",
+        "catalogUpdateHelp": "Ada's catalog has newer prices for this model: {{input}} in / {{output}} out per 1M tokens.",
+        "catalogUpdateAction": "Use new prices",
+        "pricingCatalog": "Catalog",
+        "pricingManual": "Manual"
     },
     "aliases": {
         "title": "Model aliases",

@@ -313,8 +313,8 @@ are affected. Checklist (used for the first rollout at Beykoz University):
 - [ ] Installation done; `ada:doctor` passes; backup and restore tried.
 - [ ] Google Workspace SAML app: on only for a pilot organizational unit or
       group at first (Google Admin → app → User access).
-- [ ] Providers and models added with current prices; aliases with clear
-      names and descriptions ("Fast", "Advanced").
+- [ ] Providers and models added (Admin → Models, "Easy" mode takes the
+      prices from Ada's catalog); aliases with clear names and descriptions ("Fast", "Advanced").
 - [ ] Groups and policies: a **Pilot** group with its own budget policy;
       the Default group with a cautious limit (or no aliases yet).
 - [ ] Usage notice text reviewed by the data protection officer (Admin →
