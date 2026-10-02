@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- A stopped or disconnected answer was charged only the usage the provider
+  had reported when the stream began (for Anthropic, about one output
+  token), although the text had been delivered. Users could get long answers
+  outside their budget by stopping them just before the end. Such streams are
+  now charged at least an estimate of the text and reasoning delivered,
+  within the reservation's output cap.
+- A small crafted .xlsx file could make text extraction allocate memory and
+  CPU far beyond its size: a cell reference such as `ZZZZZZZ1` sized every
+  row to that column, and a workbook could list the same worksheet any
+  number of times. Spreadsheets are now read within fixed bounds (100
+  sheets, each part once, columns up to `XFD`, no more text than is kept).
+- A SAML response for Ada's sign-in request was accepted from any browser.
+  Someone could start a sign-in, sign in at the IdP and have another
+  person's browser post the response, signing that browser into their
+  account (login CSRF). The request is now bound to the browser that
+  started it with a short-lived `ada_saml_binding` cookie.
+- With the Docker default `TRUSTED_PROXIES=*`, any client could choose the
+  IP address recorded in the audit log and used by per-IP rate limits by
+  sending its own `X-Forwarded-For`: Laravel read `*` as "trust every
+  address", and the shipped host nginx appended to the client's header.
+  `*` now trusts only the immediate peer, and
+  `deploy/nginx/ada-docker-proxy.conf` overwrites the header with the
+  client address. **Docker installations:** copy the new
+  `proxy_set_header X-Forwarded-For $remote_addr;` line into your host
+  nginx configuration.
+
 ## [1.3.0] - 2026-10-02
 
 Web search through the providers' own tools, budget alerts for users,

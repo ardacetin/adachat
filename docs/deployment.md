@@ -63,9 +63,13 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   chat attachments, compiled views) and `ada_redis`.
 - The application listens on `127.0.0.1:8080`. Put the host's nginx in front
   of it: [`deploy/nginx/ada-docker-proxy.conf`](../deploy/nginx/ada-docker-proxy.conf).
-  `TRUSTED_PROXIES=*` is set by the compose file; that is safe because the
-  port is not reachable from outside the host. Change it if you publish the
-  port differently.
+  `TRUSTED_PROXIES=*` is set by the compose file. In Ada, `*` means only the
+  immediate peer (the host's nginx), never addresses further left in
+  `X-Forwarded-For`; the shipped nginx file also replaces any
+  `X-Forwarded-For` the client sent. That is safe because the port is not
+  reachable from outside the host. Change it if you publish the port
+  differently, and keep `X-Forwarded-For $remote_addr` if you write your own
+  proxy configuration.
 - Workers: `PHP_FPM_MAX_CHILDREN` in `.env` (default 24, see §1).
 - Logs: `docker compose -f compose.production.yml logs -f app`, one JSON
   object per line.

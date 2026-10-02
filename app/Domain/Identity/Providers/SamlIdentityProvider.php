@@ -21,6 +21,7 @@ use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
+use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
 
 /**
@@ -31,8 +32,13 @@ use Throwable;
  * audience, destination, recipient and validity window. On top of that,
  * every AuthnRequest ID is kept in the cache for a few minutes and accepted
  * once, so a response can only answer a request this Ada instance made and
- * cannot be replayed. The session is not used for this: browsers do not send
- * the (SameSite=Lax) session cookie with the IdP's cross-site POST.
+ * cannot be replayed. The request is also bound to the browser that started
+ * it: a random value goes into a short-lived cookie scoped to the ACS path,
+ * its hash next to the request ID, and the response is accepted only from a
+ * browser that sends the value back. Without it, someone could start a
+ * sign-in and have another browser complete it (login CSRF, session
+ * swapping). The session is not used for this: browsers do not send the
+ * (SameSite=Lax) session cookie with the IdP's cross-site POST.
  */
 final class SamlIdentityProvider implements RedirectIdentityProvider
 {
@@ -40,6 +46,9 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
 
     /** How long an AuthnRequest may be answered. */
     private const REQUEST_TTL_SECONDS = 600;
+
+    /** The cookie that binds a request to the browser that started it. */
+    public const BINDING_COOKIE = 'ada_saml_binding';
 
     /**
      * @param  array<string, mixed>  $config  config('ada.auth.saml')
@@ -111,9 +120,24 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
         $auth = new Auth($this->settings());
         $url = $auth->login(stay: true);
 
-        $this->cache->put($this->requestKey((string) $auth->getLastRequestID()), true, self::REQUEST_TTL_SECONDS);
+        // One value per browser, so sign-ins started in two tabs both complete.
+        $binding = $request->cookie(self::BINDING_COOKIE);
 
-        return new RedirectResponse((string) $url);
+        if (! is_string($binding) || preg_match('/^[A-Za-z0-9]{40}$/', $binding) !== 1) {
+            $binding = Str::random(40);
+        }
+
+        $this->cache->put($this->requestKey((string) $auth->getLastRequestID()), hash('sha256', $binding), self::REQUEST_TTL_SECONDS);
+
+        // SameSite=None: the IdP returns the browser with a cross-site POST.
+        $cookie = Cookie::create(self::BINDING_COOKIE, $binding)
+            ->withExpires(time() + self::REQUEST_TTL_SECONDS)
+            ->withPath('/auth/saml/acs')
+            ->withSecure(true)
+            ->withHttpOnly(true)
+            ->withSameSite(Cookie::SAMESITE_NONE);
+
+        return (new RedirectResponse((string) $url))->withCookie($cookie);
     }
 
     /**
@@ -136,8 +160,12 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
             throw new SignInMustRestart;
         }
 
-        // Single use: a replayed or expired response is refused.
-        if ($this->cache->pull($this->requestKey($requestId)) !== true) {
+        // Single use, and only in the browser that made the request: a
+        // replayed, expired or carried-over response is refused.
+        $expected = $this->cache->pull($this->requestKey($requestId));
+        $binding = $request->cookie(self::BINDING_COOKIE);
+
+        if (! is_string($expected) || ! is_string($binding) || ! hash_equals($expected, hash('sha256', $binding))) {
             throw new IdentityRejected(RejectionReason::InvalidState);
         }
 

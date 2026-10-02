@@ -24,8 +24,10 @@ operators with server access (ultimately trusted); compromised dependencies.
   assertion from the configured IdP certificate, issuer, audience,
   destination/recipient and validity window checked; schema validation, no
   DOCTYPE (XXE).
-- Every AuthnRequest ID is single-use and expires after 10 minutes (cache),
-  so responses cannot be replayed or injected; unsolicited (IdP-initiated)
+- Every AuthnRequest ID is single-use, expires after 10 minutes (cache) and
+  is bound to the starting browser by the `ada_saml_binding` cookie, so
+  responses cannot be replayed, injected or completed in another browser
+  (login CSRF); unsolicited (IdP-initiated)
   responses are not trusted and restart an SP-initiated sign-in.
 - E-mail domain ∈ allowed domains (see [authentication.md](authentication.md)).
 - No password login → no credential stuffing surface. Break-glass via CLI only.
@@ -56,8 +58,8 @@ operators with server access (ultimately trusted); compromised dependencies.
   `X-XSRF-TOKEN` automatically; the SSE `fetch` sends it explicitly.
 - The chat stream is `POST` (never a state-changing `GET`).
 - The SAML ACS (`POST /auth/saml/acs`) is exempt from CSRF tokens because
-  the IdP posts cross-site; it is authenticated by the response signature and
-  the single-use request ID.
+  the IdP posts cross-site; it is authenticated by the response signature,
+  the single-use request ID and the browser binding cookie.
 
 ## 5. XSS
 
@@ -85,7 +87,11 @@ operators with server access (ultimately trusted); compromised dependencies.
   uncompressed size are checked before reading (zip bombs: at most 2000
   entries, 100 MB in total, 20 MB per XML part), and XML containing a
   document type declaration or entity is refused, so no entity is expanded
-  or fetched (XXE, billion laughs; `LIBXML_NONET`). PDFs are parsed by
+  or fetched (XXE, billion laughs; `LIBXML_NONET`). Spreadsheets are read
+  within fixed bounds whatever the sheets claim: at most 100 sheets, each
+  worksheet part once, column references up to `XFD`, `max_sheet_rows`
+  rows per sheet, and reading stops once more text than `max_text_chars`
+  has been collected. PDFs are parsed by
   `smalot/pdfparser` (pure PHP) with image content discarded; failures are
   reported as unreadable. Parsing happens once, at upload, within the PHP
   memory and time limits; macros and embedded objects are never run.
@@ -244,7 +250,10 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   (one year) on https requests.
 - Behind a reverse proxy, `X-Forwarded-*` headers are trusted only from
   `TRUSTED_PROXIES` (M11); otherwise a client could fake its address in the
-  audit log and rate limits, or the https flag.
+  audit log and rate limits, or the https flag. `*` trusts only the
+  immediate peer, so a client-supplied `X-Forwarded-For` entry further left
+  is never taken as its address, and the shipped Docker proxy file
+  overwrites the header.
 - `APP_DEBUG=false` and `APP_ENV=production` verified by `ada:doctor`;
   debug tools (e.g. Telescope) not installed in production.
 

@@ -4,6 +4,7 @@ namespace App\Domain\Conversations\Services;
 
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\Finished;
+use App\Domain\AI\Data\Events\ReasoningDelta;
 use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\Events\UsageReported;
@@ -202,6 +203,7 @@ final class ChatGenerationService
     private function stream(User $user, Conversation $conversation, ModelAlias $alias, ChatRequest $request, InputTokenCount $count, BudgetReservation $reservation, Message $answer, Closure $clientGone): Generator
     {
         $text = '';
+        $reasoningBytes = 0;
         $sources = new SourceList;
         $searches = 0;
         $usage = null;
@@ -240,6 +242,8 @@ final class ChatGenerationService
                         $answer->forceFill(['content' => $text])->save();
                         $lastFlush = microtime(true);
                     }
+                } elseif ($event instanceof ReasoningDelta) {
+                    $reasoningBytes += strlen($event->text);
                 } elseif ($event instanceof WebSearchStarted) {
                     $searches++;
 
@@ -265,13 +269,30 @@ final class ChatGenerationService
             $failure = $exception;
         } finally {
             // Runs even if the client disconnected and the generator is destroyed.
-            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $usage, $reason, $requestId, $started, $failure, $sources, $searches);
+            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $reasoningBytes, $usage, $reason, $requestId, $started, $failure, $sources, $searches);
         }
 
         yield $event;
     }
 
-    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure, SourceList $sources, int $searches): ChatStreamEvent
+    /**
+     * Output tokens of the streamed text and reasoning, scaled down together
+     * to the reservation's output cap.
+     */
+    private static function observedOutput(int $textBytes, int $reasoningBytes, int $cap): TokenUsage
+    {
+        $output = (int) ceil($textBytes / 2);
+        $reasoning = (int) ceil($reasoningBytes / 2);
+
+        if ($output + $reasoning > $cap) {
+            $reasoning = (int) floor($reasoning * $cap / ($output + $reasoning));
+            $output = $cap - $reasoning;
+        }
+
+        return new TokenUsage(output: $output, reasoning: $reasoning);
+    }
+
+    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, int $reasoningBytes, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure, SourceList $sources, int $searches): ChatStreamEvent
     {
         $errorCode = match (true) {
             $failure instanceof ProviderException => $failure->code(),
@@ -308,13 +329,21 @@ final class ChatGenerationService
             return self::error((string) $errorCode, $failure instanceof ProviderException && $failure->retryable(), $answer->id);
         }
 
+        // What the stream delivered, at a pessimistic 2 bytes per token and
+        // never above the cap the provider enforces.
+        $observed = self::observedOutput(strlen($text), $reasoningBytes, $reservation->max_output_tokens);
+        $complete = $failure === null && ! $cancelled && $reason !== null;
         $estimated = $usage === null;
-        $usage ??= new TokenUsage(
-            input: $count->tokens,
-            // Pessimistic 2 bytes per token, never above the cap the provider enforces.
-            output: min((int) ceil(strlen($text) / 2), $reservation->max_output_tokens),
-            webSearches: $searches,
-        );
+
+        if ($usage === null) {
+            $usage = new TokenUsage(input: $count->tokens, output: $observed->output, reasoning: $observed->reasoning, webSearches: $searches);
+        } elseif (! $complete && $usage->totalOutput() < $observed->totalOutput()) {
+            // A stopped or broken stream ends before the provider's final usage:
+            // what it reported so far (e.g. Anthropic's message_start) is not
+            // what was generated. Charge at least what was delivered.
+            $usage = $usage->merge($observed);
+            $estimated = true;
+        }
 
         $event = $this->budget->settle($reservation, new Settlement(
             usage: $usage,

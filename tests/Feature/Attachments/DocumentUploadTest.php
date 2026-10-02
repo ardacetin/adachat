@@ -125,3 +125,90 @@ test('documents have their own size limit', function () {
 
     uploadFixture('sample.pdf')->assertJsonValidationErrors(['file' => 'too large']);
 });
+
+/**
+ * A minimal workbook: each sheet entry names a relationship id, each
+ * relationship a worksheet part.
+ *
+ * @param  list<array{string, string}>  $sheets  sheet name → relationship id
+ * @param  array<string, string>  $parts  relationship id → worksheet XML
+ */
+function workbookWith(array $sheets, array $parts): string
+{
+    $entries = implode('', array_map(fn ($s) => "<sheet name=\"{$s[0]}\" r:id=\"{$s[1]}\"/>", $sheets));
+    $rels = '';
+    $files = ['[Content_Types].xml' => '<Types/>'];
+
+    foreach ($parts as $id => $xml) {
+        $rels .= "<Relationship Id=\"{$id}\" Target=\"worksheets/{$id}.xml\"/>";
+        $files["xl/worksheets/{$id}.xml"] = $xml;
+    }
+
+    return zipWith($files + [
+        'xl/workbook.xml' => "<workbook xmlns:r=\"r\"><sheets>{$entries}</sheets></workbook>",
+        'xl/_rels/workbook.xml.rels' => "<Relationships>{$rels}</Relationships>",
+    ]);
+}
+
+function uploadWorkbook(string $bytes)
+{
+    return test()->actingAs(test()->user)->post(
+        route('attachments.store'),
+        ['file' => uploadedFile('book.xlsx', $bytes)],
+        ['Accept' => 'application/json'],
+    );
+}
+
+test('spreadsheet column references are capped at the last Excel column', function () {
+    $cells = '<c r="A1" t="inlineStr"><is><t>first</t></is></c>'
+        .'<c r="XFD1" t="inlineStr"><is><t>last</t></is></c>'
+        .'<c r="ZZZZZZZZZZ1" t="inlineStr"><is><t>beyond</t></is></c>';
+
+    uploadWorkbook(workbookWith([['Wide', 'rId1']], ['rId1' => "<worksheet><sheetData><row>{$cells}</row></sheetData></worksheet>"]))
+        ->assertCreated();
+
+    // XFD is the last column; a longer reference is not a column at all and
+    // falls back to the next position in the row.
+    expect(MessageAttachment::query()->sole()->extracted_text)
+        ->toBe("## Wide\nfirst\t\tbeyond".str_repeat("\t", 16381).'last');
+});
+
+test('a workbook naming one sheet part many times reads it once and at most 100 sheets', function () {
+    $row = '<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>x</t></is></c></row></sheetData></worksheet>';
+    $parts = [];
+
+    for ($i = 1; $i <= 150; $i++) {
+        $parts["rId{$i}"] = $row;
+    }
+
+    $repeated = array_fill(0, 5000, ['Same', 'rId1']);
+    $distinct = array_map(fn ($id) => ["S{$id}", $id], array_keys($parts));
+
+    uploadWorkbook(workbookWith([...$repeated, ...$distinct], $parts))->assertCreated();
+
+    $text = MessageAttachment::query()->sole()->extracted_text;
+
+    expect(substr_count($text, '## Same'))->toBe(1)
+        ->and(substr_count($text, '## '))->toBe(100)
+        ->and($text)->toEndWith('[… only the first 100 sheets]');
+});
+
+test('spreadsheet reading stops once it has more text than is kept', function () {
+    config(['ada.attachments.max_text_chars' => 100]);
+    $rows = '';
+
+    for ($i = 1; $i <= 1000; $i++) {
+        $rows .= "<row><c r=\"A{$i}\" t=\"inlineStr\"><is><t>row {$i} with some text</t></is></c></row>";
+    }
+
+    uploadWorkbook(workbookWith([['One', 'rId1'], ['Two', 'rId2']], [
+        'rId1' => "<worksheet><sheetData>{$rows}</sheetData></worksheet>",
+        'rId2' => "<worksheet><sheetData>{$rows}</sheetData></worksheet>",
+    ]))->assertCreated();
+
+    expect(MessageAttachment::query()->sole()->extracted_text)
+        ->toStartWith("## One\nrow 1 with some text\nrow 2")
+        ->not->toContain('row 30 ')
+        ->not->toContain('## Two')
+        ->toEndWith('[… cut: only the first 100 characters of this file]');
+});

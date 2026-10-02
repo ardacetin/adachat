@@ -54,3 +54,16 @@ test('no proxy is trusted by default', function () {
         ->get('/login')
         ->assertHeaderMissing('Strict-Transport-Security');
 });
+
+test('a wildcard trusts only the immediate proxy, not addresses the client adds', function () {
+    trustProxies('*');
+    $user = User::factory()->superAdmin()->create();
+
+    // The client sends its own X-Forwarded-For; a proxy that appends to it
+    // passes "spoof, real".
+    $this->actingAs($user)->withServerVariables([...viaProxy('172.18.0.1'), 'HTTP_X_FORWARDED_FOR' => '198.51.100.66, 203.0.113.7'])
+        ->put(route('admin.privacy.update'), ['acknowledgment_enabled' => false, 'acknowledgment_text' => null, 'conversation_retention_days' => null, 'deleted_conversation_days' => 30, 'usage_retention_months' => 24])
+        ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+    expect(AuditLog::query()->latest('id')->first()?->ip_address)->toBe('203.0.113.7');
+});

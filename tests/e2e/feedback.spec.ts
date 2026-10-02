@@ -29,7 +29,16 @@ test('a user rates an answer and administrators see the totals', async ({
 
     const answer = page.getByTestId('feedback-down').last();
     await answer.click();
+    // The button turns pressed at once; reload only after the vote is saved,
+    // or the reload can cancel the request.
+    const saved = page.waitForResponse(
+        (response) =>
+            response.request().method() === 'PUT' &&
+            /\/chat\/messages\/[^/]+\/feedback$/.test(response.url()) &&
+            response.status() < 400,
+    );
     await page.getByRole('menuitem', { name: 'Too long' }).click();
+    await saved;
     await expect(page.getByTestId('feedback-down').last()).toHaveAttribute(
         'aria-pressed',
         'true',

@@ -57,6 +57,15 @@ Implemented in `Providers\SamlIdentityProvider` with
    browsers do not send the `SameSite=Lax` session cookie with the IdP's
    cross-site POST. `CACHE_STORE` must therefore be shared — database or
    redis, not `array`; `ada:install` warns.)
+
+   The request is also bound to the browser that started it: the redirect
+   sets a random value in the `ada_saml_binding` cookie (10 minutes,
+   path `/auth/saml/acs`, `Secure`, `HttpOnly`, `SameSite=None` so it
+   comes back with the IdP's POST), and the cache keeps its SHA-256 hash
+   next to the request ID. A response posted from a browser without that
+   cookie is refused, so nobody can start a sign-in and have another
+   browser complete it (login CSRF). Ada must therefore be served over
+   HTTPS; browsers accept `Secure` cookies on `http://localhost` only.
 2. The response **or** the assertion is signed with the configured IdP
    certificate (unsigned responses are always rejected); XML is schema-
    validated and DOCTYPEs are refused (no XXE).

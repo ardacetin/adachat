@@ -59,13 +59,17 @@ class AppServiceProvider extends ServiceProvider
      * X-Forwarded-* headers, which are believed only from the configured
      * proxies (docs/deployment.md). They decide the IP in the audit log and
      * the rate limits, secure cookies and HSTS.
+     *
+     * "*" means the immediate peer only. Laravel would read it as every
+     * address, and a chain of trusted hops resolves to its left-most entry,
+     * which the client writes itself.
      */
     protected function configureProxies(): void
     {
         $proxies = trim((string) config('ada.http.trusted_proxies'));
 
         if ($proxies !== '') {
-            TrustProxies::at($proxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
+            TrustProxies::at($proxies === '*' ? ['REMOTE_ADDR'] : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
         }
 
         // Links and redirects use https whenever the site is served over

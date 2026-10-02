@@ -65,9 +65,12 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   derlenmiş görünümler) ve `ada_redis` birimlerinde (volume) durur.
 - Uygulama `127.0.0.1:8080` adresini dinler. Önüne sunucudaki nginx'i koyun:
   [`deploy/nginx/ada-docker-proxy.conf`](../deploy/nginx/ada-docker-proxy.conf).
-  Compose dosyası `TRUSTED_PROXIES=*` ayarlar; port sunucunun dışından
-  erişilemediği için bu güvenlidir. Portu başka türlü yayınlarsanız
-  değiştirin.
+  Compose dosyası `TRUSTED_PROXIES=*` ayarlar. Ada'da `*` yalnızca doğrudan
+  bağlanan proxy (sunucudaki nginx) demektir; `X-Forwarded-For` içinde daha
+  soldaki adreslere güvenilmez. Gelen nginx dosyası da istemcinin gönderdiği
+  `X-Forwarded-For` değerini siler. Port sunucunun dışından erişilemediği
+  için bu güvenlidir. Portu başka türlü yayınlarsanız değiştirin; kendi
+  proxy ayarınızı yazarsanız `X-Forwarded-For $remote_addr` kullanın.
 - İşçi sayısı: `.env` içinde `PHP_FPM_MAX_CHILDREN` (varsayılan 24, bkz. §1).
 - Loglar: `docker compose -f compose.production.yml logs -f app`, her satırda
   bir JSON nesnesi.
