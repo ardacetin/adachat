@@ -19,6 +19,7 @@ return [
 
     'models' => [
         'catalog_unknown' => "Bu model Ada'nın fiyat kataloğunda yok. Listeden bir model seçin ya da fiyatlarını gelişmiş modda girin.",
+        'web_search_unsupported' => 'OpenAI uyumlu sunucularda yerleşik web araması yok.',
     ],
 
     'provider_check' => [

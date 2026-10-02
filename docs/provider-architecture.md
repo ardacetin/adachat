@@ -362,7 +362,47 @@ with the model name exactly as the server expects it.
 - **Reasoning:** `reasoning_content` (DeepSeek, vLLM) and `reasoning`
   (OpenRouter) deltas are shown as reasoning.
 
-## 10. Adding a provider
+## 10. Web search
+
+Since v1.3 a request can use the provider's own search tool. Ada does not
+call a search engine itself; the provider searches, reads the results and
+answers with citations.
+
+| Driver | Request | Billed searches | Sources |
+|---|---|---|---|
+| Anthropic | `tools: [{type: web_search_20250305, name: web_search, max_uses}]` | `usage.server_tool_use.web_search_requests` | `citations_delta` (cited); `web_search_tool_result` (results) |
+| OpenAI (Responses) | `tools: [{type: web_search}]`, `max_tool_calls` | completed `web_search_call` items whose action is `search` (opening a page is free) | `url_citation` annotations |
+| Gemini | `tools: [{googleSearch: {}}]` | unique, non-empty `groundingMetadata.webSearchQueries` (Gemini 3 bills each query) | `groundingMetadata.groundingChunks[].web` |
+| OpenAI-compatible | — | — | — |
+
+- **Normalized events:** `WebSearchStarted(query)` and
+  `SourceFound(url, title, cited)`; the count of billed searches is
+  `TokenUsage::$webSearches`. Search results count as input tokens and are
+  part of the reported usage.
+- **Anthropic** uses the basic tool version: it works with every Claude
+  model, and its results reach the model directly. Ada keeps only the
+  answer text, so later turns never resend search results (no
+  `encrypted_content` round trip). A turn the API pauses (`pause_turn`,
+  long search loops) ends as cut off (`length`); `max_uses` is at most 5,
+  which keeps such turns rare.
+- **Gemini** has no per-request search limit; the model decides how many
+  queries to run. The reservation assumes the alias's limit, and a request
+  that searches more is still charged in full (§8, overshoot log).
+- **Token counting** sends the tool definition too, so the counted input
+  matches what is sent.
+- **Who may search:** the model must support search and have a search price
+  (`ai_models.supports_web_search`, `web_search_price_per_thousand`), the
+  alias must allow it (`model_aliases.web_search_enabled`,
+  `web_search_max_uses`, at most `ada.web_search.max_uses_limit` = 5), and the
+  user turns it on for the message. Otherwise the request is refused with
+  422 and nothing is sent.
+- **Stored:** the answer keeps up to 20 cited sources (or, without
+  citations, the first 5 results) in `messages.metadata.sources`, http(s)
+  links only. Search queries and result contents are not stored.
+
+Pricing: [budget-engine.md §5.4](budget-engine.md#54-reservation-amount).
+
+## 11. Adding a provider
 
 1. Add a `driver` value (and to the `providers_driver_check` constraint).
 2. Extend `HttpChatProvider` (payload, URLs, count body, event translation),
@@ -376,7 +416,7 @@ with a Chat Completions endpoint need no new driver (§9). A driver without a
 count endpoint declares it with `ProviderDriver::countsTokens()` and gets the
 estimate path of §6.
 
-## 11. Tests
+## 12. Tests
 
 - `tests/Unit/AI/ProviderContractTest.php` runs one contract suite against all
   four adapters with SSE fixtures (`tests/Fixtures/providers`) written from

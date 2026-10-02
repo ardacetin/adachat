@@ -3,6 +3,7 @@
 return [
     'assistant_not_allowed' => 'This assistant is not available to you.',
     'assistant_model_locked' => 'Conversations with an assistant always use its model.',
+    'web_search_unavailable' => 'Web search is not available with this model.',
     'alias_not_allowed' => 'This model is not available to you.',
 
     'attachments' => [

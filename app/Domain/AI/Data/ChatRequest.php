@@ -22,6 +22,9 @@ final readonly class ChatRequest
         // Long fixed instructions (assistant documents): providers with
         // explicit prompt caching mark the system prompt as cacheable.
         public bool $cacheSystemPrompt = false,
+        // The provider's built-in web search, with at most this many
+        // searches; null leaves it off.
+        public ?int $webSearchMaxUses = null,
     ) {
         if ($messages === []) {
             throw new InvalidArgumentException('A chat request needs at least one message.');
@@ -30,10 +33,19 @@ final readonly class ChatRequest
         if ($maxOutputTokens < 1) {
             throw new InvalidArgumentException('maxOutputTokens must be positive.');
         }
+
+        if ($webSearchMaxUses !== null && $webSearchMaxUses < 1) {
+            throw new InvalidArgumentException('webSearchMaxUses must be positive.');
+        }
     }
 
     public function withMaxOutputTokens(int $maxOutputTokens): self
     {
-        return new self($this->model, $this->messages, $maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt);
+        return new self($this->model, $this->messages, $maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt, $this->webSearchMaxUses);
+    }
+
+    public function withWebSearch(?int $maxUses): self
+    {
+        return new self($this->model, $this->messages, $this->maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt, $maxUses);
     }
 }

@@ -1,0 +1,24 @@
+event: response.created
+data: {"type":"response.created","response":{"id":"resp_ws","status":"in_progress"}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","output_index":0,"item":{"type":"web_search_call","id":"ws_1","status":"in_progress"}}
+
+event: response.web_search_call.searching
+data: {"type":"response.web_search_call.searching","output_index":0,"item_id":"ws_1"}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","output_index":0,"item":{"type":"web_search_call","id":"ws_1","status":"completed","action":{"type":"search","query":"ada lovelace doğum tarihi"}}}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","output_index":1,"item":{"type":"web_search_call","id":"ws_2","status":"completed","action":{"type":"open_page","url":"https://tr.wikipedia.org/wiki/Ada_Lovelace"}}}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","output_index":2,"content_index":0,"delta":"Ada Lovelace 1815'te doğdu."}
+
+event: response.output_text.annotation.added
+data: {"type":"response.output_text.annotation.added","output_index":2,"content_index":0,"annotation_index":0,"annotation":{"type":"url_citation","start_index":0,"end_index":26,"url":"https://tr.wikipedia.org/wiki/Ada_Lovelace","title":"Ada Lovelace - Vikipedi"}}
+
+event: response.completed
+data: {"type":"response.completed","response":{"id":"resp_ws","status":"completed","output":[{"type":"web_search_call","id":"ws_1","status":"completed","action":{"type":"search","query":"ada lovelace doğum tarihi"}},{"type":"web_search_call","id":"ws_2","status":"completed","action":{"type":"open_page"}},{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Ada Lovelace 1815'te doğdu."}]}],"usage":{"input_tokens":3000,"input_tokens_details":{"cached_tokens":0},"output_tokens":60,"output_tokens_details":{"reasoning_tokens":0}}}}
+

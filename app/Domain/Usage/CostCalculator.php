@@ -3,7 +3,6 @@
 namespace App\Domain\Usage;
 
 use App\Domain\AI\Data\TokenUsage;
-use App\Domain\Budget\Money\Usd;
 use App\Domain\Usage\Data\Cost;
 use App\Domain\Usage\Pricing\PricingSnapshot;
 
@@ -22,6 +21,7 @@ final class CostCalculator
         // Reasoning/thinking tokens are billed as output by every provider.
         $output = PricingSnapshot::cost($usage->output + $usage->reasoning, $pricing->output);
 
-        return new Cost($input, $output, Usd::zero());
+        // Searches are billed per call on top of the tokens their results add.
+        return new Cost($input, $output, $pricing->webSearchCost($usage->webSearches));
     }
 }

@@ -35,10 +35,12 @@ use LogicException;
  * @property int $cache_write_tokens
  * @property int $output_tokens
  * @property int $reasoning_tokens
+ * @property int $web_search_requests
  * @property string|null $input_price_snapshot
  * @property string|null $cached_input_price_snapshot
  * @property string|null $cache_write_price_snapshot
  * @property string|null $output_price_snapshot
+ * @property string|null $web_search_price_snapshot USD per 1,000 searches
  * @property Usd $input_cost_usd
  * @property Usd $output_cost_usd
  * @property Usd $other_cost_usd
@@ -91,6 +93,7 @@ class UsageEvent extends Model
             'cached_input_price_snapshot' => 'decimal:6',
             'cache_write_price_snapshot' => 'decimal:6',
             'output_price_snapshot' => 'decimal:6',
+            'web_search_price_snapshot' => 'decimal:6',
             'input_cost_usd' => UsdCast::class,
             'output_cost_usd' => UsdCast::class,
             'other_cost_usd' => UsdCast::class,

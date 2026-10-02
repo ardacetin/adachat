@@ -26,8 +26,11 @@ final readonly class CatalogModel
         public ?string $cacheWritePrice,
         public string $source,
         public string $asOf,
-        /** @var array{from: string, input: string, output: string, cached_input: string|null, cache_write: string|null}|null */
+        /** @var array{from: string, input: string, output: string, cached_input: string|null, cache_write: string|null, web_search: string|null}|null */
         public ?array $nextChange = null,
+        public bool $supportsWebSearch = false,
+        /** USD per 1,000 searches. */
+        public ?string $webSearchPrice = null,
     ) {}
 
     /**
@@ -42,11 +45,13 @@ final readonly class CatalogModel
             'output_price_per_million' => $this->outputPrice,
             'cached_input_price_per_million' => $this->cachedInputPrice,
             'cache_write_price_per_million' => $this->cacheWritePrice,
+            'web_search_price_per_thousand' => $this->webSearchPrice,
             'context_window' => $this->contextWindow,
             'max_output_tokens' => $this->maxOutputTokens,
             'supports_vision' => $this->supportsVision,
             'supports_files' => $this->supportsFiles,
             'supports_reasoning' => $this->supportsReasoning,
+            'supports_web_search' => $this->supportsWebSearch,
         ];
     }
 

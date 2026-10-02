@@ -81,7 +81,7 @@ final class ModelCatalog
             return null;
         }
 
-        foreach (['input_price_per_million', 'output_price_per_million', 'cached_input_price_per_million', 'cache_write_price_per_million'] as $column) {
+        foreach (['input_price_per_million', 'output_price_per_million', 'cached_input_price_per_million', 'cache_write_price_per_million', 'web_search_price_per_thousand'] as $column) {
             if (! self::samePrice($model->getAttribute($column), $entry->attributes()[$column])) {
                 return $entry;
             }
@@ -152,6 +152,8 @@ final class ModelCatalog
                 source: (string) $entry['source'],
                 asOf: (string) $entry['as_of'],
                 nextChange: $next,
+                supportsWebSearch: (bool) ($entry['supports_web_search'] ?? false),
+                webSearchPrice: $prices['web_search'],
             );
         }
 
@@ -160,7 +162,7 @@ final class ModelCatalog
 
     /**
      * @param  array<mixed>  $prices
-     * @return array{input: string, output: string, cached_input: string|null, cache_write: string|null}
+     * @return array{input: string, output: string, cached_input: string|null, cache_write: string|null, web_search: string|null}
      */
     private static function prices(array $prices): array
     {
@@ -169,6 +171,7 @@ final class ModelCatalog
             'output' => (string) ($prices['output'] ?? ''),
             'cached_input' => isset($prices['cached_input']) ? (string) $prices['cached_input'] : null,
             'cache_write' => isset($prices['cache_write']) ? (string) $prices['cache_write'] : null,
+            'web_search' => isset($prices['web_search']) ? (string) $prices['web_search'] : null,
         ];
     }
 }

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Web search, part 1 (no user interface yet): a message can use the
+  provider's own search tool (Anthropic web search, OpenAI web search,
+  Gemini Grounding with Google Search). The answer streams the search
+  queries (`search`) and the cited pages (`source`) and keeps the sources
+  with the message. Models have a search capability and a price per 1,000
+  searches (catalog: Anthropic and OpenAI $10, Gemini $14); aliases allow
+  search with up to 5 searches per message. The budget reserves the allowed
+  searches and charges those the provider billed; usage records keep their
+  number and price ([provider-architecture.md §10](docs/provider-architecture.md#10-web-search)).
+
 ## [1.2.0] - 2026-10-02
 
 Easy model pricing from a built-in price catalog, sign-in with Microsoft

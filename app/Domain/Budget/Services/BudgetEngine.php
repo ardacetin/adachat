@@ -53,12 +53,13 @@ final class BudgetEngine
      * provider call happens before, outside any transaction).
      *
      * @param  int  $maxOutputTokens  the alias/model output cap; may be lowered to fit the budget
+     * @param  int  $webSearches  web searches the provider may run for the request
      *
      * @throws BudgetExhausted
      * @throws InstitutionBudgetExhausted when the institution cap, not the user's budget, is the limit
      * @throws TooManyConcurrentRequests
      */
-    public function reserve(User $user, AiModel $model, InputTokenCount $input, int $maxOutputTokens, ?CarbonImmutable $now = null): BudgetReservation
+    public function reserve(User $user, AiModel $model, InputTokenCount $input, int $maxOutputTokens, ?CarbonImmutable $now = null, int $webSearches = 0): BudgetReservation
     {
         $now ??= CarbonImmutable::now();
         $period = $this->periods->current($user, $now);
@@ -66,7 +67,7 @@ final class BudgetEngine
         $cap = $this->institutionPeriods->cap();
         $maxConcurrent = $user->group->max_concurrent_streams;
 
-        return $this->locked(function () use ($user, $model, $input, $maxOutputTokens, $now, $period, $institution, $cap, $maxConcurrent): BudgetReservation {
+        return $this->locked(function () use ($user, $model, $input, $maxOutputTokens, $now, $period, $institution, $cap, $maxConcurrent, $webSearches): BudgetReservation {
             $period = $this->lockPeriod($period->id);
 
             // Evaluated under the period lock, so parallel requests of the
@@ -93,7 +94,7 @@ final class BudgetEngine
             }
 
             try {
-                $size = ReservationSizer::fit($input, $model, $maxOutputTokens, $available);
+                $size = ReservationSizer::fit($input, $model, $maxOutputTokens, $available, $webSearches);
             } catch (BudgetExhausted $exhausted) {
                 throw $institutionLimits
                     ? new InstitutionBudgetExhausted('The institution\'s monthly cap is reached.', previous: $exhausted)
@@ -218,10 +219,12 @@ final class BudgetEngine
                 'cache_write_tokens' => $usage->cacheWrite,
                 'output_tokens' => $usage->output,
                 'reasoning_tokens' => $usage->reasoning,
+                'web_search_requests' => $usage->webSearches,
                 'input_price_snapshot' => (string) $pricing->input,
                 'cached_input_price_snapshot' => (string) $pricing->cachedInput,
                 'cache_write_price_snapshot' => (string) $pricing->cacheWrite,
                 'output_price_snapshot' => (string) $pricing->output,
+                'web_search_price_snapshot' => $usage->webSearches > 0 && $pricing->webSearch !== null ? (string) $pricing->webSearch : null,
                 'input_cost_usd' => $cost->input,
                 'output_cost_usd' => $cost->output,
                 'other_cost_usd' => $cost->other,

@@ -6,7 +6,9 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
+use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\Events\WebSearchStarted;
 use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
@@ -15,6 +17,7 @@ use App\Domain\AI\Http\ErrorMapper;
 use App\Domain\AI\Providers\HttpChatProvider;
 use App\Domain\AI\Providers\StreamState;
 use Generator;
+use stdClass;
 
 /**
  * Gemini API (models/{model}:streamGenerateContent?alt=sse).
@@ -55,6 +58,12 @@ final class GeminiChatProvider extends HttpChatProvider
             $payload['systemInstruction'] = ['parts' => [['text' => $request->systemPrompt]]];
         }
 
+        // Grounding with Google Search. Gemini has no limit per request; the
+        // model decides how many queries to run.
+        if ($request->webSearchMaxUses !== null) {
+            $payload['tools'] = [['googleSearch' => new stdClass]];
+        }
+
         return $payload;
     }
 
@@ -92,6 +101,7 @@ final class GeminiChatProvider extends HttpChatProvider
                 'model' => 'models/'.$request->model,
                 'contents' => $payload['contents'],
                 'systemInstruction' => $payload['systemInstruction'] ?? null,
+                'tools' => $payload['tools'] ?? null,
             ], static fn (mixed $value): bool => $value !== null),
         ];
     }
@@ -104,6 +114,8 @@ final class GeminiChatProvider extends HttpChatProvider
     protected function translate(Generator $events, StreamState $state): Generator
     {
         $reason = FinishReason::Error;
+        // Gemini 3 bills each unique, non-empty search query.
+        $queries = [];
 
         foreach ($events as $event) {
             $data = $event->json() ?? [];
@@ -129,6 +141,25 @@ final class GeminiChatProvider extends HttpChatProvider
                 }
             }
 
+            $grounding = is_array($candidate['groundingMetadata'] ?? null) ? $candidate['groundingMetadata'] : [];
+
+            foreach ((array) ($grounding['webSearchQueries'] ?? []) as $query) {
+                if (is_string($query) && trim($query) !== '' && ! isset($queries[$query])) {
+                    $queries[$query] = true;
+                    yield new WebSearchStarted($query);
+                }
+            }
+
+            // When streaming, each chunk lists only the sources it adds.
+            foreach ((array) ($grounding['groundingChunks'] ?? []) as $chunk) {
+                $web = is_array($chunk) && is_array($chunk['web'] ?? null) ? $chunk['web'] : [];
+
+                if (is_string($web['uri'] ?? null)) {
+                    $title = $web['title'] ?? null;
+                    yield new SourceFound($web['uri'], is_string($title) && $title !== '' ? $title : null);
+                }
+            }
+
             if (isset($candidate['finishReason'])) {
                 $reason = match ($candidate['finishReason']) {
                     'STOP' => FinishReason::Stop,
@@ -150,6 +181,10 @@ final class GeminiChatProvider extends HttpChatProvider
                     reasoning: (int) ($usage['thoughtsTokenCount'] ?? 0),
                 ));
             }
+        }
+
+        if ($queries !== []) {
+            $state->addUsage(new TokenUsage(webSearches: count($queries)));
         }
 
         return $reason;

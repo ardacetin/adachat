@@ -6,7 +6,9 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
+use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
+use App\Domain\AI\Data\Events\WebSearchStarted;
 use App\Domain\AI\Data\ImagePart;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
@@ -22,6 +24,9 @@ use Illuminate\Http\Client\Response;
  * Usage normalization: input_tokens includes cached tokens and
  * output_tokens includes reasoning tokens; both are subtracted so that
  * TokenUsage fields are disjoint.
+ *
+ * Web search uses the hosted web_search tool; max_tool_calls bounds the
+ * searches. Every completed search action is billed.
  */
 final class OpenAIChatProvider extends HttpChatProvider
 {
@@ -43,6 +48,8 @@ final class OpenAIChatProvider extends HttpChatProvider
             'input' => array_map(self::message(...), $request->messages),
             'max_output_tokens' => $request->maxOutputTokens,
             'temperature' => $request->temperature,
+            'tools' => $request->webSearchMaxUses === null ? null : [['type' => 'web_search']],
+            'max_tool_calls' => $request->webSearchMaxUses,
             'stream' => true,
             'store' => false,
         ], static fn (mixed $value): bool => $value !== null);
@@ -83,7 +90,7 @@ final class OpenAIChatProvider extends HttpChatProvider
 
     protected function countPayload(ChatRequest $request, array $payload): array
     {
-        return array_intersect_key($payload, array_flip(['model', 'instructions', 'input']));
+        return array_intersect_key($payload, array_flip(['model', 'instructions', 'input', 'tools']));
     }
 
     protected function countFromResponse(array $body): int
@@ -113,11 +120,31 @@ final class OpenAIChatProvider extends HttpChatProvider
                     yield new ReasoningDelta((string) ($data['delta'] ?? ''));
                     break;
 
+                case 'response.output_item.done':
+                    $item = is_array($data['item'] ?? null) ? $data['item'] : [];
+
+                    $action = is_array($item['action'] ?? null) ? $item['action'] : [];
+
+                    if (($item['type'] ?? null) === 'web_search_call' && ($action['type'] ?? null) === 'search') {
+                        yield new WebSearchStarted(self::query($action));
+                    }
+                    break;
+
+                case 'response.output_text.annotation.added':
+                    $annotation = $data['annotation'] ?? [];
+
+                    if (is_array($annotation) && ($annotation['type'] ?? null) === 'url_citation' && is_string($annotation['url'] ?? null)) {
+                        $title = $annotation['title'] ?? null;
+                        yield new SourceFound($annotation['url'], is_string($title) && $title !== '' ? $title : null);
+                    }
+                    break;
+
                 case 'response.completed':
                 case 'response.incomplete':
                     $response = is_array($data['response'] ?? null) ? $data['response'] : [];
                     $state->requestId ??= is_string($response['id'] ?? null) ? $response['id'] : null;
                     $state->addUsage(self::usage($response['usage'] ?? []));
+                    $state->addUsage(new TokenUsage(webSearches: self::searches($response['output'] ?? [])));
                     $reason = $type === 'response.completed'
                         ? FinishReason::Stop
                         : match ($response['incomplete_details']['reason'] ?? null) {
@@ -136,6 +163,31 @@ final class OpenAIChatProvider extends HttpChatProvider
         }
 
         return $reason;
+    }
+
+    /**
+     * @param  array<mixed>  $action
+     */
+    private static function query(array $action): ?string
+    {
+        $query = $action['query'] ?? (is_array($action['queries'] ?? null) ? ($action['queries'][0] ?? null) : null);
+
+        return is_string($query) && $query !== '' ? $query : null;
+    }
+
+    /**
+     * Billed searches: completed web_search_call items whose action is a search.
+     */
+    private static function searches(mixed $output): int
+    {
+        if (! is_array($output)) {
+            return 0;
+        }
+
+        return count(array_filter($output, static fn (mixed $item): bool => is_array($item)
+            && ($item['type'] ?? null) === 'web_search_call'
+            && ($item['status'] ?? null) === 'completed'
+            && ($item['action']['type'] ?? null) === 'search'));
     }
 
     private static function usage(mixed $usage): TokenUsage

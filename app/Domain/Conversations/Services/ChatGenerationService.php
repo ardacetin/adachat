@@ -4,8 +4,10 @@ namespace App\Domain\Conversations\Services;
 
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\Finished;
+use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\Events\UsageReported;
+use App\Domain\AI\Data\Events\WebSearchStarted;
 use App\Domain\AI\Data\InputTokenCount;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
@@ -18,6 +20,7 @@ use App\Domain\Budget\Data\Settlement;
 use App\Domain\Budget\Exceptions\BudgetException;
 use App\Domain\Budget\Services\BudgetEngine;
 use App\Domain\Conversations\Data\ChatStreamEvent;
+use App\Domain\Conversations\Data\SourceList;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Exceptions\ChatRefused;
 use App\Domain\Usage\Enums\UsageEventStatus;
@@ -77,9 +80,10 @@ final class ChatGenerationService
      *
      * @param  EloquentCollection<int, MessageAttachment>|null  $attachments
      * @param  Closure(): bool  $clientGone
+     * @param  int|null  $webSearch  searches the provider may run, null for none
      * @return Generator<int, ChatStreamEvent>
      */
-    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone, ?EloquentCollection $attachments = null, ?Assistant $assistant = null): Generator
+    public function send(User $user, ?Conversation $conversation, ModelAlias $alias, string $content, Closure $clientGone, ?EloquentCollection $attachments = null, ?Assistant $assistant = null, ?int $webSearch = null): Generator
     {
         $history = $conversation !== null ? ConversationThread::active($conversation) : collect();
 
@@ -99,16 +103,17 @@ final class ChatGenerationService
         ]);
         $userMessage->setRelation('attachments', $attachments ?? new EloquentCollection);
 
-        yield from $this->run($user, $conversation, $alias, $history->push($userMessage), $userMessage, $clientGone, $assistant);
+        yield from $this->run($user, $conversation, $alias, $history->push($userMessage), $userMessage, $clientGone, $assistant, $webSearch);
     }
 
     /**
      * Replace the last answer with a new one from the same user message.
      *
      * @param  Closure(): bool  $clientGone
+     * @param  int|null  $webSearch  searches the provider may run, null for none
      * @return Generator<int, ChatStreamEvent>
      */
-    public function regenerate(User $user, Message $answer, ModelAlias $alias, Closure $clientGone): Generator
+    public function regenerate(User $user, Message $answer, ModelAlias $alias, Closure $clientGone, ?int $webSearch = null): Generator
     {
         $conversation = $answer->conversation;
         $history = ConversationThread::active($conversation);
@@ -122,7 +127,7 @@ final class ChatGenerationService
         // The thread up to (and including) the user message being answered.
         $history = $history->slice(0, -1)->values();
 
-        yield from $this->run($user, $conversation, $alias, $history, null, $clientGone, $conversation->loadMissing('assistant')->assistant);
+        yield from $this->run($user, $conversation, $alias, $history, null, $clientGone, $conversation->loadMissing('assistant')->assistant, $webSearch);
     }
 
     /**
@@ -131,7 +136,7 @@ final class ChatGenerationService
      * @param  Closure(): bool  $clientGone
      * @return Generator<int, ChatStreamEvent>
      */
-    private function run(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, Closure $clientGone, ?Assistant $assistant = null): Generator
+    private function run(User $user, ?Conversation $conversation, ModelAlias $alias, Collection $history, ?Message $userMessage, Closure $clientGone, ?Assistant $assistant = null, ?int $webSearch = null): Generator
     {
         $model = $alias->aiModel;
 
@@ -142,9 +147,9 @@ final class ChatGenerationService
                 $history,
                 $assistant?->systemInstructions(),
                 cacheInstructions: $assistant !== null && $assistant->documents()->exists(),
-            );
+            )->withWebSearch($webSearch);
             $count = $this->counting->count($model, $request);
-            $reservation = $this->budget->reserve($user, $model, $count, $alias->effectiveMaxOutputTokens());
+            $reservation = $this->budget->reserve($user, $model, $count, $alias->effectiveMaxOutputTokens(), webSearches: $webSearch ?? 0);
         } catch (ChatRefused $refused) {
             yield self::error($refused->errorCode, $refused->retryable);
 
@@ -172,8 +177,11 @@ final class ChatGenerationService
 
         $outputCapped = $reservation->max_output_tokens < min($alias->effectiveMaxOutputTokens(), $model->context_window - $count->tokens);
 
-        if ($outputCapped) {
-            $answer->forceFill(['metadata' => ['output_capped' => true]])->save();
+        if ($outputCapped || $webSearch !== null) {
+            $answer->forceFill(['metadata' => array_filter([
+                'output_capped' => $outputCapped,
+                'web_search' => $webSearch !== null,
+            ])])->save();
         }
 
         yield new ChatStreamEvent('message.started', [
@@ -194,6 +202,8 @@ final class ChatGenerationService
     private function stream(User $user, Conversation $conversation, ModelAlias $alias, ChatRequest $request, InputTokenCount $count, BudgetReservation $reservation, Message $answer, Closure $clientGone): Generator
     {
         $text = '';
+        $sources = new SourceList;
+        $searches = 0;
         $usage = null;
         $reason = null;
         $requestId = null;
@@ -230,6 +240,16 @@ final class ChatGenerationService
                         $answer->forceFill(['content' => $text])->save();
                         $lastFlush = microtime(true);
                     }
+                } elseif ($event instanceof WebSearchStarted) {
+                    $searches++;
+
+                    yield new ChatStreamEvent('search', array_filter(['query' => $event->query], fn ($value) => $value !== null));
+                } elseif ($event instanceof SourceFound) {
+                    $source = $sources->add($event);
+
+                    if ($source !== null) {
+                        yield new ChatStreamEvent('source', $source);
+                    }
                 } elseif ($event instanceof UsageReported) {
                     $usage = $event->usage;
                 } elseif ($event instanceof Finished) {
@@ -245,13 +265,13 @@ final class ChatGenerationService
             $failure = $exception;
         } finally {
             // Runs even if the client disconnected and the generator is destroyed.
-            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $usage, $reason, $requestId, $started, $failure);
+            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $usage, $reason, $requestId, $started, $failure, $sources, $searches);
         }
 
         yield $event;
     }
 
-    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure): ChatStreamEvent
+    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure, SourceList $sources, int $searches): ChatStreamEvent
     {
         $errorCode = match (true) {
             $failure instanceof ProviderException => $failure->code(),
@@ -261,6 +281,12 @@ final class ChatGenerationService
 
         $cancelled = $failure === null && $reason === FinishReason::Cancelled;
         Cache::forget(self::cancelKey($answer->id));
+
+        $list = $sources->toArray();
+
+        if ($list !== []) {
+            $answer->metadata = [...($answer->metadata ?? []), 'sources' => $list];
+        }
 
         $answer->forceFill([
             'content' => $text,
@@ -287,6 +313,7 @@ final class ChatGenerationService
             input: $count->tokens,
             // Pessimistic 2 bytes per token, never above the cap the provider enforces.
             output: min((int) ceil(strlen($text) / 2), $reservation->max_output_tokens),
+            webSearches: $searches,
         );
 
         $event = $this->budget->settle($reservation, new Settlement(
@@ -317,6 +344,7 @@ final class ChatGenerationService
             'status' => $answer->status->value,
             'finish_reason' => $reason?->value,
             'usage' => self::usage($event, $usage),
+            'sources' => $list,
         ]);
     }
 
@@ -414,6 +442,7 @@ final class ChatGenerationService
         return [
             'input_tokens' => $usage->totalInput(),
             'output_tokens' => $usage->totalOutput(),
+            'web_searches' => $usage->webSearches,
             'cost_usd' => $event->total_cost_usd->toString(),
             'estimated' => $event->is_estimated,
         ];

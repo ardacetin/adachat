@@ -50,6 +50,7 @@ class ConversationController extends Controller
                 'error_code' => $message->error_code,
                 'finish_reason' => $message->finish_reason,
                 'output_capped' => (bool) ($message->metadata['output_capped'] ?? false),
+                'sources' => $message->metadata['sources'] ?? [],
                 'attachments' => $message->attachments->map(fn (MessageAttachment $attachment) => $attachment->toClient())->values(),
             ])->values(),
         ]);
