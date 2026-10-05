@@ -361,6 +361,8 @@
         "addressesHelp": "One per line (or separated by commas). Optionally with a name: Grace Hopper <grace@example.edu>. Addresses that already have an account are skipped.",
         "addressesPlaceholder": "ada@example.edu\nGrace Hopper <grace@example.edu>",
         "addSubmit": "Add",
+        "sendEmail": "Send an invitation e-mail",
+        "sendEmailHelp": "Tells each new user that they can sign in, with a link to Ada. Needs a working mailer (MAIL_*).",
         "invited": "Invited",
         "invitedHelp": "Added on {{date}}; has not signed in yet.",
         "removeInvitation": "Remove",

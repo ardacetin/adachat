@@ -60,6 +60,8 @@ return [
         'invalid_addresses' => 'Bunlar geçerli e-posta adresi değil: :list',
         'address_count' => '1 ile :max arasında e-posta adresi girin.',
         'invited' => ':created kullanıcı eklendi; :existing adresin zaten hesabı vardı.',
+        'invitations_sent' => ':count davet e-postası gönderildi.',
+        'invitations_failed' => ':count davet e-postası gönderilemedi; e-posta ayarlarını (MAIL_*) ve log\'u kontrol edin.',
         'invitation_removed' => 'Kullanıcı kaldırıldı.',
     ],
 ];

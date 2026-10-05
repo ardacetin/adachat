@@ -3,6 +3,14 @@
 return [
     'footer' => 'Ada Chat — bu ileti otomatik olarak gönderildi.',
 
+    'invitation' => [
+        'subject' => ':institution: Ada Chat\'i artık kullanabilirsiniz',
+        'heading' => ':institution Ada Chat\'e hoş geldiniz',
+        'body' => ':name size :institution yapay zekâ asistanı Ada Chat\'e erişim verdi.',
+        'sign_in' => 'Kurum hesabınızla (:email) oturum açın. Ayrı bir şifre gerekmez.',
+        'button' => 'Oturum aç',
+    ],
+
     'user_budget' => [
         'subject_80' => ':institution: aylık AI bütçenizin %80\'ini kullandınız',
         'subject_100' => ':institution: aylık AI bütçeniz doldu',

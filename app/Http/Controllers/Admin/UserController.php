@@ -246,6 +246,7 @@ class UserController extends Controller
             'emails' => ['required', 'string', 'max:20000'],
             'group_id' => ['required', 'integer', 'exists:groups,id'],
             'role' => ['required', Rule::enum(UserRole::class)],
+            'send_email' => ['boolean'],
         ]);
 
         $role = UserRole::from($data['role']);
@@ -266,11 +267,21 @@ class UserController extends Controller
 
         /** @var User $actor */
         $actor = $request->user();
-        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor);
+        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor, (bool) ($data['send_email'] ?? false));
+
+        $message = __('admin.users.invited', ['created' => count($result['created']), 'existing' => count($result['existing'])]);
+
+        if ($result['emailed'] > 0) {
+            $message .= ' '.__('admin.users.invitations_sent', ['count' => $result['emailed']]);
+        }
+
+        if ($result['email_failed'] > 0) {
+            $message .= ' '.__('admin.users.invitations_failed', ['count' => $result['email_failed']]);
+        }
 
         Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => __('admin.users.invited', ['created' => count($result['created']), 'existing' => count($result['existing'])]),
+            'type' => $result['email_failed'] > 0 ? 'warning' : 'success',
+            'message' => $message,
         ]);
 
         return to_route('admin.users.index', ['sort' => 'name']);

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Invitation e-mails. Admin → Users → Add users can e-mail each new
+  account (on by default), in the institution's language, with a link to
+  the sign-in page. A failed e-mail keeps the account and shows a warning.
+
 ### Security
 
 - A chat request still running when the reservation cleanup job took it

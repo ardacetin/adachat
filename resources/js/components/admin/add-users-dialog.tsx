@@ -1,6 +1,7 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import CheckboxField from '@/components/admin/checkbox-field';
 import FormField from '@/components/admin/form-field';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,7 @@ export default function AddUsersDialog({ groups }: Props) {
         emails: '',
         group_id: String(groups[0]?.id ?? ''),
         role: 'user',
+        send_email: true,
     });
 
     const submit = (event: React.FormEvent) => {
@@ -150,6 +152,20 @@ export default function AddUsersDialog({ groups }: Props) {
                                 </Select>
                             </FormField>
                         )}
+
+                        <div className="space-y-1">
+                            <CheckboxField
+                                id="invite-send-email"
+                                label={t('users.sendEmail')}
+                                checked={form.data.send_email}
+                                onChange={(checked) =>
+                                    form.setData('send_email', checked)
+                                }
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                {t('users.sendEmailHelp')}
+                            </p>
+                        </div>
 
                         <DialogFooter>
                             <Button
