@@ -7,7 +7,8 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.3.0** ([sürüm notları](docs/releases/v1.3.0.md#türkçe-özet)). 1.3 sürümü
+> **Durum: 1.3.1** ([sürüm notları](docs/releases/v1.3.1.md#türkçe-özet)), davet
+> e-postalarını da getiren bir güvenlik sürümü. 1.3 sürümü
 > sağlayıcıların kendi araçlarıyla web araması, kullanıcılara bütçe uyarıları,
 > memnuniyet raporlu yanıt geri bildirimi ve salt okunur sohbet paylaşımı
 > getirdi. 1.2 sürümü
