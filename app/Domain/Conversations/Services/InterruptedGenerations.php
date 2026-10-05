@@ -48,7 +48,7 @@ final class InterruptedGenerations
                     ),
                     status: UsageEventStatus::Partial,
                     isEstimated: true,
-                    reason: 'generation_interrupted',
+                    reason: BudgetEngine::INTERRUPTED,
                     modelAliasId: $message->model_alias_id,
                     conversationId: $message->conversation_id,
                     messageId: $message->id,

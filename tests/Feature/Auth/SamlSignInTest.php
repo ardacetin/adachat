@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Models\User;
 use App\Models\UserIdentity;
@@ -88,15 +89,17 @@ function samlResponse(?string $inResponseTo, array $overrides = []): string
         'sign' => true,
         'signAssertion' => false,
         'tamper' => null,
+        'employee_id' => null,
     ], $overrides);
 
     $now = gmdate('Y-m-d\TH:i:s\Z');
     $inResponse = $inResponseTo !== null ? ' InResponseTo="'.$inResponseTo.'"' : '';
     $id = '_'.bin2hex(random_bytes(16));
     $assertionId = '_'.bin2hex(random_bytes(16));
+    $employee = $o['employee_id'] === null ? '' : '<saml:Attribute Name="employee_id"><saml:AttributeValue>'.$o['employee_id'].'</saml:AttributeValue></saml:Attribute>';
 
     $xml = <<<XML
-<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{$id}" Version="2.0" IssueInstant="{$now}" Destination="{$o['destination']}"{$inResponse}><saml:Issuer>{$o['issuer']}</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status><saml:Assertion ID="{$assertionId}" Version="2.0" IssueInstant="{$now}"><saml:Issuer>{$o['issuer']}</saml:Issuer><saml:Subject><saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">{$o['email']}</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml:SubjectConfirmationData{$inResponse} NotOnOrAfter="{$o['notOnOrAfter']}" Recipient="{$o['destination']}"/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore="{$now}" NotOnOrAfter="{$o['notOnOrAfter']}"><saml:AudienceRestriction><saml:Audience>{$o['audience']}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AttributeStatement><saml:Attribute Name="first_name"><saml:AttributeValue>Ada</saml:AttributeValue></saml:Attribute><saml:Attribute Name="last_name"><saml:AttributeValue>Lovelace</saml:AttributeValue></saml:Attribute></saml:AttributeStatement><saml:AuthnStatement AuthnInstant="{$now}" SessionIndex="{$assertionId}"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion></samlp:Response>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{$id}" Version="2.0" IssueInstant="{$now}" Destination="{$o['destination']}"{$inResponse}><saml:Issuer>{$o['issuer']}</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status><saml:Assertion ID="{$assertionId}" Version="2.0" IssueInstant="{$now}"><saml:Issuer>{$o['issuer']}</saml:Issuer><saml:Subject><saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">{$o['email']}</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml:SubjectConfirmationData{$inResponse} NotOnOrAfter="{$o['notOnOrAfter']}" Recipient="{$o['destination']}"/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore="{$now}" NotOnOrAfter="{$o['notOnOrAfter']}"><saml:AudienceRestriction><saml:Audience>{$o['audience']}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AttributeStatement><saml:Attribute Name="first_name"><saml:AttributeValue>Ada</saml:AttributeValue></saml:Attribute><saml:Attribute Name="last_name"><saml:AttributeValue>Lovelace</saml:AttributeValue></saml:Attribute>{$employee}</saml:AttributeStatement><saml:AuthnStatement AuthnInstant="{$now}" SessionIndex="{$assertionId}"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion></samlp:Response>
 XML;
 
     if ($o['signAssertion']) {
@@ -191,6 +194,70 @@ test('sign-ins started in two tabs of one browser both complete', function () {
     auth()->logout();
     postAcs($second)->assertRedirect(route('home'));
     $this->assertAuthenticated();
+});
+
+/**
+ * Sign in through a full SP-initiated round trip and sign out again.
+ *
+ * @param  array<string, mixed>  $overrides
+ */
+function samlSignIn(array $overrides): TestResponse
+{
+    $response = postAcs(samlResponse(startSignIn(), $overrides));
+    auth()->logout();
+
+    return $response;
+}
+
+test('without a stable ID a reused address signs into the previous holder\'s account', function () {
+    samlSignIn([])->assertRedirect(route('home'));
+    $first = User::query()->sole();
+
+    // The address is given to another person: Ada cannot tell them apart.
+    samlSignIn([])->assertRedirect(route('home'));
+    expect(User::query()->count())->toBe(1)
+        ->and(UserIdentity::query()->sole()->user_id)->toBe($first->id);
+
+    // Which is why leavers' accounts are disabled: a disabled account is refused.
+    $first->forceFill(['status' => UserStatus::Disabled])->save();
+    samlSignIn([])->assertRedirect(route('login'))->assertSessionHasErrors('auth');
+});
+
+test('with a stable ID a reused address does not reach the previous holder\'s account', function () {
+    config(['ada.auth.saml.attributes.subject' => 'employee_id']);
+
+    samlSignIn(['employee_id' => 'E-1001'])->assertRedirect(route('home'));
+    $first = User::query()->sole();
+    expect(UserIdentity::query()->sole()->subject)->toBe('E-1001');
+
+    // Someone else now holds the address.
+    samlSignIn(['employee_id' => 'E-2002'])->assertRedirect(route('login'))->assertSessionHasErrors('auth');
+    $this->assertGuest();
+    expect(User::query()->count())->toBe(1);
+
+    // The first person, renamed at the IdP, keeps their account.
+    samlSignIn(['employee_id' => 'E-1001', 'email' => 'lovelace@example.edu'])->assertRedirect(route('home'));
+    expect(User::query()->sole()->id)->toBe($first->id)
+        ->and($first->refresh()->email)->toBe('lovelace@example.edu');
+});
+
+test('accounts stored under the address move to the stable ID on their next sign-in', function () {
+    // An account from before the stable ID was configured.
+    $user = User::factory()->create(['email' => 'ada@example.edu']);
+    (new UserIdentity)->forceFill(['user_id' => $user->id, 'provider' => 'saml', 'subject' => 'ada@example.edu', 'email' => 'ada@example.edu'])->save();
+
+    config(['ada.auth.saml.attributes.subject' => 'employee_id']);
+    samlSignIn(['employee_id' => 'E-1001'])->assertRedirect(route('home'));
+
+    expect(User::query()->sole()->id)->toBe($user->id)
+        ->and(UserIdentity::query()->sole()->subject)->toBe('E-1001');
+});
+
+test('a configured stable ID must be in the response', function () {
+    config(['ada.auth.saml.attributes.subject' => 'employee_id']);
+
+    samlSignIn([])->assertRedirect(route('login'))->assertSessionHasErrors('auth');
+    expect(User::query()->count())->toBe(0);
 });
 
 test('unsolicited responses restart a normal sign-in', function () {

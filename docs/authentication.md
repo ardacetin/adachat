@@ -94,6 +94,21 @@ the login page with a translated, non-revealing message
 - Lookup by `user_identities (provider='saml', subject=<NameID e-mail>)`.
   Google's NameID is the primary e-mail; if a user's address is renamed in
   Workspace, the new address is a new subject and links by e-mail as below.
+- **Reused addresses.** With the e-mail as subject, Ada cannot tell a new
+  holder of an address from the previous one: whoever the IdP asserts for
+  `j.smith@…` signs into the account of `j.smith@…`, with its role, budget
+  and conversations. A disabled account is refused (`account_disabled`), so
+  **disable the Ada account of everyone who leaves**, and of the old address
+  after a rename, before the address can be given to someone else. Better,
+  send an identifier that is never reused as an attribute and set
+  `SAML_ATTRIBUTE_SUBJECT` to its name (Google Admin: map *Employee
+  details → Employee ID* or a custom attribute; Entra ID: `user.objectid`).
+  The account then follows that identifier: a renamed person keeps their
+  account, and a new holder of an old address gets `account_conflict`
+  instead of the previous holder's account. Accounts stored under the
+  address move to the identifier on their next sign-in, so disable leavers'
+  accounts before switching. Responses without the attribute are refused.
+  `ada:doctor` warns while it is not set.
 - If no identity exists and `AuthSettings.auto_provision` is true: create the
   user (role `user`, default group) and the identity in one transaction.
 - Linking an existing user row by e-mail (pre-created by an admin or by
@@ -136,6 +151,7 @@ super administrators; `ada:user:promote` remains the break-glass path.
 |---|---|---|
 | `SAML_IDP_ENTITY_ID`, `SAML_IDP_SSO_URL`, `SAML_IDP_CERT` (or `SAML_IDP_CERT_PATH`) | `.env` | Needed before anyone can log in; values from the IdP metadata. |
 | `SAML_ATTRIBUTE_FIRST_NAME`, `SAML_ATTRIBUTE_LAST_NAME`, `SAML_LOGIN_LABEL` | `.env` (optional) | Attribute names mapped in the SAML app; button label (default "Google"). |
+| `SAML_ATTRIBUTE_SUBJECT` | `.env` (recommended) | Attribute with an identifier that is never reused (e.g. `employee_id`). Without it the e-mail address identifies the account (see *Reused addresses*). |
 | `allowed_domains` | `AuthSettings` (DB), initial value from `AUTH_ALLOWED_DOMAINS` | Admin-manageable, multiple domains supported. |
 | `auto_provision` | `AuthSettings`, initial value from `AUTH_AUTO_PROVISION` | Allows pre-registration-only deployments. |
 

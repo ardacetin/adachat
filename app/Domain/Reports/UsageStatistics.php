@@ -40,8 +40,10 @@ final class UsageStatistics
      */
     public function totals(ReportFilters $filters): array
     {
+        // Requests are counted by reservation: a late settlement's second
+        // charge (budget-engine.md §11) adds tokens and cost, not a request.
         $row = $this->charges($filters)
-            ->selectRaw('COUNT(*) AS requests, COUNT(DISTINCT e.user_id) AS users, COALESCE(SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens), 0) AS input_tokens, COALESCE(SUM(e.output_tokens), 0) AS output_tokens, COALESCE(SUM(e.web_search_requests), 0) AS web_searches, COALESCE(SUM(e.other_cost_usd), 0) AS web_search_cost, COALESCE(SUM(e.total_cost_usd), 0) AS cost, COALESCE(SUM(e.is_estimated), 0) AS estimated')
+            ->selectRaw('COUNT(e.reservation_id) AS requests, COUNT(DISTINCT e.user_id) AS users, COALESCE(SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens), 0) AS input_tokens, COALESCE(SUM(e.output_tokens), 0) AS output_tokens, COALESCE(SUM(e.web_search_requests), 0) AS web_searches, COALESCE(SUM(e.other_cost_usd), 0) AS web_search_cost, COALESCE(SUM(e.total_cost_usd), 0) AS cost, COALESCE(SUM(e.is_estimated AND e.reservation_id IS NOT NULL), 0) AS estimated')
             ->first();
 
         $adjustments = $this->events($filters)
@@ -98,7 +100,7 @@ final class UsageStatistics
         };
 
         return array_values($query
-            ->selectRaw("{$key} AS id, MAX({$label}) AS label, MAX({$detail}) AS detail, COUNT(*) AS requests, SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens) AS input_tokens, SUM(e.output_tokens) AS output_tokens, SUM(e.web_search_requests) AS web_searches, SUM(e.total_cost_usd) AS cost")
+            ->selectRaw("{$key} AS id, MAX({$label}) AS label, MAX({$detail}) AS detail, COUNT(e.reservation_id) AS requests, SUM(e.input_tokens + e.cached_input_tokens + e.cache_write_tokens) AS input_tokens, SUM(e.output_tokens) AS output_tokens, SUM(e.web_search_requests) AS web_searches, SUM(e.total_cost_usd) AS cost")
             ->groupBy($key)
             ->orderByDesc('cost')
             ->orderBy($key)
@@ -133,7 +135,7 @@ final class UsageStatistics
         }
 
         $buckets = $this->charges($filters)
-            ->selectRaw('FLOOR(UNIX_TIMESTAMP(e.created_at) / ?) AS bucket, COUNT(*) AS requests, SUM(e.total_cost_usd) AS cost', [self::BUCKET_SECONDS])
+            ->selectRaw('FLOOR(UNIX_TIMESTAMP(e.created_at) / ?) AS bucket, COUNT(e.reservation_id) AS requests, SUM(e.total_cost_usd) AS cost', [self::BUCKET_SECONDS])
             ->groupBy('bucket')
             ->get();
 

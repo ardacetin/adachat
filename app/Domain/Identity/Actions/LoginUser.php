@@ -58,6 +58,16 @@ final class LoginUser
                 ->lockForUpdate()
                 ->first();
 
+            // Stored under its previous subject (e.g. the e-mail address
+            // before a stable ID was configured): move it to the new one.
+            if ($record === null && $identity->previousSubject !== null) {
+                $record = UserIdentity::query()
+                    ->where('provider', $identity->provider)
+                    ->where('subject', $identity->previousSubject)
+                    ->lockForUpdate()
+                    ->first();
+            }
+
             $user = $record->user
                 ?? $this->findUserByEmail($identity)
                 ?? $this->provision($identity);

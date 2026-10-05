@@ -3,6 +3,7 @@
 namespace App\Domain\Budget\Services;
 
 use App\Domain\AI\Data\InputTokenCount;
+use App\Domain\AI\Data\TokenUsage;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Budget\Data\Settlement;
 use App\Domain\Budget\Enums\ReservationStatus;
@@ -11,6 +12,7 @@ use App\Domain\Budget\Exceptions\InstitutionBudgetExhausted;
 use App\Domain\Budget\Exceptions\TooManyConcurrentRequests;
 use App\Domain\Budget\Money\Usd;
 use App\Domain\Usage\CostCalculator;
+use App\Domain\Usage\Data\Cost;
 use App\Domain\Usage\Enums\UsageEventStatus;
 use App\Domain\Usage\Enums\UsageEventType;
 use App\Domain\Usage\Pricing\PricingSnapshot;
@@ -41,6 +43,12 @@ use LogicException;
 final class BudgetEngine
 {
     private const ATTEMPTS = 3;
+
+    /** Status reason of a reservation the cleanup job settled with an estimate. */
+    public const INTERRUPTED = 'generation_interrupted';
+
+    /** Status reason once the still-running request charged the rest. */
+    private const SETTLED_LATE = 'settled_late';
 
     public function __construct(
         private readonly BudgetPeriods $periods,
@@ -149,7 +157,16 @@ final class BudgetEngine
             $reservation = $this->lockReservation($id);
 
             if ($reservation->status === ReservationStatus::Settled) {
-                return UsageEvent::query()->where('reservation_id', $id)->firstOrFail();
+                $first = UsageEvent::query()->where('reservation_id', $id)->firstOrFail();
+
+                // The cleanup job settled a request it took for dead with an
+                // estimate, but the request was still running and now reports
+                // what it really consumed: charge what the estimate missed.
+                if ($reservation->status_reason === self::INTERRUPTED && $settlement->reason !== self::INTERRUPTED) {
+                    $this->chargeRemainder($period, $institution, $reservation, $first, $settlement);
+                }
+
+                return $first;
             }
 
             if ($reservation->status === ReservationStatus::Released) {
@@ -201,42 +218,7 @@ final class BudgetEngine
                 'settled_at' => CarbonImmutable::now(),
             ])->save();
 
-            $event = new UsageEvent;
-            $event->forceFill([
-                'type' => UsageEventType::Charge,
-                'user_id' => $reservation->user_id,
-                'group_id' => $reservation->user->group_id,
-                'budget_period_id' => $period->id,
-                'reservation_id' => $reservation->id,
-                'conversation_id' => $settlement->conversationId,
-                'message_id' => $settlement->messageId,
-                'provider_id' => $model->provider_id,
-                'ai_model_id' => $model->id,
-                'model_alias_id' => $settlement->modelAliasId,
-                'source' => 'chat',
-                'input_tokens' => $usage->input,
-                'cached_input_tokens' => $usage->cachedInput,
-                'cache_write_tokens' => $usage->cacheWrite,
-                'output_tokens' => $usage->output,
-                'reasoning_tokens' => $usage->reasoning,
-                'web_search_requests' => $usage->webSearches,
-                'input_price_snapshot' => (string) $pricing->input,
-                'cached_input_price_snapshot' => (string) $pricing->cachedInput,
-                'cache_write_price_snapshot' => (string) $pricing->cacheWrite,
-                'output_price_snapshot' => (string) $pricing->output,
-                'web_search_price_snapshot' => $usage->webSearches > 0 && $pricing->webSearch !== null ? (string) $pricing->webSearch : null,
-                'input_cost_usd' => $cost->input,
-                'output_cost_usd' => $cost->output,
-                'other_cost_usd' => $cost->other,
-                'total_cost_usd' => $total,
-                'is_estimated' => $settlement->isEstimated,
-                'input_count_method' => $reservation->input_count_method,
-                'reserved_input_tokens' => $reservation->input_tokens,
-                'provider_request_id' => $settlement->providerRequestId,
-                'status' => $settlement->status,
-            ])->save();
-
-            return $event;
+            return $this->recordCharge($reservation, $settlement, $usage, $pricing, $cost, $period->id, $reservation->id);
         });
     }
 
@@ -400,6 +382,88 @@ final class BudgetEngine
     private function lockInstitutionOf(BudgetPeriod $period): ?InstitutionPeriod
     {
         return InstitutionPeriod::query()->where('period_start', $period->period_start)->lockForUpdate()->first();
+    }
+
+    /**
+     * A late settlement after the cleanup job's estimate: the tokens and
+     * cost above what the estimate charged, as a second charge event (the
+     * ledger is append-only, and the first event keeps the reservation).
+     * Nothing is refunded when the estimate was higher. Charged once.
+     */
+    private function chargeRemainder(BudgetPeriod $period, ?InstitutionPeriod $institution, BudgetReservation $reservation, UsageEvent $first, Settlement $settlement): void
+    {
+        $live = $settlement->usage;
+        $remainder = new TokenUsage(
+            input: max(0, $live->input - $first->input_tokens),
+            cachedInput: max(0, $live->cachedInput - $first->cached_input_tokens),
+            cacheWrite: max(0, $live->cacheWrite - $first->cache_write_tokens),
+            output: max(0, $live->output - $first->output_tokens),
+            reasoning: max(0, $live->reasoning - $first->reasoning_tokens),
+            webSearches: max(0, $live->webSearches - $first->web_search_requests),
+        );
+
+        $reservation->forceFill(['status_reason' => self::SETTLED_LATE])->save();
+
+        if ($remainder->totalInput() + $remainder->totalOutput() + $remainder->webSearches === 0) {
+            return;
+        }
+
+        $pricing = PricingSnapshot::forModel($reservation->aiModel, $live->totalInput());
+        $cost = CostCalculator::calculate($remainder, $pricing);
+
+        $period->spent_usd = $period->spent_usd->plus($cost->total());
+        $period->save();
+
+        if ($institution !== null) {
+            $institution->spent_usd = $institution->spent_usd->plus($cost->total());
+            $institution->save();
+        }
+
+        $this->recordCharge($reservation, $settlement, $remainder, $pricing, $cost, $period->id, null, self::SETTLED_LATE);
+    }
+
+    private function recordCharge(BudgetReservation $reservation, Settlement $settlement, TokenUsage $usage, PricingSnapshot $pricing, Cost $cost, int $periodId, ?string $reservationId, ?string $reason = null): UsageEvent
+    {
+        $model = $reservation->aiModel;
+
+        $event = new UsageEvent;
+        $event->forceFill([
+            'type' => UsageEventType::Charge,
+            'user_id' => $reservation->user_id,
+            'group_id' => $reservation->user->group_id,
+            'budget_period_id' => $periodId,
+            'reservation_id' => $reservationId,
+            'conversation_id' => $settlement->conversationId,
+            'message_id' => $settlement->messageId,
+            'provider_id' => $model->provider_id,
+            'ai_model_id' => $model->id,
+            'model_alias_id' => $settlement->modelAliasId,
+            'source' => 'chat',
+            'input_tokens' => $usage->input,
+            'cached_input_tokens' => $usage->cachedInput,
+            'cache_write_tokens' => $usage->cacheWrite,
+            'output_tokens' => $usage->output,
+            'reasoning_tokens' => $usage->reasoning,
+            'web_search_requests' => $usage->webSearches,
+            'input_price_snapshot' => (string) $pricing->input,
+            'cached_input_price_snapshot' => (string) $pricing->cachedInput,
+            'cache_write_price_snapshot' => (string) $pricing->cacheWrite,
+            'output_price_snapshot' => (string) $pricing->output,
+            'web_search_price_snapshot' => $usage->webSearches > 0 && $pricing->webSearch !== null ? (string) $pricing->webSearch : null,
+            'input_cost_usd' => $cost->input,
+            'output_cost_usd' => $cost->output,
+            'other_cost_usd' => $cost->other,
+            'total_cost_usd' => $cost->total(),
+            'is_estimated' => $settlement->isEstimated,
+            'input_count_method' => $reservation->input_count_method,
+            // Only the reservation's own event compares counted with billed input.
+            'reserved_input_tokens' => $reservationId === null ? 0 : $reservation->input_tokens,
+            'provider_request_id' => $settlement->providerRequestId,
+            'status' => $settlement->status,
+            'reason' => $reason,
+        ])->save();
+
+        return $event;
     }
 
     private function lockReservation(string $id): BudgetReservation

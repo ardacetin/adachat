@@ -230,10 +230,27 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
         $attributes = $response->getAttributes();
         $name = trim($this->attribute($attributes, 'first_name').' '.$this->attribute($attributes, 'last_name'));
 
+        // Google's NameID is the primary e-mail address, which the
+        // organisation can later give to someone else. A configured stable
+        // attribute identifies the person instead; accounts stored under the
+        // address move over to it on their next sign-in.
+        $subject = $email;
+        $previousSubject = null;
+
+        if ($this->subjectAttribute() !== null) {
+            $subject = $this->attribute($attributes, 'subject');
+            $previousSubject = $email;
+
+            if ($subject === '') {
+                Log::warning('SAML response rejected.', ['error' => 'The subject attribute is missing.']);
+
+                throw new IdentityRejected(RejectionReason::ProviderError);
+            }
+        }
+
         return new ExternalIdentity(
             provider: self::KEY,
-            // Google's NameID is the primary e-mail address.
-            subject: $email,
+            subject: $subject,
             email: $email,
             // Asserted by the organisation's own IdP over a signed response.
             emailVerified: true,
@@ -244,7 +261,18 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
                 'idp' => (string) ($this->config['idp_entity_id'] ?? ''),
                 'name_id_format' => $response->getNameIdFormat(),
             ],
+            previousSubject: $previousSubject,
         );
+    }
+
+    /**
+     * The attribute holding a stable identifier, if one is configured.
+     */
+    public function subjectAttribute(): ?string
+    {
+        $name = $this->config['attributes']['subject'] ?? null;
+
+        return is_string($name) && trim($name) !== '' ? trim($name) : null;
     }
 
     /**

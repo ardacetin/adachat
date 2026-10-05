@@ -27,7 +27,7 @@ final class SseParser
                     return;
                 }
 
-                [$line, $complete] = self::readLine($body);
+                [$line, $complete] = self::readLine($body, $cancellation);
 
                 if (! $complete) {
                     // A final event without a trailing blank line.
@@ -75,15 +75,21 @@ final class SseParser
      * Read up to the next line break. Reading byte by byte (served from PHP's
      * stream buffer) returns each line as soon as it arrives; reading fixed
      * blocks would wait until a whole block is filled, so tokens would reach
-     * the browser in bursts or only at the end of the answer.
+     * the browser in bursts or only at the end of the answer. The token is
+     * checked inside the line too: a line delivered slowly must not hold the
+     * request past its deadline.
      *
      * @return array{0: string, 1: bool} the line without its line break, and whether it was terminated
      */
-    private static function readLine(StreamInterface $body): array
+    private static function readLine(StreamInterface $body, ?CancellationToken $cancellation): array
     {
         $line = '';
 
         while (! $body->eof()) {
+            if ($cancellation?->isCancelled()) {
+                break;
+            }
+
             $byte = $body->read(1);
 
             if ($byte === '') {
