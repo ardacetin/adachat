@@ -120,3 +120,34 @@ test('each event is yielded as soon as it arrives', function () {
     expect($events->current()->data)->toBe('two')
         ->and($network->delivered)->toBe(2);
 });
+
+test('a line delivered slowly stops at the deadline, not at its line break', function () {
+    // One data line that keeps arriving byte by byte and never ends: before
+    // the deadline check inside the line, nothing bounded this read.
+    $body = new class extends Stream
+    {
+        public int $reads = 0;
+
+        public function __construct()
+        {
+            parent::__construct(Utils::tryFopen('php://temp', 'r+'));
+        }
+
+        public function eof(): bool
+        {
+            return false;
+        }
+
+        public function read($length): string
+        {
+            $this->reads++;
+
+            return 'x';
+        }
+    };
+
+    $events = iterator_to_array(SseParser::events($body, new CallbackCancellation(fn () => $body->reads >= 50)), false);
+
+    expect($events)->toBe([])
+        ->and($body->reads)->toBe(50);
+});

@@ -65,7 +65,7 @@ final class UsageReport
             ->where('budget_period_id', $period->id)
             ->where('type', UsageEventType::Charge)
             ->groupBy('model_alias_id')
-            ->selectRaw('model_alias_id, COUNT(*) AS requests, SUM(input_tokens) AS input_tokens, SUM(output_tokens) AS output_tokens, SUM(total_cost_usd) AS cost')
+            ->selectRaw('model_alias_id, COUNT(reservation_id) AS requests, SUM(input_tokens) AS input_tokens, SUM(output_tokens) AS output_tokens, SUM(total_cost_usd) AS cost')
             ->orderByDesc('cost')
             ->toBase()
             ->get();

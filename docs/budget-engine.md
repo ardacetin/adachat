@@ -471,6 +471,20 @@ can never be expired while running (the stream itself is hard-stopped at
 `max_stream_seconds`). A late settlement for an already expired reservation is
 accepted (§8) and charges `spent` without touching `reserved`.
 
+The stream deadline is checked between provider events **and inside a line**
+(`SseParser`), so a provider that delivers one line slowly cannot keep a
+request past it. A request can still outlive `expires_at` while PHP is
+blocked writing to a client that reads slowly; the job then takes it for
+dead. When such a request ends and settles a reservation the job settled
+with an estimate (`status_reason = generation_interrupted`), the engine
+charges what the estimate missed: the tokens above the estimate, per field,
+as a second `charge` event without `reservation_id` (`reason =
+settled_late`; the ledger is append-only and `reservation_id` is unique).
+Nothing is refunded when the estimate was higher, and the remainder is
+charged once (`status_reason` becomes `settled_late`). Reports count
+requests by reservation, so the second event adds tokens and cost, not a
+request. The reservation's concurrency slot is freed when the job runs.
+
 ## 12. Reservation state machine
 
 ```

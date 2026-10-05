@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- A chat request still running when the reservation cleanup job took it
+  for dead (for example, while blocked writing to a client that reads
+  slowly) was charged only the job's estimate; its real usage was ignored.
+  The late settlement now charges what the estimate missed, as a second
+  charge. The stream deadline is also enforced inside a slowly delivered
+  provider line.
 - A stopped or disconnected answer was charged only the usage the provider
   had reported when the stream began (for Anthropic, about one output
   token), although the text had been delivered. Users could get long answers
