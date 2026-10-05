@@ -365,6 +365,7 @@
         "sendEmailHelp": "Her yeni kullanıcıya oturum açabileceğini ve Ada bağlantısını bildirir. Çalışan bir e-posta ayarı (MAIL_*) gerekir.",
         "invited": "Davet edildi",
         "invitedHelp": "{{date}} tarihinde eklendi; henüz giriş yapmadı.",
+        "sendInvitation": "Davet e-postası gönder",
         "removeInvitation": "Kaldır",
         "removeInvitationTitle": "Bu kullanıcı kaldırılsın mı?",
         "removeInvitationHelp": "Hesap hiç kullanılmadı ve silinir. Alan adı izinli değilse bu adres artık giriş yapamaz.",

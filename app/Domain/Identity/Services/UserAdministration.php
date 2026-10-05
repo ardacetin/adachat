@@ -169,6 +169,23 @@ final class UserAdministration
     }
 
     /**
+     * E-mails the invitation to an account that was added but has not
+     * signed in yet: one added before invitation e-mails existed, one whose
+     * e-mail failed, or one whose e-mail went missing.
+     */
+    public function resendInvitation(User $user, User $actor): bool
+    {
+        if (! $user->invitationPending()) {
+            throw new InvalidArgumentException('Only unused invitations can be sent again.');
+        }
+
+        $sent = $this->sendInvitation($user, $actor);
+        $this->audit->record('user.invitation_sent', $user, [], ['email' => $user->email, 'email_sent' => $sent]);
+
+        return $sent;
+    }
+
+    /**
      * In the institution's default language: the person has not chosen one yet.
      */
     private function sendInvitation(User $user, User $actor): bool

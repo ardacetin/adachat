@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import DeleteButton from '@/components/admin/delete-button';
 import CheckboxField from '@/components/admin/checkbox-field';
@@ -31,6 +31,7 @@ import {
     destroy,
     group as groupRoute,
     index,
+    invitation as invitationRoute,
     role as roleRoute,
     status as statusRoute,
 } from '@/routes/admin/users';
@@ -70,6 +71,7 @@ type Props = {
         changeRole: boolean;
         adjustBudget: boolean;
         removeInvitation: boolean;
+        sendInvitation: boolean;
     };
 };
 
@@ -167,15 +169,34 @@ export default function UserShow({
                                     date: dateTime(user.invited_at),
                                 })}
                             </span>
-                            {can.removeInvitation && (
-                                <DeleteButton
-                                    url={destroy.url(user.id)}
-                                    title={t('users.removeInvitationTitle')}
-                                    description={t(
-                                        'users.removeInvitationHelp',
-                                    )}
-                                />
-                            )}
+                            <span className="flex flex-wrap gap-2">
+                                {can.sendInvitation && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        data-test="send-invitation"
+                                        onClick={() =>
+                                            router.post(
+                                                invitationRoute.url(user.id),
+                                                {},
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        {t('users.sendInvitation')}
+                                    </Button>
+                                )}
+                                {can.removeInvitation && (
+                                    <DeleteButton
+                                        url={destroy.url(user.id)}
+                                        title={t('users.removeInvitationTitle')}
+                                        description={t(
+                                            'users.removeInvitationHelp',
+                                        )}
+                                    />
+                                )}
+                            </span>
                         </AlertDescription>
                     </Alert>
                 )}

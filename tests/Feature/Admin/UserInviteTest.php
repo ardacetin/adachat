@@ -204,3 +204,36 @@ test('a failed invitation e-mail keeps the account and warns the administrator',
     expect(User::query()->where('email', 'grace@example.edu')->exists())->toBeTrue()
         ->and(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeFalse();
 });
+
+test('an invitation can be e-mailed again until the account is used', function () {
+    Mail::fake();
+    $admin = User::factory()->admin()->create();
+
+    // Added earlier, without an e-mail; adding the address again skips it.
+    $this->actingAs($admin)->post(route('admin.users.store'), ['emails' => 'grace@example.edu', 'group_id' => Group::default()->id, 'role' => 'user']);
+    $this->post(route('admin.users.store'), ['emails' => 'grace@example.edu', 'group_id' => Group::default()->id, 'role' => 'user', 'send_email' => true])
+        ->assertInertiaFlash('toast.message', __('admin.users.invited', ['created' => 0, 'existing' => 1]).' '.__('admin.users.existing_not_emailed'));
+    Mail::assertNothingSent();
+
+    $grace = User::query()->where('email', 'grace@example.edu')->sole();
+    $this->get(route('admin.users.show', $grace))->assertInertia(fn ($page) => $page->where('permissions.sendInvitation', true));
+
+    $this->post(route('admin.users.invitation', $grace))
+        ->assertRedirect()
+        ->assertInertiaFlash('toast.message', __('admin.users.invitation_sent', ['email' => 'grace@example.edu']));
+    Mail::assertSent(UserInvitation::class, fn (UserInvitation $mail) => $mail->hasTo('grace@example.edu'));
+    expect(AuditLog::query()->where('action', 'user.invitation_sent')->sole()->new_values['email_sent'])->toBeTrue();
+
+    // Once the person has signed in, there is nothing to send.
+    auth()->logout();
+    signInAsIdentity(['email' => 'grace@example.edu', 'subject' => 'grace-sub'])->assertRedirect(route('home'));
+    auth()->logout();
+    $this->actingAs($admin)->post(route('admin.users.invitation', $grace))->assertForbidden();
+    Mail::assertSentCount(1);
+});
+
+test('users cannot send invitations', function () {
+    $pending = User::factory()->create(['invited_at' => now()]);
+
+    $this->actingAs(User::factory()->create())->post(route('admin.users.invitation', $pending))->assertForbidden();
+});

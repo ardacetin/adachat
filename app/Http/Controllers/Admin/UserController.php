@@ -147,6 +147,7 @@ class UserController extends Controller
                 'changeRole' => $actor->can('changeRole', $user),
                 'adjustBudget' => $actor->can('adjustBudget', $user),
                 'removeInvitation' => $actor->can('removeInvitation', $user),
+                'sendInvitation' => $actor->can('sendInvitation', $user),
             ],
         ]);
     }
@@ -275,6 +276,10 @@ class UserController extends Controller
             $message .= ' '.__('admin.users.invitations_sent', ['count' => $result['emailed']]);
         }
 
+        if (($data['send_email'] ?? false) && $result['existing'] !== []) {
+            $message .= ' '.__('admin.users.existing_not_emailed');
+        }
+
         if ($result['email_failed'] > 0) {
             $message .= ' '.__('admin.users.invitations_failed', ['count' => $result['email_failed']]);
         }
@@ -285,6 +290,21 @@ class UserController extends Controller
         ]);
 
         return to_route('admin.users.index', ['sort' => 'name']);
+    }
+
+    public function sendInvitation(Request $request, User $user, UserAdministration $users): RedirectResponse
+    {
+        Gate::authorize('sendInvitation', $user);
+
+        /** @var User $actor */
+        $actor = $request->user();
+        $sent = $users->resendInvitation($user, $actor);
+
+        Inertia::flash('toast', $sent
+            ? ['type' => 'success', 'message' => __('admin.users.invitation_sent', ['email' => $user->email])]
+            : ['type' => 'error', 'message' => __('admin.users.invitations_failed', ['count' => 1])]);
+
+        return back();
     }
 
     public function destroy(User $user, UserAdministration $users): RedirectResponse

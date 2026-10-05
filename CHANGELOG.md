@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- "Send invitation e-mail" on the page of a user who has not signed in
+  yet, for accounts added before invitation e-mails existed or whose
+  e-mail failed. Adding an address that already has an account now says
+  that no e-mail went to it.
+
 ## [1.3.1] - 2026-10-05
 
 A security release after a full audit with Cloudflare's security audit

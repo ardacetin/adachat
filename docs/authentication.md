@@ -142,6 +142,10 @@ Two settings decide who gets in, both in the administration panel:
   [deployment guide](deployment.md)). An e-mail that cannot be sent leaves
   the account in place; the administrator sees a warning and the log names
   the cause. The audit entry `user.invited` records `email_sent`.
+  Addresses that already have an account get no e-mail. For an account
+  that has not signed in yet (added before invitation e-mails existed, or
+  whose e-mail failed), the user page has "Send invitation e-mail"
+  (audit `user.invitation_sent`).
 
 Added addresses may sign in **even when their domain is not in the allowed
 domains** (e.g. a guest lecturer with a partner address, when the identity

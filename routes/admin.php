@@ -28,6 +28,7 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::post('users', [UserController::class, 'store'])->middleware('throttle:20,1,users-invite:')->name('users.store');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('users/{user}/invitation', [UserController::class, 'sendInvitation'])->middleware('throttle:10,1,users-invitation:')->name('users.invitation');
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::put('users/{user}/group', [UserController::class, 'updateGroup'])->name('users.group');
     Route::put('users/{user}/budget', [UserController::class, 'updateBudget'])->name('users.budget');
