@@ -45,9 +45,11 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:20,1,auth-callback:')
         ->name('auth.callback');
 
+    // Local and testing only. The end-to-end suite signs in more than 30
+    // times a minute from one address.
     if (DevLoginController::isEnabled()) {
         Route::post('dev/login', [DevLoginController::class, 'store'])
-            ->middleware('throttle:30,1,dev-login:')
+            ->middleware('throttle:300,1,dev-login:')
             ->name('dev-login');
     }
 });
