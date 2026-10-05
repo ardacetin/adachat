@@ -24,6 +24,12 @@ class UserPolicy
         return $actor->role->canAccessAdmin();
     }
 
+    /** E-mail the invitation (again) to an account that was added but never used. */
+    public function sendInvitation(User $actor, User $user): bool
+    {
+        return $this->update($actor, $user) && $user->invitationPending() && $user->isActive();
+    }
+
     /** Remove an account that was added but never used. */
     public function removeInvitation(User $actor, User $user): bool
     {
