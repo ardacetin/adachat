@@ -45,6 +45,7 @@ test('administrators add users by e-mail address', function () {
         'emails' => "Grace Hopper <grace@example.edu>\nexisting@example.edu\nalan@partner.org",
         'group_id' => $group->id,
         'role' => 'user',
+        'send_email' => false,
     ])->assertRedirect()->assertInertiaFlash('toast.message', __('admin.users.invited', ['created' => 2, 'existing' => 1]));
 
     $grace = User::query()->where('email', 'grace@example.edu')->sole();
@@ -170,6 +171,7 @@ test('new users can be sent an invitation e-mail in the institution\'s language'
         return $mail->hasTo('grace@example.edu')
             && $mail->locale === 'tr'
             && $mail->invitedBy === 'Ayşe Yılmaz'
+            && $mail->envelope()->subject === 'Ada Chat hesabınız oluşturuldu'
             && str_contains($html, 'Beykoz Üniversitesi')
             && str_contains($html, route('login'));
     });
@@ -177,16 +179,25 @@ test('new users can be sent an invitation e-mail in the institution\'s language'
     expect(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeTrue();
 });
 
-test('no invitation e-mail is sent unless asked for', function () {
+test('invitation e-mails are sent unless turned off', function () {
     Mail::fake();
+    $admin = User::factory()->admin()->create();
 
-    $this->actingAs(User::factory()->admin()->create())->post(route('admin.users.store'), [
+    // A form without the field (e.g. an old frontend build) still sends.
+    $this->actingAs($admin)->post(route('admin.users.store'), [
         'emails' => 'grace@example.edu',
         'group_id' => Group::default()->id,
         'role' => 'user',
     ])->assertRedirect();
+    Mail::assertSent(UserInvitation::class, fn (UserInvitation $mail) => $mail->hasTo('grace@example.edu'));
 
-    Mail::assertNothingSent();
+    $this->post(route('admin.users.store'), [
+        'emails' => 'alan@example.edu',
+        'group_id' => Group::default()->id,
+        'role' => 'user',
+        'send_email' => false,
+    ])->assertRedirect();
+    Mail::assertSentCount(1);
 });
 
 test('a failed invitation e-mail keeps the account and warns the administrator', function () {
@@ -210,7 +221,7 @@ test('an invitation can be e-mailed again until the account is used', function (
     $admin = User::factory()->admin()->create();
 
     // Added earlier, without an e-mail; adding the address again skips it.
-    $this->actingAs($admin)->post(route('admin.users.store'), ['emails' => 'grace@example.edu', 'group_id' => Group::default()->id, 'role' => 'user']);
+    $this->actingAs($admin)->post(route('admin.users.store'), ['emails' => 'grace@example.edu', 'group_id' => Group::default()->id, 'role' => 'user', 'send_email' => false]);
     $this->post(route('admin.users.store'), ['emails' => 'grace@example.edu', 'group_id' => Group::default()->id, 'role' => 'user', 'send_email' => true])
         ->assertInertiaFlash('toast.message', __('admin.users.invited', ['created' => 0, 'existing' => 1]).' '.__('admin.users.existing_not_emailed'));
     Mail::assertNothingSent();

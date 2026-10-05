@@ -268,7 +268,10 @@ class UserController extends Controller
 
         /** @var User $actor */
         $actor = $request->user();
-        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor, (bool) ($data['send_email'] ?? false));
+        // Sent unless turned off: a form without the field (e.g. a frontend
+        // that was not rebuilt) still sends the invitations.
+        $sendEmail = $request->boolean('send_email', true);
+        $result = $users->invite($people['valid'], Group::query()->whereKey($data['group_id'])->firstOrFail(), $role, $actor, $sendEmail);
 
         $message = __('admin.users.invited', ['created' => count($result['created']), 'existing' => count($result['existing'])]);
 
@@ -276,7 +279,7 @@ class UserController extends Controller
             $message .= ' '.__('admin.users.invitations_sent', ['count' => $result['emailed']]);
         }
 
-        if (($data['send_email'] ?? false) && $result['existing'] !== []) {
+        if ($sendEmail && $result['existing'] !== []) {
             $message .= ' '.__('admin.users.existing_not_emailed');
         }
 

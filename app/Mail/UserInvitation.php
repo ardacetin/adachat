@@ -21,13 +21,14 @@ class UserInvitation extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('mail.invitation.subject', ['institution' => $this->institution]));
+        return new Envelope(subject: __('mail.invitation.subject', ['app' => config('app.name'), 'institution' => $this->institution]));
     }
 
     public function content(): Content
     {
         return new Content(markdown: 'mail.user-invitation', with: [
             'url' => route('login'),
+            'app' => config('app.name'),
         ]);
     }
 }
