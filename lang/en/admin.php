@@ -60,6 +60,8 @@ return [
         'invalid_addresses' => 'These are not valid e-mail addresses: :list',
         'address_count' => 'Enter between 1 and :max e-mail addresses.',
         'invited' => 'Added :created user(s); :existing address(es) already had an account.',
+        'invitations_sent' => 'Invitation e-mails sent: :count.',
+        'invitations_failed' => ':count invitation e-mail(s) could not be sent; check the mail settings (MAIL_*) and the log.',
         'invitation_removed' => 'The user was removed.',
     ],
 ];

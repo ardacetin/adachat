@@ -2,11 +2,14 @@
 
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Http\Controllers\Admin\UserController;
+use App\Mail\UserInvitation;
 use App\Models\AuditLog;
 use App\Models\Group;
 use App\Models\User;
 use App\Models\UserIdentity;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Testing\TestResponse;
 use Tests\Support\FakeIdentityProvider;
 
@@ -144,4 +147,60 @@ test('administrators cannot remove invited super administrators', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->delete(route('admin.users.destroy', $super))
         ->assertForbidden();
+});
+
+test('new users can be sent an invitation e-mail in the institution\'s language', function () {
+    Mail::fake();
+    updateSettings(InstitutionSettings::class, ['name' => 'Beykoz Üniversitesi', 'default_locale' => 'tr']);
+    $admin = User::factory()->admin()->create(['name' => 'Ayşe Yılmaz']);
+    User::factory()->create(['email' => 'existing@example.edu']);
+
+    $this->actingAs($admin)->post(route('admin.users.store'), [
+        'emails' => "grace@example.edu\nexisting@example.edu",
+        'group_id' => Group::default()->id,
+        'role' => 'user',
+        'send_email' => true,
+    ])->assertRedirect()->assertInertiaFlash('toast.type', 'success');
+
+    // Only the new account is told, in Turkish, by whom.
+    Mail::assertSentCount(1);
+    Mail::assertSent(UserInvitation::class, function (UserInvitation $mail) {
+        $html = $mail->render();
+
+        return $mail->hasTo('grace@example.edu')
+            && $mail->locale === 'tr'
+            && $mail->invitedBy === 'Ayşe Yılmaz'
+            && str_contains($html, 'Beykoz Üniversitesi')
+            && str_contains($html, route('login'));
+    });
+
+    expect(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeTrue();
+});
+
+test('no invitation e-mail is sent unless asked for', function () {
+    Mail::fake();
+
+    $this->actingAs(User::factory()->admin()->create())->post(route('admin.users.store'), [
+        'emails' => 'grace@example.edu',
+        'group_id' => Group::default()->id,
+        'role' => 'user',
+    ])->assertRedirect();
+
+    Mail::assertNothingSent();
+});
+
+test('a failed invitation e-mail keeps the account and warns the administrator', function () {
+    Mail::shouldReceive('to')->andThrow(new RuntimeException('Connection could not be established with host smtp.example.edu'));
+
+    $this->actingAs(User::factory()->admin()->create())->post(route('admin.users.store'), [
+        'emails' => 'grace@example.edu',
+        'group_id' => Group::default()->id,
+        'role' => 'user',
+        'send_email' => true,
+    ])->assertRedirect()
+        ->assertInertiaFlash('toast.type', 'warning')
+        ->assertInertiaFlash('toast.message', __('admin.users.invited', ['created' => 1, 'existing' => 0]).' '.__('admin.users.invitations_failed', ['count' => 1]));
+
+    expect(User::query()->where('email', 'grace@example.edu')->exists())->toBeTrue()
+        ->and(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeFalse();
 });

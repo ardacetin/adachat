@@ -8,11 +8,16 @@ use App\Domain\Budget\Services\CurrentLimits;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Exceptions\LastSuperAdmin;
+use App\Domain\Institution\Settings\InstitutionSettings;
+use App\Mail\UserInvitation;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Changes administrators make to a user account (authorization is the
@@ -24,6 +29,7 @@ final class UserAdministration
     public function __construct(
         private readonly AuditLogger $audit,
         private readonly CurrentLimits $limits,
+        private readonly InstitutionSettings $institution,
     ) {}
 
     public function changeGroup(User $user, Group $group, bool $applyToCurrentPeriod): void
@@ -118,15 +124,19 @@ final class UserAdministration
     /**
      * Adds accounts for e-mail addresses that do not have one yet. The
      * person signs in with the institution's identity provider; the account
-     * is linked by the (verified) address on the first sign-in.
+     * is linked by the (verified) address on the first sign-in. With
+     * $sendEmail, each new account gets an e-mail saying so; a failed
+     * e-mail does not undo the account.
      *
      * @param  list<array{email: string, name: string|null}>  $people
-     * @return array{created: list<string>, existing: list<string>}
+     * @return array{created: list<string>, existing: list<string>, emailed: int, email_failed: int}
      */
-    public function invite(array $people, Group $group, UserRole $role, User $actor): array
+    public function invite(array $people, Group $group, UserRole $role, User $actor, bool $sendEmail = false): array
     {
         $created = [];
         $existing = [];
+        $emailed = 0;
+        $failed = 0;
 
         foreach ($people as $person) {
             $email = mb_strtolower(trim($person['email']));
@@ -147,11 +157,34 @@ final class UserAdministration
                 'invited_by' => $actor->id,
             ])->save();
 
-            $this->audit->record('user.invited', $user, [], ['email' => $email, 'role' => $role->value, 'group_id' => $group->id]);
+            $sent = $sendEmail && $this->sendInvitation($user, $actor);
+            $emailed += $sent ? 1 : 0;
+            $failed += $sendEmail && ! $sent ? 1 : 0;
+
+            $this->audit->record('user.invited', $user, [], ['email' => $email, 'role' => $role->value, 'group_id' => $group->id, 'email_sent' => $sent]);
             $created[] = $email;
         }
 
-        return ['created' => $created, 'existing' => $existing];
+        return ['created' => $created, 'existing' => $existing, 'emailed' => $emailed, 'email_failed' => $failed];
+    }
+
+    /**
+     * In the institution's default language: the person has not chosen one yet.
+     */
+    private function sendInvitation(User $user, User $actor): bool
+    {
+        try {
+            Mail::to($user->email)
+                ->locale($this->institution->default_locale)
+                ->send(new UserInvitation($this->institution->name, $actor->name, $user->email));
+
+            return true;
+        } catch (Throwable $exception) {
+            // The mailer's message names the cause (host, authentication).
+            Log::warning('Invitation e-mail failed.', ['user_id' => $user->id, 'error' => $exception->getMessage()]);
+
+            return false;
+        }
     }
 
     /**

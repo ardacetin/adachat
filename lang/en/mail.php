@@ -3,6 +3,14 @@
 return [
     'footer' => 'Ada Chat — this message was sent automatically.',
 
+    'invitation' => [
+        'subject' => ':institution: you can now use Ada Chat',
+        'heading' => 'Welcome to Ada Chat at :institution',
+        'body' => ':name has given you access to Ada Chat, :institution\'s AI assistant.',
+        'sign_in' => 'Sign in with your institution account (:email). No separate password is needed.',
+        'button' => 'Sign in',
+    ],
+
     'user_budget' => [
         'subject_80' => ':institution: you have used 80 % of your monthly AI budget',
         'subject_100' => ':institution: your monthly AI budget is used up',
