@@ -30,6 +30,10 @@ operators with server access (ultimately trusted); compromised dependencies.
   (login CSRF); unsolicited (IdP-initiated)
   responses are not trusted and restart an SP-initiated sign-in.
 - E-mail domain ∈ allowed domains (see [authentication.md](authentication.md)).
+- SAML accounts follow a stable identifier when `SAML_ATTRIBUTE_SUBJECT` is
+  set; otherwise the e-mail address identifies the account, and the account
+  of someone who left must be disabled before their address is reused
+  ([authentication.md](authentication.md#account-linking-and-provisioning)).
 - No password login → no credential stuffing surface. Break-glass via CLI only.
 - Login route throttled per IP.
 - OpenID Connect (authentication.md §1a): authorization code flow with PKCE

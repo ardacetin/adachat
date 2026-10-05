@@ -76,6 +76,10 @@ class DoctorCommand extends Command
 
         $this->checkOidc(app(OidcIdentityProvider::class));
 
+        if ($saml->isEnabled()) {
+            $this->check('SAML accounts follow a stable ID, not the e-mail address', $saml->subjectAttribute() !== null, warnOnly: true, hint: 'Set SAML_ATTRIBUTE_SUBJECT, or disable the Ada account of everyone who leaves before their address is reused (docs/authentication.md).');
+        }
+
         $certificate = $saml->setupDetails()['certificate'];
 
         if ($certificate !== null && $certificate['expires_at'] !== null) {

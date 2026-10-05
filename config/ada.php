@@ -60,6 +60,10 @@ return [
             'attributes' => [
                 'first_name' => env('SAML_ATTRIBUTE_FIRST_NAME', 'first_name'),
                 'last_name' => env('SAML_ATTRIBUTE_LAST_NAME', 'last_name'),
+                // Optional: an attribute with an identifier that is never
+                // given to another person (e.g. an employee ID). Without it
+                // the e-mail address identifies the account.
+                'subject' => env('SAML_ATTRIBUTE_SUBJECT'),
             ],
             // Label of the sign-in button.
             'label' => env('SAML_LOGIN_LABEL', 'Google'),

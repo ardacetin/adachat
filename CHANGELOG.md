@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The late settlement now charges what the estimate missed, as a second
   charge. The stream deadline is also enforced inside a slowly delivered
   provider line.
+- With SAML, the e-mail address identified the account, so if the
+  organisation gave a former employee's address to someone else, that
+  person signed into the old account (role, budget, conversations) unless
+  it had been disabled. `SAML_ATTRIBUTE_SUBJECT` names an attribute with an
+  identifier that is never reused (e.g. the employee ID); accounts then
+  follow it and move over on their next sign-in. `ada:doctor` warns while
+  it is not set. Until then, disable the Ada accounts of people who leave.
 - A stopped or disconnected answer was charged only the usage the provider
   had reported when the stream began (for Anthropic, about one output
   token), although the text had been delivered. Users could get long answers
