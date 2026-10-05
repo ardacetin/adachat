@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Invitation e-mails were not sent when the "Add users" form did not
+  include the e-mail option (for example after an update without
+  rebuilding the frontend). They are now sent unless turned off. The
+  e-mail now reads as a welcome: "Your Ada Chat account has been created",
+  using `APP_NAME`.
+
 ### Added
 
 - "Send invitation e-mail" on the page of a user who has not signed in

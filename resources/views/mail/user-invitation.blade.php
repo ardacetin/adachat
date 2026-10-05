@@ -1,7 +1,7 @@
 <x-mail::message>
-# {{ __('mail.invitation.heading', ['institution' => $institution]) }}
+# {{ __('mail.invitation.heading', ['app' => $app]) }}
 
-{{ __('mail.invitation.body', ['name' => $invitedBy, 'institution' => $institution]) }}
+{{ __('mail.invitation.body', ['name' => $invitedBy, 'institution' => $institution, 'app' => $app]) }}
 
 {{ __('mail.invitation.sign_in', ['email' => $email]) }}
 

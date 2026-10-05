@@ -135,9 +135,10 @@ Two settings decide who gets in, both in the administration panel:
   `invited_by`, audit `user.invited`); the person signs in with the
   identity provider and the account is linked by the verified address.
   Addresses that already have an account are skipped.
-  "Send an invitation e-mail" (on by default) tells each new account, in
-  the institution's default language, who added them and links to the
-  sign-in page. The e-mail carries no token or password: signing in still
+  "Send an invitation e-mail" (on by default) welcomes each new account, in
+  the institution's default language ("Your Ada Chat account has been
+  created", with `APP_NAME` as the name), says who added them and links to
+  the sign-in page. Only an explicit "off" skips it. The e-mail carries no token or password: signing in still
   goes through the identity provider. It needs a working mailer (`MAIL_*`,
   [deployment guide](deployment.md)). An e-mail that cannot be sent leaves
   the account in place; the administrator sees a warning and the log names

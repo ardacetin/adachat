@@ -4,9 +4,9 @@ return [
     'footer' => 'Ada Chat — bu ileti otomatik olarak gönderildi.',
 
     'invitation' => [
-        'subject' => ':institution: Ada Chat\'i artık kullanabilirsiniz',
-        'heading' => ':institution Ada Chat\'e hoş geldiniz',
-        'body' => ':name size :institution yapay zekâ asistanı Ada Chat\'e erişim verdi.',
+        'subject' => ':app hesabınız oluşturuldu',
+        'heading' => ':app\'e hoş geldiniz',
+        'body' => ':name sizin için :institution bünyesinde bir hesap oluşturdu. Kurumun yapay zekâ asistanı :app\'i hemen kullanmaya başlayabilirsiniz.',
         'sign_in' => 'Kurum hesabınızla (:email) oturum açın. Ayrı bir şifre gerekmez.',
         'button' => 'Oturum aç',
     ],
