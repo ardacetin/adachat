@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-05
+
+A security release after a full audit with Cloudflare's security audit
+skill, and invitation e-mails. Release notes:
+[docs/releases/v1.3.1.md](docs/releases/v1.3.1.md).
+
 ### Added
 
 - Invitation e-mails. Admin → Users → Add users can e-mail each new
@@ -332,7 +338,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/ardacetin/adachat/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ardacetin/adachat/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ardacetin/adachat/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ardacetin/adachat/compare/v1.0.0...v1.1.0

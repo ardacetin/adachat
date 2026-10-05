@@ -7,7 +7,8 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.3.0** ([release notes](docs/releases/v1.3.0.md)). Version 1.3 adds
+> **Status: 1.3.1** ([release notes](docs/releases/v1.3.1.md)), a security
+> release with invitation e-mails. Version 1.3 adds
 > web search through the providers' own tools, budget alerts for users, answer
 > feedback with a satisfaction report and read-only sharing of conversations.
 > Version 1.2 added
