@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Identity\Contracts\RedirectIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
+use App\Domain\Institution\Services\ContentTexts;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Http\Controllers\Chat\ConversationController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,13 +18,17 @@ use Inertia\Response;
  */
 class HomeController extends Controller
 {
-    public function __invoke(Request $request, ConversationController $chat, IdentityProviderRegistry $providers): Response
+    public function __invoke(Request $request, ConversationController $chat, IdentityProviderRegistry $providers, ContentTexts $texts, InstitutionSettings $institution): Response
     {
         if ($request->user() !== null) {
             return $chat->index($request);
         }
 
         return Inertia::render('welcome', [
+            'texts' => $texts->landing(app()->getLocale(), [
+                'app' => (string) config('app.name'),
+                'institution' => $institution->name,
+            ]),
             'providers' => array_map(
                 fn (RedirectIdentityProvider $provider): array => ['key' => $provider->key(), 'label' => $provider->label()],
                 $providers->enabled(),

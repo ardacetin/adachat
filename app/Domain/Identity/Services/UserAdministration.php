@@ -8,6 +8,7 @@ use App\Domain\Budget\Services\CurrentLimits;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Exceptions\LastSuperAdmin;
+use App\Domain\Institution\Services\ContentTexts;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Mail\UserInvitation;
 use App\Models\Group;
@@ -30,6 +31,7 @@ final class UserAdministration
         private readonly AuditLogger $audit,
         private readonly CurrentLimits $limits,
         private readonly InstitutionSettings $institution,
+        private readonly ContentTexts $texts,
     ) {}
 
     public function changeGroup(User $user, Group $group, bool $applyToCurrentPeriod): void
@@ -190,10 +192,18 @@ final class UserAdministration
      */
     private function sendInvitation(User $user, User $actor): bool
     {
+        $locale = $this->institution->default_locale;
+        $texts = $this->texts->invitation($locale, [
+            'app' => (string) config('app.name'),
+            'institution' => $this->institution->name,
+            'name' => $actor->name,
+            'email' => $user->email,
+        ]);
+
         try {
             Mail::to($user->email)
-                ->locale($this->institution->default_locale)
-                ->send(new UserInvitation($this->institution->name, $actor->name, $user->email));
+                ->locale($locale)
+                ->send(new UserInvitation($this->institution->name, $actor->name, $user->email, $texts));
 
             return true;
         } catch (Throwable $exception) {

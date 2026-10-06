@@ -19,6 +19,7 @@ import { index as feedback } from '@/routes/admin/feedback';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
 import { edit as editPrivacy } from '@/routes/admin/privacy';
+import { edit as editTexts } from '@/routes/admin/texts';
 import { index as providers } from '@/routes/admin/providers';
 import { index as reports } from '@/routes/admin/reports';
 import { index as users } from '@/routes/admin/users';
@@ -42,6 +43,10 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.institution',
                       href: editInstitution(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.texts',
+                      href: editTexts(),
                   } satisfies NavItem,
                   {
                       titleKey: 'admin:nav.authentication',

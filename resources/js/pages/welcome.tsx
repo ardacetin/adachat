@@ -11,30 +11,23 @@ import {
 } from '@/components/ui/card';
 import { login } from '@/routes';
 
+type Props = {
+    /** The wording, in the visitor's language, with placeholders filled in (Admin → Texts). */
+    texts: Record<string, string>;
+};
+
 /**
  * What guests see at "/": who runs Ada, what it offers, and the way in.
  * Sign-in itself (providers, dev login) stays on /login.
  */
-export default function Welcome() {
+export default function Welcome({ texts }: Props) {
     const { t } = useTranslation('auth');
     const { name, institution } = usePage().props;
 
     const features = [
-        {
-            icon: Bot,
-            title: t('landing.features.models.title'),
-            text: t('landing.features.models.text'),
-        },
-        {
-            icon: Wallet,
-            title: t('landing.features.budget.title'),
-            text: t('landing.features.budget.text'),
-        },
-        {
-            icon: Lock,
-            title: t('landing.features.privacy.title'),
-            text: t('landing.features.privacy.text'),
-        },
+        { icon: Bot, title: texts.models_title, text: texts.models_text },
+        { icon: Wallet, title: texts.budget_title, text: texts.budget_text },
+        { icon: Lock, title: texts.privacy_title, text: texts.privacy_text },
     ];
 
     return (
@@ -73,13 +66,10 @@ export default function Welcome() {
                         {institution.name}
                     </p>
                     <h1 className="mt-3 text-4xl font-semibold tracking-tight text-balance md:text-5xl">
-                        {t('landing.title')}
+                        {texts.title}
                     </h1>
                     <p className="mx-auto mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
-                        {t('landing.lead', {
-                            name,
-                            institution: institution.name,
-                        })}
+                        {texts.lead}
                     </p>
                     <div className="mt-8 flex flex-col items-center gap-3">
                         <Button asChild size="lg">
@@ -91,9 +81,7 @@ export default function Welcome() {
                             </Link>
                         </Button>
                         <p className="text-sm text-muted-foreground">
-                            {t('landing.signInHint', {
-                                institution: institution.name,
-                            })}
+                            {texts.sign_in_hint}
                         </p>
                     </div>
                 </section>
@@ -123,12 +111,7 @@ export default function Welcome() {
             </main>
 
             <footer className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 border-t px-6 py-6 text-sm text-muted-foreground">
-                <span>
-                    {t('landing.footer', {
-                        name,
-                        institution: institution.name,
-                    })}
-                </span>
+                <span>{texts.footer}</span>
                 {(institution.privacyUrl || institution.termsUrl) && (
                     <span className="flex gap-4">
                         {institution.privacyUrl && (

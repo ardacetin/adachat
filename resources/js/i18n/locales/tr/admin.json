@@ -4,6 +4,7 @@
     "nav": {
         "overview": "Genel bakış",
         "institution": "Kurum",
+        "texts": "Metinler",
         "authentication": "Giriş",
         "providers": "Sağlayıcılar",
         "models": "Modeller",
@@ -559,5 +560,38 @@
             "other": "Diğer"
         },
         "privacy": "Yalnızca oylar: mesaj, sohbet ya da isim yok. Oran {{count}} oydan itibaren gösterilir."
+    },
+    "texts": {
+        "title": "Metinler",
+        "description": "Karşılama sayfasının ve davet e-postasının metinlerini her dilde düzenleyin. Boş bırakılan alanda Ada'nın kendi metni kalır; soluk renkte görünür.",
+        "placeholders": "Kendiliğinden doldurulur: :app (uygulama adı) ve :institution (kurum adı); e-postada ayrıca :name (kişiyi ekleyen yönetici) ve :email.",
+        "save": "Kaydet",
+        "landing": {
+            "title": "Karşılama sayfası",
+            "description": "Ziyaretçilerin giriş yapmadan önce gördüğü sayfa.",
+            "fields": {
+                "title": "Başlık",
+                "lead": "Giriş metni",
+                "sign_in_hint": "Giriş düğmesinin altı",
+                "models_title": "1. kutu: başlık",
+                "models_text": "1. kutu: metin",
+                "budget_title": "2. kutu: başlık",
+                "budget_text": "2. kutu: metin",
+                "privacy_title": "3. kutu: başlık",
+                "privacy_text": "3. kutu: metin",
+                "footer": "Alt bilgi"
+            }
+        },
+        "invitation": {
+            "title": "Davet e-postası",
+            "description": "Bir yönetici kullanıcı eklediğinde gönderilir.",
+            "fields": {
+                "subject": "Konu",
+                "heading": "Başlık",
+                "body": "Gövde",
+                "sign_in": "Giriş notu",
+                "button": "Düğme"
+            }
+        }
     }
 }

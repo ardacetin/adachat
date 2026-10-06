@@ -1,12 +1,12 @@
 <x-mail::message>
-# {{ __('mail.invitation.heading', ['app' => $app]) }}
+# {{ $texts['heading'] }}
 
-{{ __('mail.invitation.body', ['name' => $invitedBy, 'institution' => $institution, 'app' => $app]) }}
+{{ $texts['body'] }}
 
-{{ __('mail.invitation.sign_in', ['email' => $email]) }}
+{{ $texts['sign_in'] }}
 
 <x-mail::button :url="$url">
-{{ __('mail.invitation.button') }}
+{{ $texts['button'] }}
 </x-mail::button>
 
 {{ __('mail.footer') }}

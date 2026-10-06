@@ -80,6 +80,7 @@ test('administration screens are accessible', async ({ page }) => {
         '/admin/audit-log',
         '/admin/privacy',
         '/admin/institution',
+        '/admin/texts',
         '/admin/assistants',
         '/admin/assistants/create',
         '/admin/models/create',
