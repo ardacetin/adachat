@@ -204,6 +204,9 @@ Then the v1.3.0 release notes ✅ ([docs/releases/v1.3.0.md](releases/v1.3.0.md)
 **1.4.1** ✅: fixes from a full code review
 ([docs/releases/v1.4.1.md](releases/v1.4.1.md)).
 
+**1.4.2** ✅: fixes and hardening from a full security audit
+([docs/releases/v1.4.2.md](releases/v1.4.2.md)).
+
 ## Candidates for V2
 
 - OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).

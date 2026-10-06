@@ -7,8 +7,8 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.4.1** ([sürüm notları](docs/releases/v1.4.1.md#türkçe-özet)): tam kod
-> incelemesinin düzeltmeleri. 1.4 sürümü karşılama sayfası, eklenen
+> **Durum: 1.4.2** ([sürüm notları](docs/releases/v1.4.2.md#türkçe-özet)): tam
+> güvenlik denetiminin düzeltmeleri. 1.4 sürümü karşılama sayfası, eklenen
 > kullanıcılara hoş geldin e-postası, ikisinin metnini düzenleyen yönetim
 > sayfası ve varsayılan model getirir. 1.3 sürümü
 > sağlayıcıların kendi araçlarıyla web araması, kullanıcılara bütçe uyarıları,
