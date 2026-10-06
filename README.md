@@ -7,8 +7,8 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.4.1** ([release notes](docs/releases/v1.4.1.md)): fixes from a
-> full code review. Version 1.4 adds a public landing page, welcome e-mails
+> **Status: 1.4.2** ([release notes](docs/releases/v1.4.2.md)): fixes from a
+> full security audit. Version 1.4 adds a public landing page, welcome e-mails
 > for added users, an admin page to reword both and a default model. Version 1.3 adds
 > web search through the providers' own tools, budget alerts for users, answer
 > feedback with a satisfaction report and read-only sharing of conversations.
