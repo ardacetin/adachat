@@ -25,7 +25,7 @@ final class ErrorMapper
     public static function fromResponse(string $provider, Response $response): ProviderException
     {
         $status = $response->status();
-        [$type, $message] = self::details($response->json());
+        [$type, $message] = self::details(self::body($response));
         $summary = self::summary($provider, $status, $type, $message);
 
         return match (true) {
@@ -33,9 +33,25 @@ final class ErrorMapper
             $status === 429 => new ProviderRateLimited($summary, $status),
             $status === 529, $status === 503 => new ProviderOverloaded($summary, $status),
             ($status === 400 || $status === 413) && preg_match(self::CONTEXT_PATTERN, $type.' '.$message) === 1 => new ContextLengthExceeded($summary, $status),
-            $status >= 400 && $status < 500 => new InvalidProviderRequest($summary, $status),
+            // A redirect (not followed) means the base URL is wrong.
+            $status >= 300 && $status < 500 => new InvalidProviderRequest($summary, $status),
             default => new ProviderUnavailable($summary, $status),
         };
+    }
+
+    /**
+     * At most the first 64 KiB of the error body: a streamed error response
+     * is otherwise read whole, whatever its size.
+     */
+    private static function body(Response $response): mixed
+    {
+        $stream = $response->toPsrResponse()->getBody();
+
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
+        return json_decode($stream->read(64 * 1024), true);
     }
 
     /**

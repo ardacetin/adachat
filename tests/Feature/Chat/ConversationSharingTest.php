@@ -251,3 +251,14 @@ test('copies count against the daily allowance and are audited', function () {
     expect(Conversation::query()->where('user_id', $this->viewer->id)->count())->toBe(2)
         ->and(AuditLog::query()->where('action', 'conversation.share_copied')->count())->toBe(2);
 });
+
+test('links of a disabled owner answer 404 until the owner is enabled again', function () {
+    $path = shareConversation($this->conversation, $this->owner);
+
+    $this->owner->forceFill(['status' => 'disabled'])->save();
+    $this->actingAs($this->viewer)->get($path)->assertNotFound();
+    $this->actingAs($this->viewer)->post($path.'/copy')->assertNotFound();
+
+    $this->owner->forceFill(['status' => 'active'])->save();
+    $this->actingAs($this->viewer)->get($path)->assertOk();
+});

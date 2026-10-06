@@ -187,18 +187,30 @@ final class UserAdministration
         return $sent;
     }
 
+    private static function markdownText(string $value): string
+    {
+        return (string) preg_replace('/([\\\\`*_\[\]()#!<>|~])/', '\\\\$1', $value);
+    }
+
     /**
      * In the institution's default language: the person has not chosen one yet.
      */
     private function sendInvitation(User $user, User $actor): bool
     {
         $locale = $this->institution->default_locale;
-        $texts = $this->texts->invitation($locale, [
+        $values = [
             'app' => (string) config('app.name'),
             'institution' => $this->institution->name,
             'name' => $actor->name,
             'email' => $user->email,
-        ]);
+        ];
+        // The body is Markdown: names (the inviter's comes from the identity
+        // provider) must not turn into links or formatting. The subject is
+        // plain text.
+        $texts = [
+            ...$this->texts->invitation($locale, array_map(self::markdownText(...), $values)),
+            'subject' => $this->texts->invitation($locale, $values)['subject'],
+        ];
 
         try {
             Mail::to($user->email)

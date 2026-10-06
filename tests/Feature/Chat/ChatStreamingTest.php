@@ -369,3 +369,16 @@ test('a stopped OpenAI-compatible reasoning model pays the input as reserved and
         ->and($usage->output_tokens + $usage->reasoning_tokens)->toBe($reservation->max_output_tokens)
         ->and($usage->is_estimated)->toBeTrue();
 });
+
+test('a provider redirect is not followed', function () {
+    Http::fake([
+        '*/responses/input_tokens' => fn () => Http::response(['input_tokens' => 1200]),
+        'api.openai.com/*' => fn () => Http::response('', 302, ['Location' => 'https://elsewhere.test/collect']),
+        'elsewhere.test/*' => fn () => Http::response('stolen'),
+    ]);
+
+    $events = sendMessage(['content' => 'Selam', 'model_alias_id' => $this->alias->id]);
+
+    expect(end($events)['data']['code'])->toBe('invalid_request');
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'elsewhere.test'));
+});

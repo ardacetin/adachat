@@ -67,3 +67,14 @@ test('a wildcard trusts only the immediate proxy, not addresses the client adds'
 
     expect(AuditLog::query()->latest('id')->first()?->ip_address)->toBe('203.0.113.7');
 });
+
+test('a forwarded path prefix is never believed, even from a trusted proxy', function () {
+    trustProxies('10.0.0.0/8');
+
+    $this->withServerVariables([...viaProxy('10.1.2.3'), 'HTTP_X_FORWARDED_PREFIX' => '/evil'])
+        ->get('/login')
+        ->assertOk();
+
+    expect(request()->getBaseUrl())->toBe('')
+        ->and(url('/x'))->not->toContain('/evil');
+});

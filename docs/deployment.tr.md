@@ -67,7 +67,9 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   [`deploy/nginx/ada-docker-proxy.conf`](../deploy/nginx/ada-docker-proxy.conf).
   Compose dosyası `TRUSTED_PROXIES=*` ayarlar. Ada'da `*` yalnızca doğrudan
   bağlanan proxy (sunucudaki nginx) demektir; `X-Forwarded-For` içinde daha
-  soldaki adreslere güvenilmez. Gelen nginx dosyası da istemcinin gönderdiği
+  soldaki adreslere güvenilmez. Güvenilen proxy'den yalnızca
+  `X-Forwarded-For`, `-Proto`, `-Host` ve `-Port` okunur;
+  `X-Forwarded-Prefix` yok sayılır (Ada'yı alan adının kökünde sunun). Gelen nginx dosyası da istemcinin gönderdiği
   `X-Forwarded-For` değerini siler. Port sunucunun dışından erişilemediği
   için bu güvenlidir. Portu başka türlü yayınlarsanız değiştirin; kendi
   proxy ayarınızı yazarsanız `X-Forwarded-For $remote_addr` kullanın.

@@ -179,6 +179,11 @@ The adapter's job is to turn each provider's conventions into the disjoint
   the address is set (on create as on update). Decrypted secrets live only
   in memory for the request. The OpenAI-compatible driver alone may have no
   key at all (local servers); then no `Authorization` header is sent.
+- Provider requests do not follow redirects (Guzzle would carry `x-api-key`
+  and `x-goog-api-key` to another host): a 3xx answer is reported as an
+  invalid request, so a wrong base URL shows up. Error bodies are read up
+  to 64 KiB; a stream line over 1 MiB or an event over 4 MiB ends the
+  answer as `provider_unavailable`. Negative usage values count as zero.
 - `Services\CredentialVault` stores and rotates keys: the new row stores
   `last_four`, the previous active row is deactivated (history kept), and
   `provider.credential_rotated` is audit-logged without the value.

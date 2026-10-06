@@ -96,6 +96,15 @@ test('cells that a spreadsheet would run as formulas are defused', function () {
     $rows = csvRows($this->actingAs($this->admin)->get(route('admin.reports.export', ['by' => 'user']))->streamedContent());
 
     expect($rows[1][0])->toBe('\'=HYPERLINK("http://evil")');
+
+    // A plain negative number stays a number; anything else starting with - is defused.
+    User::query()->where('name', '=HYPERLINK("http://evil")')->update(['name' => '-12.5']);
+    $rows = csvRows($this->actingAs($this->admin)->get(route('admin.reports.export', ['by' => 'user']))->streamedContent());
+    expect($rows[1][0])->toBe('-12.5');
+
+    User::query()->where('name', '-12.5')->update(['name' => '-2+3']);
+    $rows = csvRows($this->actingAs($this->admin)->get(route('admin.reports.export', ['by' => 'user']))->streamedContent());
+    expect($rows[1][0])->toBe("'-2+3");
 });
 
 test('exports are for administrators and validate like the page', function () {

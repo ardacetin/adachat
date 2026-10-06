@@ -179,6 +179,25 @@ test('new users can be sent an invitation e-mail in the institution\'s language'
     expect(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeTrue();
 });
 
+test('names in the invitation e-mail cannot become links', function () {
+    Mail::fake();
+    $admin = User::factory()->admin()->create(['name' => '[Reset your password](https://evil.example)']);
+
+    $this->actingAs($admin)->post(route('admin.users.store'), [
+        'emails' => 'grace@example.edu',
+        'group_id' => Group::default()->id,
+        'role' => 'user',
+        'send_email' => true,
+    ])->assertRedirect();
+
+    Mail::assertSent(UserInvitation::class, function (UserInvitation $mail) {
+        $html = $mail->render();
+
+        return ! str_contains($html, 'href="https://evil.example"')
+            && str_contains($html, 'Reset your password');
+    });
+});
+
 test('invitation e-mails are sent unless turned off', function () {
     Mail::fake();
     $admin = User::factory()->admin()->create();
