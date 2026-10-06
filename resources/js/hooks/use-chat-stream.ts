@@ -22,7 +22,12 @@ type Handlers = {
     onStarted?: (event: StartedEvent) => void;
     onCompleted?: (event: CompletedEvent) => void;
     onError?: (event: ErrorEvent) => void;
-    /** Called once the request is over, whatever the outcome. */
+    /** Stopped before the server started the answer. */
+    onAborted?: () => void;
+    /**
+     * Called once the request is over, whatever the outcome; not after the
+     * view using the hook is gone.
+     */
     onSettled?: () => void;
 };
 
@@ -43,6 +48,17 @@ async function firstValidationError(
 /** How long Stop waits for the server to finish before dropping the connection. */
 const STOP_GRACE_MS = 5000;
 
+function requestCancel(url: string): void {
+    void fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-XSRF-TOKEN': xsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+    });
+}
+
 /**
  * One chat generation over server-sent events on a POST request
  * (docs/frontend-architecture.md §4). Deltas are batched per animation
@@ -56,6 +72,9 @@ export function useChatStream() {
     const frameRef = useRef<number | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
     const assistantIdRef = useRef<string | null>(null);
+    /** Stop pressed before the answer started: cancelled once it does. */
+    const stopRequestedRef = useRef<((id: string) => string) | null>(null);
+    const unmountedRef = useRef(false);
 
     const flush = useCallback(() => {
         frameRef.current = null;
@@ -71,6 +90,7 @@ export function useChatStream() {
             const controller = new AbortController();
             controllerRef.current = controller;
             assistantIdRef.current = null;
+            stopRequestedRef.current = null;
             bufferRef.current = '';
             setDraft('');
             setActivity(NO_ACTIVITY);
@@ -86,6 +106,14 @@ export function useChatStream() {
                                 data as StartedEvent
                             ).assistant_message_id;
                             handlers.onStarted?.(data as StartedEvent);
+
+                            if (stopRequestedRef.current !== null) {
+                                requestCancel(
+                                    stopRequestedRef.current(
+                                        assistantIdRef.current,
+                                    ),
+                                );
+                            }
                             break;
                         case 'delta':
                             bufferRef.current += (
@@ -169,8 +197,12 @@ export function useChatStream() {
                     parser.feed(value);
                 }
             } catch (error) {
-                if (!controller.signal.aborted) {
+                if (unmountedRef.current) {
+                    // The view is gone: nothing to update or navigate.
+                } else if (!controller.signal.aborted) {
                     handlers.onError?.({ code: 'network', retryable: true });
+                } else if (assistantIdRef.current === null) {
+                    handlers.onAborted?.();
                 }
 
                 void error;
@@ -180,10 +212,14 @@ export function useChatStream() {
                     frameRef.current = null;
                 }
 
-                setDraft(bufferRef.current);
-                setStatus('idle');
                 controllerRef.current = null;
-                handlers.onSettled?.();
+
+                // Once the view is gone there is nothing to update or navigate.
+                if (!unmountedRef.current) {
+                    setDraft(bufferRef.current);
+                    setStatus('idle');
+                    handlers.onSettled?.();
+                }
             }
         },
         [flush],
@@ -202,25 +238,25 @@ export function useChatStream() {
         }
 
         if (id === null) {
-            controller.abort();
-
-            return;
+            // The server is still counting tokens and reserving the budget:
+            // the answer is cancelled as soon as it starts.
+            stopRequestedRef.current = cancelUrl;
+        } else {
+            requestCancel(cancelUrl(id));
         }
-
-        void fetch(cancelUrl(id), {
-            method: 'POST',
-            headers: {
-                'X-XSRF-TOKEN': xsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            credentials: 'same-origin',
-        });
 
         window.setTimeout(() => controller.abort(), STOP_GRACE_MS);
     }, []);
 
     // Leaving the page drops the connection; the server stops and settles.
-    useEffect(() => () => controllerRef.current?.abort(), []);
+    useEffect(() => {
+        unmountedRef.current = false;
+
+        return () => {
+            unmountedRef.current = true;
+            controllerRef.current?.abort();
+        };
+    }, []);
 
     return { status, draft, activity, run, stop };
 }

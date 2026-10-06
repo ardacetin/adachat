@@ -13,6 +13,9 @@ use Throwable;
  */
 final class PdfExtractor
 {
+    /** Bytes one decoded stream may take. */
+    private const DECODE_MEMORY_LIMIT = 32 * 1024 * 1024;
+
     /**
      * @throws AttachmentRejected
      */
@@ -20,6 +23,9 @@ final class PdfExtractor
     {
         $config = new Config;
         $config->setRetainImageContent(false);
+        // A small, highly compressed stream can inflate past PHP's memory
+        // limit, which no catch can recover from: such a PDF is refused.
+        $config->setDecodeMemoryLimit(self::DECODE_MEMORY_LIMIT);
 
         try {
             $document = (new Parser([], $config))->parseFile($path);

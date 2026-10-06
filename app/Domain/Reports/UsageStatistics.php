@@ -174,6 +174,8 @@ final class UsageStatistics
 
         $atLimit = DB::table('budget_periods')
             ->where('period_start', $start)
+            // A limit of 0 blocks the user; it is not a budget used up.
+            ->where('limit_usd', '>', 0)
             ->whereColumn('spent_usd', '>=', 'limit_usd')
             ->count();
 

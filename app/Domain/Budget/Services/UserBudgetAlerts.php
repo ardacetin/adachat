@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * E-mails users once per period when their spending reaches 80 % and 100 %
@@ -67,14 +68,25 @@ final class UserBudgetAlerts
                             'limit' => BudgetSummary::cents($period->limit_usd, RoundingMode::Down),
                         ];
 
-                        Mail::to($user->email)
-                            ->locale($user->locale ?? $this->institution->default_locale)
-                            ->send(new UserBudgetAlert(
-                                institution: $this->institution->name,
-                                threshold: $threshold,
-                                amounts: $amounts,
-                                resetsOn: $period->period_end->setTimezone($this->institution->timezone)->toDateString(),
-                            ));
+                        try {
+                            Mail::to($user->email)
+                                ->locale($user->locale ?? $this->institution->default_locale)
+                                ->send(new UserBudgetAlert(
+                                    institution: $this->institution->name,
+                                    threshold: $threshold,
+                                    amounts: $amounts,
+                                    resetsOn: $period->period_end->setTimezone($this->institution->timezone)->toDateString(),
+                                ));
+                        } catch (Throwable $failed) {
+                            // Not sent: the next run tries again; the others still go.
+                            BudgetPeriod::query()->whereKey($period->id)->update([
+                                'alerted_80_at' => $period->alerted_80_at,
+                                'alerted_100_at' => $period->alerted_100_at,
+                            ]);
+                            report($failed);
+
+                            continue;
+                        }
 
                         $sent++;
                     }
@@ -91,9 +103,12 @@ final class UserBudgetAlerts
      */
     private function current(CarbonImmutable $now): Builder
     {
+        // Every current period starts at the same instant: an exact match
+        // uses the index instead of scanning all past months.
+        [$start] = PeriodCalculator::monthContaining($now, $this->institution->timezone);
+
         return BudgetPeriod::query()
-            ->where('period_start', '<=', $now)
-            ->where('period_end', '>', $now)
+            ->where('period_start', $start)
             ->where('limit_usd', '>', 0);
     }
 

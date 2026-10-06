@@ -252,6 +252,38 @@ test('stale reservations expire and a late settlement still charges', function (
         ->and(period($user)->reserved_usd->toString())->toBe($fresh->amount_usd->toString());
 });
 
+test('a late settlement adds only the cost above the estimate, cache reads included', function () {
+    $this->model->forceFill(['cached_input_price_per_million' => '0.1'])->save();
+    $user = budgetUser('1');
+    $reservation = $this->engine->reserve($user, $this->model, input(1000), 1000);
+
+    // The cleanup job's estimate: all input at the full price.
+    $this->engine->settle($reservation, new Settlement(
+        new TokenUsage(input: 1000, output: 100),
+        status: UsageEventStatus::Partial,
+        isEstimated: true,
+        reason: BudgetEngine::INTERRUPTED,
+    ));
+
+    // The provider then reports most of that input as cache reads and more
+    // output: only the output above the estimate is added.
+    $this->engine->settle($reservation, new Settlement(new TokenUsage(input: 100, cachedInput: 900, output: 300)));
+
+    $events = UsageEvent::query()->orderBy('id')->get();
+
+    expect($events)->toHaveCount(2)
+        ->and($events[1]->input_cost_usd->isZero())->toBeTrue()
+        ->and($events[1]->output_cost_usd->toString())->toBe('0.0020000000')
+        ->and(period($user)->spent_usd->toString())->toBe('0.0040000000');
+
+    // Nothing above the estimate: no second charge.
+    $other = $this->engine->reserve($user, $this->model, input(1000), 1000);
+    $this->engine->settle($other, new Settlement(new TokenUsage(input: 1000, output: 100), status: UsageEventStatus::Partial, isEstimated: true, reason: BudgetEngine::INTERRUPTED));
+    $this->engine->settle($other, new Settlement(new TokenUsage(input: 100, cachedInput: 900, output: 100)));
+
+    expect(UsageEvent::query()->count())->toBe(3);
+});
+
 test('the reservation deadline covers the longest possible stream', function () {
     config(['ada.providers.timeout' => 300, 'ada.budget.reservation_grace_seconds' => 120]);
 

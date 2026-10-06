@@ -22,6 +22,8 @@ return [
         'web_search_unsupported' => 'OpenAI uyumlu sunucularda yerleşik web araması yok.',
     ],
 
+    'provider_key_for_new_url' => 'API anahtarını yeniden girin: kayıtlı anahtar yeni bir adrese gönderilmez.',
+
     'provider_check' => [
         'ok' => 'Bağlantı başarılı: API anahtarı çalışıyor.',
         'failed' => 'Bağlantı başarısız: :reason',

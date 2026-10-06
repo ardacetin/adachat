@@ -17,6 +17,7 @@ use Carbon\CarbonImmutable;
  * restart): its reservation passed the deadline without being settled.
  * Text that reached the database was generated, so it is charged with an
  * estimate; otherwise the reservation simply expires (budget-engine.md §11).
+ * The same covers a request that saved its answer but failed to settle.
  */
 final class InterruptedGenerations
 {
@@ -35,9 +36,10 @@ final class InterruptedGenerations
             ->get();
 
         foreach ($reservations as $reservation) {
+            // Whatever its status: an answer saved as finished whose settlement
+            // then failed (database error, process killed) was generated too.
             $message = Message::query()
                 ->where('reservation_id', $reservation->id)
-                ->where('status', MessageStatus::Streaming)
                 ->first();
 
             if ($message !== null && $message->content !== '') {
@@ -57,7 +59,14 @@ final class InterruptedGenerations
                 $this->budget->expire($reservation);
             }
 
-            $message?->forceFill(['status' => MessageStatus::Failed, 'error_code' => 'generation_interrupted'])->save();
+            // Only a message still streaming; the live request may have
+            // finished it since it was read.
+            if ($message !== null) {
+                Message::query()
+                    ->whereKey($message->id)
+                    ->where('status', MessageStatus::Streaming)
+                    ->update(['status' => MessageStatus::Failed, 'error_code' => 'generation_interrupted']);
+            }
         }
 
         return $reservations->count();

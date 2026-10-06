@@ -54,12 +54,17 @@ class SearchController extends Controller
             ->limit(self::MAX_RESULTS)
             ->get(['id', 'title', 'last_message_at']);
 
-        return $conversations->map(function (Conversation $conversation) use ($like, $query): array {
-            $content = Message::query()
-                ->where('conversation_id', $conversation->id)
-                ->where('content', 'like', $like)
-                ->orderBy('created_at')
-                ->value('content');
+        // The first matching message of each result, in one query.
+        $first = Message::query()
+            ->whereIn('conversation_id', $conversations->pluck('id'))
+            ->where('content', 'like', $like)
+            ->orderBy('created_at')
+            ->get(['conversation_id', 'content'])
+            ->unique('conversation_id')
+            ->pluck('content', 'conversation_id');
+
+        return $conversations->map(function (Conversation $conversation) use ($first, $query): array {
+            $content = $first->get($conversation->id);
 
             return [
                 'id' => $conversation->id,

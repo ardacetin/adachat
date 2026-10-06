@@ -393,10 +393,18 @@ final class BudgetEngine
     private function chargeRemainder(BudgetPeriod $period, ?InstitutionPeriod $institution, BudgetReservation $reservation, UsageEvent $first, Settlement $settlement): void
     {
         $live = $settlement->usage;
+        $pricing = PricingSnapshot::forModel($reservation->aiModel, $live->totalInput());
+        $full = CostCalculator::calculate($live, $pricing);
+
+        // Compared by cost, part by part: the estimate counts all input at
+        // the full price, the provider may report part of it as cache reads.
+        $cost = new Cost(
+            input: $full->input->minus($first->input_cost_usd)->max(Usd::zero()),
+            output: $full->output->minus($first->output_cost_usd)->max(Usd::zero()),
+            other: $full->other->minus($first->other_cost_usd)->max(Usd::zero()),
+        );
         $remainder = new TokenUsage(
-            input: max(0, $live->input - $first->input_tokens),
-            cachedInput: max(0, $live->cachedInput - $first->cached_input_tokens),
-            cacheWrite: max(0, $live->cacheWrite - $first->cache_write_tokens),
+            input: max(0, $live->totalInput() - ($first->input_tokens + $first->cached_input_tokens + $first->cache_write_tokens)),
             output: max(0, $live->output - $first->output_tokens),
             reasoning: max(0, $live->reasoning - $first->reasoning_tokens),
             webSearches: max(0, $live->webSearches - $first->web_search_requests),
@@ -404,12 +412,9 @@ final class BudgetEngine
 
         $reservation->forceFill(['status_reason' => self::SETTLED_LATE])->save();
 
-        if ($remainder->totalInput() + $remainder->totalOutput() + $remainder->webSearches === 0) {
+        if ($cost->total()->isZero()) {
             return;
         }
-
-        $pricing = PricingSnapshot::forModel($reservation->aiModel, $live->totalInput());
-        $cost = CostCalculator::calculate($remainder, $pricing);
 
         $period->spent_usd = $period->spent_usd->plus($cost->total());
         $period->save();

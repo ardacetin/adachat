@@ -157,6 +157,19 @@ test('nobody changes their own status or role', function () {
     $this->actingAs($this->superAdmin)->put(route('admin.users.role', $this->superAdmin), ['role' => 'user'])->assertForbidden();
 });
 
+test('administrators do not change their own group or budget', function () {
+    $group = Group::factory()->create();
+
+    $this->actingAs($this->admin)->put(route('admin.users.budget', $this->admin), ['monthly_limit_usd' => '100000'])->assertForbidden();
+    $this->actingAs($this->admin)->put(route('admin.users.group', $this->admin), ['group_id' => $group->id])->assertForbidden();
+
+    // A super administrator may set their own.
+    $this->actingAs($this->superAdmin)->put(route('admin.users.group', $this->superAdmin), ['group_id' => $group->id])->assertSessionHasNoErrors();
+
+    expect($this->admin->refresh()->group_id)->not->toBe($group->id)
+        ->and($this->superAdmin->refresh()->group_id)->toBe($group->id);
+});
+
 test('administrators cannot touch super administrators, roles or adjustments', function () {
     $user = member();
 

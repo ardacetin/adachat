@@ -450,15 +450,25 @@ therefore charged at least the estimate of everything it delivered, text and
 reasoning at 2 bytes per token, capped at the reservation's
 `max_output_tokens` (security audit, run 1).
 
+The same holds when the connection drops without the provider's final event
+(the adapter reports `FinishReason::Error`). Web searches seen in the stream
+but missing from that early usage are charged too, each with
+`ada.web_search.reserve_tokens_per_search` input tokens for its results, as
+the reservation assumed. OpenAI does not stream a reasoning model's
+reasoning and reports usage only at the end: such a model stopped or cut off
+before that is charged up to the reservation's output cap, which is what the
+provider may have generated (code review, 2026-10).
+
 ## 11. Stale reservation cleanup
 
 Scheduler: `ada:budget:expire-reservations` every minute.
 
 ```
 for each reservation where status = 'active' and expires_at < now() (batched):
-    message = assistant message linked to this reservation
-    if message exists and has partial content:
+    message = assistant message linked to this reservation (any status)
+    if message exists and has content:
         settle(reservation, estimateUsage(message), is_estimated = true)
+    if message is still 'streaming':
         message.status = 'failed', error_code = 'generation_interrupted'
     else:
         lock period; lock reservation; if still active:
@@ -469,7 +479,9 @@ for each reservation where status = 'active' and expires_at < now() (batched):
 `expires_at = created_at + max_stream_seconds + margin`, so a healthy stream
 can never be expired while running (the stream itself is hard-stopped at
 `max_stream_seconds`). A late settlement for an already expired reservation is
-accepted (§8) and charges `spent` without touching `reserved`.
+accepted (§8) and charges `spent` without touching `reserved`. The job also
+charges an answer that was saved as finished but whose settlement then
+failed (database error, process killed between the two): its status stays.
 
 The stream deadline is checked between provider events **and inside a line**
 (`SseParser`), so a provider that delivers one line slowly cannot keep a
@@ -477,8 +489,9 @@ request past it. A request can still outlive `expires_at` while PHP is
 blocked writing to a client that reads slowly; the job then takes it for
 dead. When such a request ends and settles a reservation the job settled
 with an estimate (`status_reason = generation_interrupted`), the engine
-charges what the estimate missed: the tokens above the estimate, per field,
-as a second `charge` event without `reservation_id` (`reason =
+charges what the estimate missed: the cost above the estimate's, compared
+per part (input, output, other) so input the provider reports as cache reads
+is not paid twice, as a second `charge` event without `reservation_id` (`reason =
 settled_late`; the ledger is append-only and `reservation_id` is unique).
 Nothing is refunded when the estimate was higher, and the remainder is
 charged once (`status_reason` becomes `settled_late`). Reports count
@@ -595,9 +608,9 @@ Differences from the sections above:
 - **Not yet implemented:** the local-tokenizer counting path, count caching
   and retry (§5.1).
 - **Partially streamed messages (M6):** when an expired reservation belongs
-  to an answer still marked `streaming` (the PHP process died), the cleanup
-  job settles it as `partial` with the stored text estimated as output, and
-  marks the message `failed` (`generation_interrupted`).
+  to an answer with stored text, the cleanup job settles it as `partial`
+  with that text estimated as output; an answer still marked `streaming`
+  (the PHP process died) is marked `failed` (`generation_interrupted`).
 - The optional database triggers for `usage_events` are not shipped; the
   model guard enforces append-only.
 - **Apply to current period (M7):** changing a budget policy's limit or a

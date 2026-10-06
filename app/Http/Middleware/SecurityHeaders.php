@@ -38,7 +38,8 @@ class SecurityHeaders
 
         // The Vite dev server serves scripts from another origin with hot
         // reload; the policy applies to built assets (production, CI, e2e).
-        if (! Vite::isRunningHot()) {
+        // A stray public/hot file never turns it off in production.
+        if (app()->isProduction() || ! Vite::isRunningHot()) {
             $headers->set('Content-Security-Policy', self::policy($nonce));
         }
 

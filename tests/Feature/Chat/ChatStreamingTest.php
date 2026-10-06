@@ -324,3 +324,26 @@ test('the provider\'s reason for refusing a request is logged for administrators
         && str_contains($context['provider'], 'model_not_found')
         && ! str_contains(json_encode($context), 'Selam'));
 });
+
+test('an OpenAI reasoning model cut off before its usage pays for the reasoning it may have done', function () {
+    $sse = file_get_contents(base_path('tests/Fixtures/providers/openai-stream.sse'));
+    $truncated = substr($sse, 0, (int) strpos($sse, 'event: response.completed'));
+    Http::fake([
+        '*/responses/input_tokens' => fn () => Http::response(['input_tokens' => 1200]),
+        '*/responses' => fn () => Http::response($truncated, 200, ['Content-Type' => 'text/event-stream']),
+    ]);
+
+    // Without reasoning, only the delivered text is charged.
+    sendMessage(['content' => 'Hi', 'model_alias_id' => $this->alias->id]);
+    expect(UsageEvent::query()->sole()->reasoning_tokens)->toBe(0);
+
+    // A reasoning model does not stream its reasoning: up to the output cap.
+    $this->model->forceFill(['supports_reasoning' => true])->save();
+    sendMessage(['content' => 'Hi', 'model_alias_id' => $this->alias->id]);
+
+    $usage = UsageEvent::query()->latest('id')->first();
+    $reservation = BudgetReservation::query()->whereKey($usage->reservation_id)->sole();
+
+    expect($usage->output_tokens + $usage->reasoning_tokens)->toBe($reservation->max_output_tokens)
+        ->and($usage->is_estimated)->toBeTrue();
+});

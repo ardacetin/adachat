@@ -22,6 +22,8 @@ return [
         'web_search_unsupported' => 'OpenAI-compatible servers have no built-in web search.',
     ],
 
+    'provider_key_for_new_url' => 'Enter the API key again: a new address never receives the stored key.',
+
     'provider_check' => [
         'ok' => 'Connection successful: the API key works.',
         'failed' => 'Connection failed: :reason',

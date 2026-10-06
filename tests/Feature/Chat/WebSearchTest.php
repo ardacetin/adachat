@@ -203,3 +203,29 @@ test('the doctor warns about an alias that allows search on a model that cannot'
 
     $this->artisan('ada:doctor')->expectsOutputToContain('does not support web search or has no search price');
 });
+
+test('a stream broken after its searches still pays for them', function () {
+    $provider = Provider::factory()->create(['driver' => 'anthropic']);
+    app(CredentialVault::class)->rotate($provider, 'sk-ant-search-0000');
+    $this->model->forceFill(['provider_id' => $provider->id, 'provider_model_id' => 'claude-search'])->save();
+
+    // message_start (500 input, 1 output), one search, some text, then the
+    // connection drops before message_delta reports the searches.
+    $sse = file_get_contents(base_path('tests/Fixtures/providers/anthropic-web-search.sse'));
+    Http::fake([
+        '*/messages/count_tokens' => fn () => Http::response(['input_tokens' => 1000]),
+        '*/messages' => fn () => Http::response(substr($sse, 0, (int) strpos($sse, 'event: message_delta')), 200, ['Content-Type' => 'text/event-stream']),
+    ]);
+
+    searchEvents(['content' => 'Ada Lovelace ne zaman doğdu?', 'model_alias_id' => $this->alias->id, 'web_search' => true]);
+
+    $usage = UsageEvent::query()->sole();
+
+    expect($usage->web_search_requests)->toBe(1)
+        ->and($usage->other_cost_usd->toString())->toBe('0.0100000000')
+        // The search results count as input, as the reservation assumed.
+        ->and($usage->input_tokens)->toBe(500 + (int) config('ada.web_search.reserve_tokens_per_search'))
+        // The delivered text, not message_start's single output token.
+        ->and($usage->output_tokens)->toBe((int) ceil(strlen("Ada Lovelace 1815'te doğdu.") / 2))
+        ->and($usage->is_estimated)->toBeTrue();
+});

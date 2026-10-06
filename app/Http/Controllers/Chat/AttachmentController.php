@@ -67,6 +67,9 @@ class AttachmentController extends Controller
     private function authorizeOwner(Request $request, MessageAttachment $attachment): void
     {
         abort_unless($attachment->user_id === $this->user($request)->id, 404);
+        // A sent file goes with its conversation: once that is deleted, the
+        // file is gone for the user too (retention removes it later).
+        abort_if($attachment->message_id !== null && ! $attachment->message()->whereHas('conversation')->exists(), 404);
     }
 
     private function user(Request $request): User

@@ -71,22 +71,26 @@ final class ChatPageProps
                     : null,
             ])->values(),
             // Pinned first (most recently pinned on top), then the latest others.
-            'conversations' => Inertia::defer(fn () => $user->conversations()
-                ->whereNotNull('pinned_at')
-                ->orderByDesc('pinned_at')
-                ->limit(self::MAX_PINNED)
-                ->get(['id', 'title', 'pinned_at'])
-                ->concat($user->conversations()
-                    ->whereNull('pinned_at')
+            // Pins beyond the first MAX_PINNED take their place among the others.
+            'conversations' => Inertia::defer(function () use ($user) {
+                $pinned = $user->conversations()
+                    ->whereNotNull('pinned_at')
+                    ->orderByDesc('pinned_at')
+                    ->limit(self::MAX_PINNED)
+                    ->get(['id', 'title', 'pinned_at']);
+
+                return $pinned->concat($user->conversations()
+                    ->whereKeyNot($pinned->modelKeys())
                     ->orderByDesc('last_message_at')
                     ->limit(50)
                     ->get(['id', 'title', 'pinned_at']))
-                ->map(fn (Conversation $conversation) => [
-                    'id' => $conversation->id,
-                    'title' => $conversation->title,
-                    'pinned' => $conversation->pinned_at !== null,
-                ])
-                ->values()),
+                    ->map(fn (Conversation $conversation) => [
+                        'id' => $conversation->id,
+                        'title' => $conversation->title,
+                        'pinned' => $conversation->pinned_at !== null,
+                    ])
+                    ->values();
+            }),
         ];
     }
 }
