@@ -9,15 +9,38 @@ namespace App\Domain\AI\Data;
  */
 final readonly class TokenUsage
 {
+    public int $input;
+
+    public int $cachedInput;
+
+    public int $cacheWrite;
+
+    public int $output;
+
+    public int $reasoning;
+
+    /** Billable web searches the provider ran for the request. */
+    public int $webSearches;
+
+    /**
+     * Negative values (a provider reporting a subset larger than its total,
+     * or a malformed field) count as zero: usage never refunds a charge.
+     */
     public function __construct(
-        public int $input = 0,
-        public int $cachedInput = 0,
-        public int $cacheWrite = 0,
-        public int $output = 0,
-        public int $reasoning = 0,
-        /** Billable web searches the provider ran for the request. */
-        public int $webSearches = 0,
-    ) {}
+        int $input = 0,
+        int $cachedInput = 0,
+        int $cacheWrite = 0,
+        int $output = 0,
+        int $reasoning = 0,
+        int $webSearches = 0,
+    ) {
+        $this->input = max(0, $input);
+        $this->cachedInput = max(0, $cachedInput);
+        $this->cacheWrite = max(0, $cacheWrite);
+        $this->output = max(0, $output);
+        $this->reasoning = max(0, $reasoning);
+        $this->webSearches = max(0, $webSearches);
+    }
 
     /**
      * Keep the larger value per field (usage may be reported in parts).

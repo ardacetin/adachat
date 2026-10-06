@@ -37,6 +37,23 @@ Findings of a security audit (2026-10):
   Docker; `request_terminate_timeout` in `deploy/php-fpm/ada.conf`).
   Without Docker, copy the pool file again.
 
+Hardening from the same audit:
+
+- Provider requests no longer follow redirects, which could carry the
+  Anthropic or Gemini key header to another host; a redirect is reported
+  as an invalid request.
+- Provider streams: lines over 1 MiB and events over 4 MiB end the answer,
+  error bodies are read up to 64 KiB, and negative usage values count as
+  zero.
+- `X-Forwarded-Prefix` (and the AWS ELB headers) are no longer believed
+  from trusted proxies; the shipped Docker proxy file clears it.
+- Links shared by a disabled user answer 404 until the account is enabled
+  again.
+- Names in the invitation e-mail can no longer turn into links or
+  formatting.
+- CSV exports defuse the header row as well, and keep plain negative
+  numbers as numbers.
+
 ## [1.4.1] - 2026-10-06
 
 A fix release. Release notes:

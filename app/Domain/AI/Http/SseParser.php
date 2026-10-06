@@ -3,6 +3,7 @@
 namespace App\Domain\AI\Http;
 
 use App\Domain\AI\Contracts\CancellationToken;
+use App\Domain\AI\Exceptions\ProviderUnavailable;
 use Generator;
 use Psr\Http\Message\StreamInterface;
 
@@ -14,12 +15,21 @@ use Psr\Http\Message\StreamInterface;
 final class SseParser
 {
     /**
+     * A line or an event this large is not a chat stream: the provider (or
+     * something on the way) is misbehaving, and memory is not spent on it.
+     */
+    public const MAX_LINE_BYTES = 1024 * 1024;
+
+    public const MAX_EVENT_BYTES = 4 * 1024 * 1024;
+
+    /**
      * @return Generator<int, SseEvent>
      */
     public static function events(StreamInterface $body, ?CancellationToken $cancellation = null): Generator
     {
         $event = null;
         $data = [];
+        $size = 0;
 
         try {
             while (! $body->eof()) {
@@ -45,6 +55,7 @@ final class SseParser
 
                     $event = null;
                     $data = [];
+                    $size = 0;
 
                     continue;
                 }
@@ -58,7 +69,7 @@ final class SseParser
 
                 match ($field) {
                     'event' => $event = $value,
-                    'data' => $data[] = $value,
+                    'data' => $data[] = self::counted($value, $size),
                     default => null, // id, retry: not needed
                 };
             }
@@ -69,6 +80,17 @@ final class SseParser
         } finally {
             $body->close();
         }
+    }
+
+    private static function counted(string $value, int &$size): string
+    {
+        $size += strlen($value) + 1;
+
+        if ($size > self::MAX_EVENT_BYTES) {
+            throw new ProviderUnavailable('Provider stream event exceeds '.self::MAX_EVENT_BYTES.' bytes');
+        }
+
+        return $value;
     }
 
     /**
@@ -101,6 +123,10 @@ final class SseParser
             }
 
             $line .= $byte;
+
+            if (strlen($line) > self::MAX_LINE_BYTES) {
+                throw new ProviderUnavailable('Provider stream line exceeds '.self::MAX_LINE_BYTES.' bytes');
+            }
         }
 
         return [rtrim($line, "\r"), false];

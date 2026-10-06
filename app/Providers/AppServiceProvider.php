@@ -68,6 +68,11 @@ class AppServiceProvider extends ServiceProvider
     {
         $proxies = trim((string) config('ada.http.trusted_proxies'));
 
+        // X-Forwarded-Prefix and the AWS ELB headers are not believed: no
+        // supported proxy sets them, and a client could otherwise choose the
+        // path prefix of the URLs Ada generates for its request.
+        TrustProxies::withHeaders(Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+
         if ($proxies !== '') {
             TrustProxies::at($proxies === '*' ? ['REMOTE_ADDR'] : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
         }

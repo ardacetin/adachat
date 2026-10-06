@@ -65,7 +65,8 @@ it. The copy respects the viewer's own access:
   the links back.
 - A deleted conversation revokes its links at once; retention removes the
   shares with the conversation (foreign key cascade). Deleting a user removes
-  their shares.
+  their shares. The links of a disabled user answer 404 (they could no
+  longer revoke them) and come back if the account is enabled again.
 - There is no administrator list of shares: administrators do not see
   conversations, shared or not.
 

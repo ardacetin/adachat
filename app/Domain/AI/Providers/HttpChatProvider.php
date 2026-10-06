@@ -149,7 +149,7 @@ abstract class HttpChatProvider implements ChatProvider, InputTokenCounter
             throw ErrorMapper::fromConnection($this->name(), $exception);
         }
 
-        if ($response->failed()) {
+        if ($response->failed() || $response->redirect()) {
             throw ErrorMapper::fromResponse($this->name(), $response);
         }
     }
@@ -159,9 +159,15 @@ abstract class HttpChatProvider implements ChatProvider, InputTokenCounter
         return null;
     }
 
+    /**
+     * Redirects are not followed: Guzzle drops only Authorization and Cookie
+     * on another host, so keys sent in x-api-key or x-goog-api-key would go
+     * along. A provider answering with a redirect is refused instead.
+     */
     private function request(int $timeout): PendingRequest
     {
         return $this->http
+            ->withoutRedirecting()
             ->withHeaders($this->headers())
             ->acceptJson()
             ->asJson()
@@ -180,7 +186,7 @@ abstract class HttpChatProvider implements ChatProvider, InputTokenCounter
             throw ErrorMapper::fromConnection($this->name(), $exception);
         }
 
-        if ($response->failed()) {
+        if ($response->failed() || $response->redirect()) {
             throw ErrorMapper::fromResponse($this->name(), $response);
         }
 

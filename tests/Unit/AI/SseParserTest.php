@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\AI\Exceptions\ProviderUnavailable;
 use App\Domain\AI\Http\SseParser;
 use App\Domain\AI\Services\CallbackCancellation;
 use GuzzleHttp\Psr7\Stream;
@@ -150,4 +151,12 @@ test('a line delivered slowly stops at the deadline, not at its line break', fun
 
     expect($events)->toBe([])
         ->and($body->reads)->toBe(50);
+});
+
+test('a line or an event too large for a chat stream is refused', function () {
+    $line = Utils::streamFor('data: '.str_repeat('a', SseParser::MAX_LINE_BYTES)."\n\n");
+    expect(fn () => iterator_to_array(SseParser::events($line)))->toThrow(ProviderUnavailable::class);
+
+    $lines = str_repeat('data: '.str_repeat('a', 1024 * 1024 - 16)."\n", 5)."\n";
+    expect(fn () => iterator_to_array(SseParser::events(Utils::streamFor($lines))))->toThrow(ProviderUnavailable::class);
 });

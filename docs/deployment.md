@@ -69,7 +69,9 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   `X-Forwarded-For` the client sent. That is safe because the port is not
   reachable from outside the host. Change it if you publish the port
   differently, and keep `X-Forwarded-For $remote_addr` if you write your own
-  proxy configuration.
+  proxy configuration. Only `X-Forwarded-For`, `-Proto`, `-Host` and `-Port`
+  are read from a trusted proxy; `X-Forwarded-Prefix` is ignored (serve Ada
+  at the root of its host).
 - Workers: `PHP_FPM_MAX_CHILDREN` in `.env` (default 24, see §1).
   `PHP_FPM_REQUEST_TERMINATE_TIMEOUT` (default 420) ends any request that
   runs longer, so a provider that sends data very slowly cannot hold a

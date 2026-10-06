@@ -110,7 +110,7 @@ final class ReportCsv
     {
         $separator = self::separator($locale);
         fwrite($out, self::BOM);
-        fputcsv($out, $headers, $separator, escape: '');
+        fputcsv($out, array_map(self::defuse(...), $headers), $separator, escape: '');
 
         foreach ($rows as $row) {
             // Cells starting with = + - @ are read as formulas by spreadsheets.
@@ -118,8 +118,16 @@ final class ReportCsv
         }
     }
 
+    /**
+     * A plain negative number (an adjustment, a refund) stays a number: it
+     * cannot be a formula.
+     */
     private static function defuse(int|string $cell): int|string
     {
+        if (is_string($cell) && preg_match('/^-\d+(?:[.,]\d+)?$/', $cell) === 1) {
+            return $cell;
+        }
+
         return is_string($cell) && $cell !== '' && in_array($cell[0], ['=', '+', '-', '@', "\t", "\r"], true)
             ? "'".$cell
             : $cell;

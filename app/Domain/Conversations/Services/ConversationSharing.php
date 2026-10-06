@@ -6,6 +6,7 @@ use App\Domain\AI\Enums\MessageRole;
 use App\Domain\AI\Services\AliasAccess;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Conversations\Enums\MessageStatus;
+use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\Conversation;
 use App\Models\ConversationShare;
@@ -103,7 +104,8 @@ final class ConversationSharing
 
     /**
      * The live share behind a link: not revoked, its conversation not
-     * deleted, and sharing still allowed.
+     * deleted, its owner not disabled (the owner could no longer revoke it),
+     * and sharing still allowed.
      */
     public function find(string $token): ?ConversationShare
     {
@@ -115,6 +117,7 @@ final class ConversationSharing
             ->where('token_hash', ConversationShare::hashToken($token))
             ->whereNull('revoked_at')
             ->whereHas('conversation')
+            ->whereHas('user', fn ($owner) => $owner->where('status', UserStatus::Active->value))
             ->first();
     }
 
