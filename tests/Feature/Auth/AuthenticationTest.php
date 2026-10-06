@@ -2,8 +2,12 @@
 
 use App\Models\User;
 
-test('guests are redirected to the login page', function () {
-    $this->get(route('home'))->assertRedirect(route('login'));
+test('guests see the landing page and are sent to sign in from everywhere else', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('welcome')->has('providers')->where('auth.user', null));
+
+    $this->get(route('usage'))->assertRedirect(route('login'));
 });
 
 test('the login page is rendered for guests', function () {

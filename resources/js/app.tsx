@@ -6,6 +6,7 @@ import { initI18n } from '@/i18n';
 import AdminLayout from '@/layouts/admin/layout';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import LandingLayout from '@/layouts/landing-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Ada Chat';
@@ -17,6 +18,8 @@ void initI18n(document.documentElement.lang || 'en').then(() =>
         title: (title) => (title ? `${title} - ${appName}` : appName),
         layout: (name) => {
             switch (true) {
+                case name === 'welcome':
+                    return LandingLayout;
                 case name.startsWith('auth/'):
                     return AuthLayout;
                 case name.startsWith('settings/'):
