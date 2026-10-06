@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-06
+
+A landing page, invitation e-mails that work as a welcome, an
+administration page to reword both per language, and a default model for
+new conversations. Release notes:
+[docs/releases/v1.4.0.md](docs/releases/v1.4.0.md).
+
 ### Added
 
 - Landing page. Guests who open Ada see a short public page: the
@@ -17,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   invitation e-mail in each language. Empty fields keep Ada's defaults,
   shown greyed; `:app`, `:institution` (and `:name`, `:email` in the
   e-mail) are filled in. Audited as `content.texts_updated`.
+- "Send invitation e-mail" on the page of a user who has not signed in
+  yet, for accounts added before invitation e-mails existed or whose
+  e-mail failed. Adding an address that already has an account now says
+  that no e-mail went to it.
+- Default model: on Admin → Model aliases, super administrators choose the
+  alias every user's new conversations start with (for users whose group
+  may use it; others keep the first alias). Users can still switch models;
+  "None" keeps the earlier behaviour (the user's last choice in the
+  browser). Audited as `institution.default_model_changed`.
 
 ### Fixed
 
@@ -25,13 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rebuilding the frontend). They are now sent unless turned off. The
   e-mail now reads as a welcome: "Your Ada Chat account has been created",
   using `APP_NAME`.
-
-### Added
-
-- "Send invitation e-mail" on the page of a user who has not signed in
-  yet, for accounts added before invitation e-mails existed or whose
-  e-mail failed. Adding an address that already has an account now says
-  that no e-mail went to it.
+- The build tooling (`vite-plus` 0.3.3) no longer carries the `tinypool`
+  and `source-map-js` advisories that failed the dependency audit.
 
 ## [1.3.1] - 2026-10-05
 
@@ -364,7 +375,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ardacetin/adachat/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/ardacetin/adachat/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ardacetin/adachat/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ardacetin/adachat/compare/v1.1.0...v1.2.0

@@ -44,7 +44,11 @@ function rememberedAlias(
         }
     })();
 
-    const candidates = [preferred, stored];
+    // The conversation's own model, then the institution's default for new
+    // conversations, then the user's last choice in this browser.
+    const institutionDefault =
+        aliases.find((alias) => alias.is_default)?.id ?? null;
+    const candidates = [preferred, institutionDefault, stored];
 
     for (const id of candidates) {
         if (aliases.some((alias) => alias.id === id)) {

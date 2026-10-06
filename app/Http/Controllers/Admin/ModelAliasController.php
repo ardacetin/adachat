@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ModelAliasRequest;
 use App\Models\AiModel;
 use App\Models\Group;
 use App\Models\ModelAlias;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +23,7 @@ class ModelAliasController extends Controller
         'web_search_max_uses', 'sort_order', 'enabled',
     ];
 
-    public function index(): Response
+    public function index(InstitutionSettings $settings): Response
     {
         $aliases = ModelAlias::query()
             ->with('aiModel:id,display_name,max_output_tokens')
@@ -36,7 +39,34 @@ class ModelAliasController extends Controller
                 'enabled' => $alias->enabled,
             ]);
 
-        return Inertia::render('admin/aliases/index', ['aliases' => $aliases]);
+        return Inertia::render('admin/aliases/index', [
+            'aliases' => $aliases,
+            'defaultAliasId' => $settings->default_model_alias_id,
+        ]);
+    }
+
+    /**
+     * The alias every user's new conversations start with (when their group
+     * may use it); empty: the user's last choice, else the first alias.
+     */
+    public function updateDefault(Request $request, InstitutionSettings $settings, AuditLogger $audit): RedirectResponse
+    {
+        $data = $request->validate([
+            'default_model_alias_id' => ['nullable', 'integer', Rule::exists('model_aliases', 'id')->where('enabled', true)],
+        ]);
+
+        $old = $settings->default_model_alias_id;
+        $new = isset($data['default_model_alias_id']) ? (int) $data['default_model_alias_id'] : null;
+
+        if ($old !== $new) {
+            $settings->default_model_alias_id = $new;
+            $settings->save();
+            $audit->record('institution.default_model_changed', 'InstitutionSettings', ['default_model_alias_id' => $old], ['default_model_alias_id' => $new]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('admin.saved')]);
+
+        return to_route('admin.aliases.index');
     }
 
     public function create(): Response

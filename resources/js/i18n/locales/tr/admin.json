@@ -254,7 +254,12 @@
         "webSearchEnabled": "Kullanıcılar web aramasını açabilir",
         "webSearchHelp": "Kullanıcılar her mesaj için ayrıca açar. Soru ve arama sorguları sağlayıcının arama servisine gider; her arama ücretlidir ve kullanıcının bütçesinden düşer.",
         "webSearchMaxUses": "Mesaj başına arama (en çok)",
-        "webSearchUnavailable": "Seçilen model web'de arayamıyor ya da arama fiyatı girilmemiş (Yönetim → Modeller)."
+        "webSearchUnavailable": "Seçilen model web'de arayamıyor ya da arama fiyatı girilmemiş (Yönetim → Modeller).",
+        "defaultTitle": "Varsayılan model",
+        "defaultHelp": "Yeni sohbetler, grubu bu takma adı kullanabilen herkes için bununla başlar. Kullanıcılar her sohbette modeli yine değiştirebilir.",
+        "defaultNone": "Yok: kullanıcının son seçimi, o da yoksa listedeki ilk",
+        "defaultBadge": "Varsayılan",
+        "defaultSave": "Kaydet"
     },
     "groups": {
         "title": "Gruplar",
