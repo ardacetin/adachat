@@ -6,6 +6,7 @@ use App\Domain\Identity\Data\ExternalIdentity;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Exceptions\IdentityRejected;
 use App\Domain\Identity\Exceptions\RejectionReason;
+use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\AllowedDomainPolicy;
 use App\Models\Group;
 use App\Models\User;
@@ -72,6 +73,12 @@ final class LoginUser
                 ?? $this->findUserByEmail($identity)
                 ?? $this->provision($identity);
 
+            // A disabled account is not linked to a new sign-in method: it
+            // would pass to that identity the day the account is enabled.
+            if ($record === null && $user->exists && ! $user->isActive()) {
+                throw new IdentityRejected(RejectionReason::AccountDisabled);
+            }
+
             $user->forceFill([
                 'name' => $identity->name,
                 'email' => $identity->email,
@@ -99,15 +106,22 @@ final class LoginUser
     }
 
     /**
-     * Link to a pre-created user (e.g. by ada:user:promote) only when no
-     * identity of this provider is attached yet and the verified e-mail
-     * matches exactly.
+     * Link by the verified e-mail address only to an account that no stable
+     * identifier claims yet: one added by an administrator (or ada:user:promote)
+     * that never signed in, or one known only by its SAML e-mail address
+     * (no SAML_ATTRIBUTE_SUBJECT), which says nothing more than the address.
+     * An account bound to a stable subject at any provider is never handed to
+     * another subject because the address matches: a new holder of a reused
+     * address gets account_conflict.
      */
     private function findUserByEmail(ExternalIdentity $identity): ?User
     {
         return User::query()
             ->where('email', $identity->email)
-            ->whereDoesntHave('identities', fn ($query) => $query->where('provider', $identity->provider))
+            ->whereDoesntHave('identities', fn ($query) => $query->where(fn ($claims) => $claims
+                ->where('provider', $identity->provider)
+                ->orWhere('provider', '!=', SamlIdentityProvider::KEY)
+                ->orWhereColumn('user_identities.subject', '!=', 'users.email')))
             ->lockForUpdate()
             ->first();
     }

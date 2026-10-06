@@ -58,6 +58,7 @@ ENV APP_ENV=production \
     LOG_CHANNEL=stderr \
     LOG_STDERR_FORMATTER=Monolog\\Formatter\\JsonFormatter \
     PHP_FPM_MAX_CHILDREN=24 \
+    PHP_FPM_REQUEST_TERMINATE_TIMEOUT=420 \
     ADA_MIGRATE=true
 
 COPY docker/production/php.ini /usr/local/etc/php/conf.d/zz-ada.ini

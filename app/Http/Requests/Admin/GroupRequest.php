@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Identity\Enums\UserRole;
 use App\Models\Group;
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -11,7 +13,26 @@ class GroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('access-admin') ?? false;
+        $actor = $this->user();
+        /** @var Group|null $group */
+        $group = $this->route('group');
+
+        return $actor instanceof User && $actor->can('access-admin')
+            && ($group === null || ! self::reservedFor($actor, $group));
+    }
+
+    /**
+     * Administrators do not change their own group or super administrators'
+     * limits (UserPolicy::update); a group's policy, aliases and rate limits
+     * are those limits for its members.
+     */
+    public static function reservedFor(User $actor, Group $group): bool
+    {
+        return ! $actor->can('manage-system') && $group->users()
+            ->where(fn ($members) => $members
+                ->whereKey($actor->getKey())
+                ->orWhere('role', UserRole::SuperAdmin->value))
+            ->exists();
     }
 
     /**

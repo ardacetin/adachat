@@ -283,15 +283,18 @@ final class ChatGenerationService
     }
 
     /**
-     * OpenAI reports usage only at the end and does not stream the reasoning
-     * itself: a reasoning model stopped or cut off before that may have
-     * reasoned up to the whole output cap, which the provider still bills.
+     * Only Anthropic streams the reasoning itself. OpenAI, Gemini (Ada does
+     * not ask for thoughts) and most OpenAI-compatible servers think before
+     * the first chunk and report it only in the usage: a reasoning model
+     * stopped or cut off before that may have reasoned up to the whole
+     * output cap, which the provider still bills.
      */
     private function hiddenReasoning(BudgetReservation $reservation, TokenUsage $observed, bool $complete): int
     {
         $model = $reservation->aiModel;
 
-        if ($complete || ! $model->supports_reasoning || $model->provider->driver !== ProviderDriver::OpenAI) {
+        // Reasoning seen in the stream is streamed, not hidden: it is charged as observed.
+        if ($complete || ! $model->supports_reasoning || $observed->reasoning > 0 || $model->provider->driver === ProviderDriver::Anthropic) {
             return 0;
         }
 
@@ -365,7 +368,10 @@ final class ChatGenerationService
         $perSearch = (int) config('ada.web_search.reserve_tokens_per_search', 4000);
 
         if ($usage === null) {
-            $usage = new TokenUsage(input: $count->tokens + $searches * $perSearch, output: $observed->output, reasoning: max($observed->reasoning, $this->hiddenReasoning($reservation, $observed, $complete)), webSearches: $searches);
+            // No usage at all: the input as reserved, margin included. An
+            // estimated count (no provider endpoint) can fall short of what
+            // the provider bills for content the user chose.
+            $usage = new TokenUsage(input: $count->reservedTokens() + $searches * $perSearch, output: $observed->output, reasoning: max($observed->reasoning, $this->hiddenReasoning($reservation, $observed, $complete)), webSearches: $searches);
         } elseif (! $complete && ($usage->totalOutput() < $observed->totalOutput() || $usage->webSearches < $searches)) {
             // A stopped or broken stream ends before the provider's final usage:
             // what it reported so far (e.g. Anthropic's message_start) is not

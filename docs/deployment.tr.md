@@ -72,6 +72,10 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   için bu güvenlidir. Portu başka türlü yayınlarsanız değiştirin; kendi
   proxy ayarınızı yazarsanız `X-Forwarded-For $remote_addr` kullanın.
 - İşçi sayısı: `.env` içinde `PHP_FPM_MAX_CHILDREN` (varsayılan 24, bkz. §1).
+  `PHP_FPM_REQUEST_TERMINATE_TIMEOUT` (varsayılan 420) daha uzun süren her
+  isteği sonlandırır; böylece veriyi çok yavaş gönderen bir sağlayıcı bir
+  işçiyi tutamaz. `ADA_PROVIDER_TIMEOUT` artırılırsa bunu da artırın (120
+  fazlası).
 - Loglar: `docker compose -f compose.production.yml logs -f app`, her satırda
   bir JSON nesnesi.
 

@@ -119,10 +119,16 @@ the login page with a translated, non-revealing message
   `ada:doctor` warns while it is not set.
 - If no identity exists and `AuthSettings.auto_provision` is true: create the
   user (role `user`, default group) and the identity in one transaction.
-- Linking an existing user row by e-mail (pre-created by an admin or by
-  `ada:user:promote`, or signed in earlier with the removed OAuth adapter)
-  happens when no SAML identity is attached yet and the e-mail matches
-  exactly.
+- Linking an existing user row by e-mail happens only when the e-mail
+  matches exactly and no stable identifier claims the account yet: it was
+  pre-created by an admin or by `ada:user:promote` and never signed in, or
+  every identity it has is a SAML identity keyed by its e-mail address (no
+  `SAML_ATTRIBUTE_SUBJECT`), which says nothing more than the address.
+  An account bound to a stable subject (a SAML identifier attribute, or an
+  OIDC `sub`) is never handed to another subject because the address
+  matches: that sign-in gets `account_conflict`.
+- A disabled account is never linked to a new sign-in method: the sign-in
+  is refused (`account_disabled`) before anything is written.
 - The name comes from the `first_name` / `last_name` attributes (names
   configurable), otherwise the e-mail's local part; it is refreshed on each
   login.
@@ -276,10 +282,16 @@ Browser                      Ada                                  IdP
 - The allowed e-mail domains still apply on top of the tenant check.
 
 **Account linking.** As with SAML, a first sign-in links an existing Ada
-account with the same (verified, allowed-domain) e-mail address that has no
-identity *at this provider* yet. A person who used Google SAML and later
-signs in with Entra ID therefore keeps their account, budget and
-conversations. Both identity providers must be the institution's own.
+account with the same (verified, allowed-domain) e-mail address only while
+no stable identifier claims it: the account was added by an administrator
+and never signed in, or it is known only by e-mail-keyed SAML identities
+(SAML without `SAML_ATTRIBUTE_SUBJECT`). A person who used Google SAML that
+way and later signs in with Entra ID therefore keeps their account, budget
+and conversations. An account already bound to an OIDC `sub` or to a SAML
+identifier attribute is not linked to another provider by address, because
+a reused address would otherwise hand the former holder's account to its
+new holder: that sign-in gets `account_conflict`, which an administrator resolves.
+Both identity providers must be the institution's own.
 
 ### Configuration (`.env`)
 
@@ -388,6 +400,9 @@ the provider's discovery document.
   users and groups but not super administrators; nobody changes their own
   role or status; the last *active* super administrator cannot be demoted or
   disabled. Individual budgets have no cap (every change is audited).
+  The same holds through groups: an administrator cannot change a group
+  they belong to, or one with a super administrator in it (its budget
+  policy would change theirs); a super administrator does that.
   Disabling deletes the user's database sessions and rotates the "remember
   me" token. The audit log is readable by administrators; the user pages
   show accounts, budgets and usage, never conversation content.

@@ -128,6 +128,13 @@ return [
         'max_message_chars' => (int) env('ADA_MAX_MESSAGE_CHARS', 32000),
     ],
 
+    'sharing' => [
+        // Every link and every copy stores the whole conversation again.
+        'max_links_per_conversation' => (int) env('ADA_SHARE_MAX_LINKS', 10),
+        // Links created plus copies made by one user per day.
+        'daily_limit' => (int) env('ADA_SHARE_DAILY_LIMIT', 50),
+    ],
+
     'attachments' => [
         // Files per message and unsent ("pending") files per user.
         'max_per_message' => 5,

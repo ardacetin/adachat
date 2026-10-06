@@ -173,7 +173,10 @@ The adapter's job is to turn each provider's conventions into the disjoint
   and timeouts (`ada.providers.timeout`, `ada.providers.counter_timeout`).
 - Credentials: active row in `provider_credentials` (Laravel `encrypted`
   cast) → fallback to `.env` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`). Decrypted secrets live only
+  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`). The `.env` key of OpenAI,
+  Anthropic and Gemini goes only to that driver's own address: a provider
+  whose base URL was changed in the panel needs its own key, entered when
+  the address is set (on create as on update). Decrypted secrets live only
   in memory for the request. The OpenAI-compatible driver alone may have no
   key at all (local servers); then no `Authorization` header is sent.
 - `Services\CredentialVault` stores and rotates keys: the new row stores

@@ -65,6 +65,19 @@ class Provider extends Model
         return $this->hasMany(AiModel::class);
     }
 
+    /**
+     * Whether the .env key of the driver may be sent here: only to the
+     * driver's own address. OpenAI-compatible servers have none, so their
+     * .env key follows the configured address (ProviderRequest requires a
+     * key of its own for any address set in the panel while it exists).
+     */
+    public function usesEnvKeyAddress(): bool
+    {
+        $default = $this->driver->defaultBaseUrl();
+
+        return $default === '' || $this->baseUrl() === rtrim($default, '/');
+    }
+
     public function baseUrl(): string
     {
         return rtrim($this->base_url ?? $this->driver->defaultBaseUrl(), '/');

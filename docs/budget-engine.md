@@ -454,10 +454,15 @@ The same holds when the connection drops without the provider's final event
 (the adapter reports `FinishReason::Error`). Web searches seen in the stream
 but missing from that early usage are charged too, each with
 `ada.web_search.reserve_tokens_per_search` input tokens for its results, as
-the reservation assumed. OpenAI does not stream a reasoning model's
-reasoning and reports usage only at the end: such a model stopped or cut off
-before that is charged up to the reservation's output cap, which is what the
-provider may have generated (code review, 2026-10).
+the reservation assumed. OpenAI, Gemini and most OpenAI-compatible servers
+do not stream a reasoning model's reasoning and report usage only at the
+end: such a model stopped or cut off before that, with no reasoning seen in
+the stream, is charged up to the reservation's output cap, which is what the
+provider may have generated (code review and security audit, 2026-10).
+Anthropic streams its thinking, which is charged as observed. With no usage
+at all, the input is charged as reserved, margin included: an estimated
+count (no provider count endpoint) can fall short of what the provider
+bills for content the user chose.
 
 ## 11. Stale reservation cleanup
 

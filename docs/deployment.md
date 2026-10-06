@@ -71,6 +71,9 @@ docker compose -f compose.production.yml exec app php artisan ada:doctor
   differently, and keep `X-Forwarded-For $remote_addr` if you write your own
   proxy configuration.
 - Workers: `PHP_FPM_MAX_CHILDREN` in `.env` (default 24, see §1).
+  `PHP_FPM_REQUEST_TERMINATE_TIMEOUT` (default 420) ends any request that
+  runs longer, so a provider that sends data very slowly cannot hold a
+  worker; raise it with `ADA_PROVIDER_TIMEOUT` (keep it 120 above).
 - Logs: `docker compose -f compose.production.yml logs -f app`, one JSON
   object per line.
 

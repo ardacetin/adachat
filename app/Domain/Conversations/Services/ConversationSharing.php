@@ -15,6 +15,7 @@ use App\Models\ModelAlias;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Read-only links to a conversation (docs/sharing.md). Sharing takes a
@@ -32,6 +33,34 @@ final class ConversationSharing
     public function enabled(): bool
     {
         return $this->settings->conversation_sharing;
+    }
+
+    /**
+     * Whether another link may be created: each stores the conversation again.
+     */
+    public function canShare(Conversation $conversation): bool
+    {
+        return ConversationShare::query()
+            ->where('conversation_id', $conversation->id)
+            ->whereNull('revoked_at')
+            ->count() < (int) config('ada.sharing.max_links_per_conversation', 10);
+    }
+
+    /**
+     * Counts a link or a copy against the user's daily allowance; false
+     * when it is used up.
+     */
+    public function takeDailyAllowance(User $user): bool
+    {
+        $key = 'sharing-daily:'.$user->id;
+
+        if (RateLimiter::tooManyAttempts($key, (int) config('ada.sharing.daily_limit', 50))) {
+            return false;
+        }
+
+        RateLimiter::hit($key, 86400);
+
+        return true;
     }
 
     /**
@@ -66,7 +95,8 @@ final class ConversationSharing
             return;
         }
 
-        $share->forceFill(['revoked_at' => CarbonImmutable::now()])->save();
+        // The copy goes with the link: a revoked link keeps only its record.
+        $share->forceFill(['revoked_at' => CarbonImmutable::now(), 'snapshot' => ['model_alias_id' => null, 'messages' => []]])->save();
 
         $this->audit->record('conversation.share_revoked', $share, [], ['conversation_id' => $share->conversation_id]);
     }
@@ -136,6 +166,11 @@ final class ConversationSharing
 
                 $parent = $message;
             }
+
+            $this->audit->record('conversation.share_copied', $share, [], [
+                'conversation_id' => $conversation->id,
+                'messages' => count($snapshot['messages']),
+            ]);
 
             return $conversation;
         });
