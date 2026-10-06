@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\AI\Enums\InputCountMethod;
 use App\Domain\AI\Services\CredentialVault;
 use App\Domain\Budget\Enums\ReservationStatus;
 use App\Domain\Conversations\Enums\MessageStatus;
@@ -345,5 +346,26 @@ test('an OpenAI reasoning model cut off before its usage pays for the reasoning 
     $reservation = BudgetReservation::query()->whereKey($usage->reservation_id)->sole();
 
     expect($usage->output_tokens + $usage->reasoning_tokens)->toBe($reservation->max_output_tokens)
+        ->and($usage->is_estimated)->toBeTrue();
+});
+
+test('a stopped OpenAI-compatible reasoning model pays the input as reserved and the reasoning it may have hidden', function () {
+    $provider = Provider::factory()->create(['driver' => 'openai_compatible', 'base_url' => 'http://llm.test/v1']);
+    $this->model->forceFill(['provider_id' => $provider->id, 'supports_reasoning' => true])->save();
+
+    // Cut off before the finish and usage chunks, with no reasoning streamed.
+    $sse = file_get_contents(base_path('tests/Fixtures/providers/openai_compatible-stream.sse'));
+    $sse = implode("\n\n", array_filter(explode("\n\n", substr($sse, 0, (int) strpos($sse, '"finish_reason":"stop"'))), fn ($chunk) => ! str_contains($chunk, 'reasoning_content') && ! str_contains($chunk, '"delta":{},')));
+    Http::fake(['*/chat/completions' => fn () => Http::response($sse."\n\n", 200, ['Content-Type' => 'text/event-stream'])]);
+
+    sendMessage(['content' => str_repeat('1234567890', 400), 'model_alias_id' => $this->alias->id]);
+
+    $usage = UsageEvent::query()->sole();
+    $reservation = BudgetReservation::query()->whereKey($usage->reservation_id)->sole();
+
+    // The estimate has no provider count behind it: its margin is charged too.
+    expect($reservation->input_count_method)->toBe(InputCountMethod::Estimated)
+        ->and($usage->input_tokens)->toBe($reservation->input_tokens)
+        ->and($usage->output_tokens + $usage->reasoning_tokens)->toBe($reservation->max_output_tokens)
         ->and($usage->is_estimated)->toBeTrue();
 });

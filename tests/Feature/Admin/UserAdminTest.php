@@ -170,6 +170,31 @@ test('administrators do not change their own group or budget', function () {
         ->and($this->superAdmin->refresh()->group_id)->toBe($group->id);
 });
 
+test('administrators do not change their own group or a super administrator\'s through the group', function () {
+    $small = BudgetPolicy::factory()->create(['monthly_limit_usd' => '1']);
+    $generous = BudgetPolicy::factory()->create(['monthly_limit_usd' => '1000']);
+    $own = Group::factory()->create(['budget_policy_id' => $small->id]);
+    $this->admin->forceFill(['group_id' => $own->id])->save();
+    $payload = fn (Group $group) => ['name' => $group->name, 'budget_policy_id' => $generous->id, 'requests_per_minute' => 1000, 'max_concurrent_streams' => 20, 'alias_ids' => []];
+
+    $this->actingAs($this->admin)->put(route('admin.groups.update', $own), $payload($own))->assertForbidden();
+    $this->actingAs($this->admin)->get(route('admin.groups.edit', $own))
+        ->assertInertia(fn ($page) => $page->where('group.reserved', true));
+
+    $withSuper = Group::factory()->create(['budget_policy_id' => $small->id]);
+    $this->superAdmin->forceFill(['group_id' => $withSuper->id])->save();
+    $this->actingAs($this->admin)->put(route('admin.groups.update', $withSuper), $payload($withSuper))->assertForbidden();
+
+    // Other groups stay the administrators' to manage; super administrators manage all.
+    $other = Group::factory()->create(['budget_policy_id' => $small->id]);
+    member()->forceFill(['group_id' => $other->id])->save();
+    $this->actingAs($this->admin)->put(route('admin.groups.update', $other), $payload($other))->assertSessionHasNoErrors();
+    $this->actingAs($this->superAdmin)->put(route('admin.groups.update', $own), $payload($own))->assertSessionHasNoErrors();
+
+    expect($own->refresh()->budget_policy_id)->toBe($generous->id)
+        ->and($withSuper->refresh()->budget_policy_id)->toBe($small->id);
+});
+
 test('administrators cannot touch super administrators, roles or adjustments', function () {
     $user = member();
 

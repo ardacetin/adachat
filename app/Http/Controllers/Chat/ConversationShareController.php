@@ -30,6 +30,14 @@ class ConversationShareController extends Controller
         Gate::authorize('update', $conversation);
         abort_unless($this->sharing->enabled(), 404);
 
+        if (! $this->sharing->canShare($conversation)) {
+            return response()->json(['message' => __('chat.share.too_many_links', ['max' => config('ada.sharing.max_links_per_conversation')])], 422);
+        }
+
+        if (! $this->sharing->takeDailyAllowance($this->user($request))) {
+            return response()->json(['message' => __('chat.share.daily_limit')], 429);
+        }
+
         [$share, $token] = $this->sharing->share($conversation, $this->user($request));
 
         return response()->json([
@@ -86,6 +94,12 @@ class ConversationShareController extends Controller
     public function copy(Request $request, string $token): RedirectResponse
     {
         $share = $this->sharing->find($token) ?? abort(404);
+
+        if (! $this->sharing->takeDailyAllowance($this->user($request))) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('chat.share.daily_limit')]);
+
+            return back();
+        }
 
         $conversation = $this->sharing->copy($share, $this->user($request));
 

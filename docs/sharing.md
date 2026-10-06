@@ -12,7 +12,14 @@ signed-in, active users of the same Ada installation.
   characters), so a lost link cannot be shown again; create a new one.
 - The dialog lists the conversation's live links (date, number of views)
   with "Revoke". A conversation can have several links; each is a separate
-  snapshot.
+  snapshot. Revoking a link also drops its copy: only the record (date,
+  views) stays.
+- Limits, since every link stores the conversation again and every copy
+  writes new messages:
+  - at most `ADA_SHARE_MAX_LINKS` (default 10) live links per conversation
+    (422 "revoke one first");
+  - at most `ADA_SHARE_DAILY_LIMIT` (default 50) links and copies together
+    per user per 24 hours (429).
 - `POST /c/{conversation}/shares` (JSON `{url}`), `DELETE /shares/{share}`.
 
 ## What a link shows
@@ -77,6 +84,8 @@ it. The copy respects the viewer's own access:
 
 ## Audit
 
-`conversation.shared` (conversation ID, number of messages) and
-`conversation.share_revoked` (conversation ID). No content, no title, no
+`conversation.shared` (conversation ID, number of messages),
+`conversation.share_revoked` (conversation ID) and
+`conversation.share_copied` (the new conversation's ID, number of
+messages). No content, no title, no
 token.

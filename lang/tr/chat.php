@@ -21,6 +21,10 @@ return [
         'context_limit' => 'Bu belgeyle asistanın talimatları modelin bağlam penceresinin yarısından fazlasını kullanırdı.',
         'vision_unsupported' => 'Bu model görselleri okuyamaz. Başka bir model seçin ya da görselleri kaldırın.',
     ],
+    'share' => [
+        'too_many_links' => 'Bir sohbetin en fazla :max etkin bağlantısı olabilir. Önce birini iptal edin.',
+        'daily_limit' => 'Bugün çok fazla paylaşım bağlantısı oluşturdunuz ya da kopyaladınız. Yarın yeniden deneyin.',
+    ],
     'export' => [
         'untitled' => 'Adsız sohbet',
         'exported' => 'Ada Chat\'ten :date tarihinde dışa aktarıldı',

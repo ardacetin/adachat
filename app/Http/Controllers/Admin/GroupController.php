@@ -9,7 +9,9 @@ use App\Http\Requests\Admin\GroupRequest;
 use App\Models\BudgetPolicy;
 use App\Models\Group;
 use App\Models\ModelAlias;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -120,6 +122,8 @@ class GroupController extends Controller
             'group' => $group === null ? null : [
                 'id' => $group->id,
                 'is_default' => $group->is_default,
+                // Includes the administrator or a super administrator.
+                'reserved' => ! Auth::user() instanceof User || GroupRequest::reservedFor(Auth::user(), $group),
                 'users_count' => $group->users()->count(),
                 ...$this->audited($group),
             ],

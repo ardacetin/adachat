@@ -49,14 +49,21 @@ export default function ShareDialog({ conversationId, links }: Props) {
             });
 
             if (!response.ok) {
-                throw new Error(String(response.status));
+                const body = (await response.json().catch(() => null)) as {
+                    message?: string;
+                } | null;
+
+                throw new Error(body?.message ?? '');
             }
 
             const data = (await response.json()) as { url: string };
             setUrl(data.url);
             router.reload({ only: ['sharing'] });
-        } catch {
-            toast.error(t('conversation.share.failed'));
+        } catch (error) {
+            toast.error(
+                (error instanceof Error && error.message) ||
+                    t('conversation.share.failed'),
+            );
         } finally {
             setCreating(false);
         }

@@ -4,6 +4,7 @@ import CheckboxField from '@/components/admin/checkbox-field';
 import DeleteButton from '@/components/admin/delete-button';
 import FormField from '@/components/admin/form-field';
 import Heading from '@/components/heading';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +22,8 @@ import { destroy, index, store, update } from '@/routes/admin/groups';
 type Group = {
     id: number;
     is_default: boolean;
+    /** Only a super administrator may change it. */
+    reserved: boolean;
     users_count: number;
     name: string;
     description: string | null;
@@ -90,6 +93,14 @@ export default function GroupForm({ group, policies, aliases }: Props) {
                         group?.is_default ? t('groups.defaultHelp') : undefined
                     }
                 />
+
+                {group?.reserved && (
+                    <Alert>
+                        <AlertDescription>
+                            {t('groups.reserved')}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 <FormField
                     id="name"
@@ -257,7 +268,10 @@ export default function GroupForm({ group, policies, aliases }: Props) {
                 </fieldset>
 
                 <div className="flex items-center gap-2">
-                    <Button type="submit" disabled={form.processing}>
+                    <Button
+                        type="submit"
+                        disabled={form.processing || group?.reserved === true}
+                    >
                         {tCommon('actions.save')}
                     </Button>
                     {group !== null &&

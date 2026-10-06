@@ -21,6 +21,10 @@ return [
         'context_limit' => 'With this document, the assistant\'s instructions would use more than half of the model\'s context window.',
         'vision_unsupported' => 'This model cannot read images. Choose another model or remove the images.',
     ],
+    'share' => [
+        'too_many_links' => 'A conversation can have at most :max active links. Revoke one first.',
+        'daily_limit' => 'You have created or copied too many shared conversations today. Try again tomorrow.',
+    ],
     'export' => [
         'untitled' => 'Untitled conversation',
         'exported' => 'Exported from Ada Chat on :date',

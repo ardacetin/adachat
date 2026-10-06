@@ -120,6 +120,26 @@ test('a new address needs the key again', function () {
     expect($provider->refresh()->base_url)->toBe('https://elsewhere.example/v1');
 });
 
+test('the .env key never goes to an address chosen in the panel', function () {
+    config(['ada.providers.env_keys.anthropic' => 'sk-ant-env-0000', 'ada.providers.env_keys.openai_compatible' => 'sk-oac-env-0000']);
+    Http::fake(['*' => Http::response(['data' => []])]);
+    $payload = ['slug' => 'second', 'driver' => 'anthropic', 'name' => 'Second', 'enabled' => true];
+
+    // Another address needs a key of its own; the driver's own address does not.
+    $this->actingAs(superAdmin())->post(route('admin.providers.store'), [...$payload, 'base_url' => 'https://collector.invalid/v1'])
+        ->assertSessionHasErrors('api_key');
+    $this->actingAs(superAdmin())->post(route('admin.providers.store'), [...$payload, 'driver' => 'openai_compatible', 'base_url' => 'https://gateway.invalid/v1'])
+        ->assertSessionHasErrors('api_key');
+    $this->actingAs(superAdmin())->post(route('admin.providers.store'), [...$payload, 'base_url' => ''])
+        ->assertSessionHasNoErrors();
+
+    // A provider saved at another address before this rule gets no .env key.
+    $legacy = Provider::factory()->create(['driver' => 'anthropic', 'base_url' => 'https://collector.invalid/v1']);
+    $this->actingAs(superAdmin())->post(route('admin.providers.check', $legacy));
+
+    Http::assertNotSent(fn ($request) => str_starts_with($request->url(), 'https://collector.invalid'));
+});
+
 test('slugs must be unique and well formed', function () {
     Provider::factory()->create(['slug' => 'openai']);
     $this->actingAs(superAdmin());

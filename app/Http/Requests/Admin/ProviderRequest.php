@@ -49,14 +49,26 @@ class ProviderRequest extends FormRequest
 
     /**
      * The address changes while a key (stored, or from .env) would follow it.
+     * A new provider at another address than the driver's own must bring its
+     * own key: the .env key never goes to an address chosen in the panel.
      */
     private function movesStoredKey(?Provider $provider): bool
     {
+        $url = $this->input('base_url');
+
         if ($provider === null) {
-            return false;
+            $driver = ProviderDriver::tryFrom((string) $this->input('driver'));
+
+            if ($driver === null) {
+                return false;
+            }
+
+            $next = rtrim(is_string($url) && $url !== '' ? $url : $driver->defaultBaseUrl(), '/');
+
+            return $next !== rtrim($driver->defaultBaseUrl(), '/')
+                && filled(config('ada.providers.env_keys.'.$driver->value));
         }
 
-        $url = $this->input('base_url');
         $next = rtrim(is_string($url) && $url !== '' ? $url : $provider->driver->defaultBaseUrl(), '/');
 
         if ($next === $provider->baseUrl()) {

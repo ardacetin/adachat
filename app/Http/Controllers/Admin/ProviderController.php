@@ -31,6 +31,7 @@ class ProviderController extends Controller
                 'models_count' => $provider->models_count,
                 'masked_key' => CredentialVault::mask($provider->activeCredential),
                 'uses_env_key' => $provider->activeCredential === null
+                    && $provider->usesEnvKeyAddress()
                     && filled(config('ada.providers.env_keys.'.$provider->driver->value)),
             ]);
 

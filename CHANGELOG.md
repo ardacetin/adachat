@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+Findings of a security audit (2026-10):
+
+- Signing in with a second identity provider linked an account by its
+  e-mail address even when the account was bound to a stable identifier
+  elsewhere, so a reused address could open the former holder's account.
+  Linking by address now happens only for accounts that no stable
+  identifier claims yet, and a disabled account is never linked.
+- A provider created in the panel with a changed base URL and no key of its
+  own sent the `.env` API key to that address. The `.env` key now goes only
+  to the driver's own address, and such a provider needs its own key.
+- Administrators could change their own budget, or a super administrator's,
+  through the group's budget policy. Groups with either in them are now
+  changed by super administrators only.
+- Shared links and copies of shared conversations were not limited. Live
+  links per conversation and links plus copies per user per day are now
+  limited (`ADA_SHARE_MAX_LINKS`, `ADA_SHARE_DAILY_LIMIT`), a revoked link
+  drops its stored copy, and copies are audited.
+- A stopped or cut-off answer of a Gemini or OpenAI-compatible reasoning
+  model paid only for the text it delivered, not the reasoning the provider
+  bills, and an answer with no reported usage paid its estimated input
+  without the safety margin. Both are now charged as reserved.
+- A provider that sends its response headers or chunk framing very slowly
+  could hold a chat request, and its PHP-FPM worker, past the provider
+  time limit, after its reservation had expired. The PHP-FPM pools now end
+  any request after 420 seconds (`PHP_FPM_REQUEST_TERMINATE_TIMEOUT` in
+  Docker; `request_terminate_timeout` in `deploy/php-fpm/ada.conf`).
+  Without Docker, copy the pool file again.
+
 ## [1.4.1] - 2026-10-06
 
 A fix release. Release notes:

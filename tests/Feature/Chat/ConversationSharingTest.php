@@ -215,3 +215,39 @@ test('shares go when retention removes their conversation', function () {
 
     expect(ConversationShare::query()->count())->toBe(0);
 });
+
+test('links are bounded per conversation and per day, and a revoked link drops its copy', function () {
+    config(['ada.sharing.max_links_per_conversation' => 2, 'ada.sharing.daily_limit' => 3]);
+    $store = fn () => $this->actingAs($this->owner)->postJson(route('conversations.shares.store', $this->conversation));
+
+    $store()->assertCreated();
+    $store()->assertCreated();
+
+    // A third live link on the same conversation is refused.
+    $store()->assertUnprocessable()->assertJsonPath('message', __('chat.share.too_many_links', ['max' => 2]));
+
+    // Revoking frees a place and drops the stored copy.
+    $share = ConversationShare::query()->oldest('id')->first();
+    $this->actingAs($this->owner)->delete(route('shares.destroy', $share));
+    expect($share->refresh()->snapshot['messages'])->toBe([]);
+
+    $store()->assertCreated();
+
+    // Three links today: the next one waits for tomorrow.
+    $this->actingAs($this->owner)->delete(route('shares.destroy', ConversationShare::query()->whereNull('revoked_at')->oldest('id')->first()));
+    $store()->assertTooManyRequests()->assertJsonPath('message', __('chat.share.daily_limit'));
+
+    expect(AuditLog::query()->where('action', 'conversation.shared')->count())->toBe(3);
+});
+
+test('copies count against the daily allowance and are audited', function () {
+    config(['ada.sharing.daily_limit' => 2]);
+    $path = shareConversation($this->conversation, $this->owner);
+
+    $this->actingAs($this->viewer)->post($path.'/copy')->assertRedirect();
+    $this->actingAs($this->viewer)->post($path.'/copy')->assertRedirect();
+    $this->actingAs($this->viewer)->post($path.'/copy');
+
+    expect(Conversation::query()->where('user_id', $this->viewer->id)->count())->toBe(2)
+        ->and(AuditLog::query()->where('action', 'conversation.share_copied')->count())->toBe(2);
+});
