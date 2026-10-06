@@ -1,8 +1,16 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -11,7 +19,12 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { create, edit, index } from '@/routes/admin/aliases';
+import {
+    create,
+    defaultMethod as setDefault,
+    edit,
+    index,
+} from '@/routes/admin/aliases';
 
 type AliasRow = {
     id: number;
@@ -22,8 +35,24 @@ type AliasRow = {
     enabled: boolean;
 };
 
-export default function AliasesIndex({ aliases }: { aliases: AliasRow[] }) {
+const NONE = 'none';
+
+export default function AliasesIndex({
+    aliases,
+    defaultAliasId,
+}: {
+    aliases: AliasRow[];
+    defaultAliasId: number | null;
+}) {
     const { t } = useTranslation('admin');
+    const form = useForm<{ default_model_alias_id: number | null }>({
+        default_model_alias_id: defaultAliasId,
+    });
+
+    const saveDefault = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.put(setDefault.url(), { preserveScroll: true });
+    };
 
     return (
         <>
@@ -40,6 +69,67 @@ export default function AliasesIndex({ aliases }: { aliases: AliasRow[] }) {
                         <Link href={create()}>{t('aliases.add')}</Link>
                     </Button>
                 </div>
+
+                {aliases.some((alias) => alias.enabled) && (
+                    <form
+                        onSubmit={saveDefault}
+                        className="space-y-2 rounded-lg border p-4"
+                    >
+                        <Label htmlFor="default_model_alias_id">
+                            {t('aliases.defaultTitle')}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                            {t('aliases.defaultHelp')}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Select
+                                value={String(
+                                    form.data.default_model_alias_id ?? NONE,
+                                )}
+                                onValueChange={(value) =>
+                                    form.setData(
+                                        'default_model_alias_id',
+                                        value === NONE ? null : Number(value),
+                                    )
+                                }
+                            >
+                                <SelectTrigger
+                                    id="default_model_alias_id"
+                                    className="w-full sm:w-80"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={NONE}>
+                                        {t('aliases.defaultNone')}
+                                    </SelectItem>
+                                    {aliases
+                                        .filter((alias) => alias.enabled)
+                                        .map((alias) => (
+                                            <SelectItem
+                                                key={alias.id}
+                                                value={String(alias.id)}
+                                            >
+                                                {alias.name}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                type="submit"
+                                size="sm"
+                                disabled={form.processing || !form.isDirty}
+                            >
+                                {t('aliases.defaultSave')}
+                            </Button>
+                        </div>
+                        {form.errors.default_model_alias_id && (
+                            <p className="text-sm text-destructive">
+                                {form.errors.default_model_alias_id}
+                            </p>
+                        )}
+                    </form>
+                )}
 
                 {aliases.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
@@ -65,6 +155,11 @@ export default function AliasesIndex({ aliases }: { aliases: AliasRow[] }) {
                                 <TableRow key={alias.id}>
                                     <TableCell className="font-medium">
                                         {alias.name}
+                                        {alias.id === defaultAliasId && (
+                                            <Badge className="ml-2">
+                                                {t('aliases.defaultBadge')}
+                                            </Badge>
+                                        )}
                                         <div className="font-mono text-xs text-muted-foreground">
                                             {alias.slug}
                                         </div>

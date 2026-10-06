@@ -254,7 +254,12 @@
         "webSearchEnabled": "Users may turn on web search",
         "webSearchHelp": "Users turn it on for each message. Their question and the search queries go to the provider's search; every search costs money and counts against the user's budget.",
         "webSearchMaxUses": "Searches per message (at most)",
-        "webSearchUnavailable": "The chosen model cannot search the web, or has no search price (Administration → Models)."
+        "webSearchUnavailable": "The chosen model cannot search the web, or has no search price (Administration → Models).",
+        "defaultTitle": "Default model",
+        "defaultHelp": "New conversations start with this alias for everyone whose group may use it. Users can still switch models in each conversation.",
+        "defaultNone": "None: the user's last choice, else the first in the list",
+        "defaultBadge": "Default",
+        "defaultSave": "Save"
     },
     "groups": {
         "title": "Groups",

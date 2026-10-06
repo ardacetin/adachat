@@ -53,6 +53,8 @@ export type AliasOption = {
     supports_vision: boolean;
     /** What web search allows and costs with this alias; null when it cannot search. */
     web_search: { max_uses: number; price_per_search: string } | null;
+    /** New conversations start with it (set by the institution). */
+    is_default: boolean;
 };
 
 export type ConversationSummary = {

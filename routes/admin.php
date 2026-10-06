@@ -66,6 +66,7 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
 
         Route::resource('models', AiModelController::class)->except(['show', 'destroy']);
         Route::post('models/{model}/catalog-sync', [AiModelController::class, 'syncCatalog'])->name('models.catalog-sync');
+        Route::put('default-alias', [ModelAliasController::class, 'updateDefault'])->name('aliases.default');
         Route::resource('aliases', ModelAliasController::class)
             ->parameters(['aliases' => 'alias'])
             ->except(['show', 'destroy']);

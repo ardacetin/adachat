@@ -3,6 +3,7 @@
 namespace App\Domain\Conversations\Services;
 
 use App\Domain\AI\Services\AliasAccess;
+use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\Conversation;
 use App\Models\ModelAlias;
 use App\Models\User;
@@ -19,7 +20,10 @@ final class ChatPageProps
     /** Pinned conversations shown in the sidebar. */
     public const MAX_PINNED = 20;
 
-    public function __construct(private readonly AliasAccess $aliases) {}
+    public function __construct(
+        private readonly AliasAccess $aliases,
+        private readonly InstitutionSettings $institution,
+    ) {}
 
     /**
      * What turning on web search allows and costs with this alias, or null
@@ -59,6 +63,8 @@ final class ChatPageProps
                 'description' => $alias->description[$locale] ?? $alias->description['en'] ?? null,
                 'supports_vision' => $alias->aiModel->supports_vision,
                 'web_search' => self::webSearch($alias),
+                // New conversations start with it (Admin → Model aliases).
+                'is_default' => $alias->id === $this->institution->default_model_alias_id,
                 // The underlying model is shown only when the admin allows it.
                 'details' => $alias->show_model_details
                     ? "{$alias->aiModel->display_name} · {$alias->aiModel->provider->name}"

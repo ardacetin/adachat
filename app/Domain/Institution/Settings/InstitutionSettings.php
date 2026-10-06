@@ -55,6 +55,12 @@ class InstitutionSettings extends Settings
     /** Users may share a read-only copy of a conversation with signed-in users. */
     public bool $conversation_sharing;
 
+    /**
+     * The model alias new conversations start with, for users whose group may
+     * use it; null: the user's last choice, else the first alias.
+     */
+    public ?int $default_model_alias_id;
+
     public static function group(): string
     {
         return 'institution';

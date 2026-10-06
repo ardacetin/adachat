@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0] - 2026-10-06
 
-A landing page, invitation e-mails that work as a welcome, and an
-administration page to reword both per language. Release notes:
+A landing page, invitation e-mails that work as a welcome, an
+administration page to reword both per language, and a default model for
+new conversations. Release notes:
 [docs/releases/v1.4.0.md](docs/releases/v1.4.0.md).
 
 ### Added
@@ -27,6 +28,11 @@ administration page to reword both per language. Release notes:
   yet, for accounts added before invitation e-mails existed or whose
   e-mail failed. Adding an address that already has an account now says
   that no e-mail went to it.
+- Default model: on Admin → Model aliases, super administrators choose the
+  alias every user's new conversations start with (for users whose group
+  may use it; others keep the first alias). Users can still switch models;
+  "None" keeps the earlier behaviour (the user's last choice in the
+  browser). Audited as `institution.default_model_changed`.
 
 ### Fixed
 
