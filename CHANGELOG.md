@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Administrators manage only users with the `user` role. Other
+  administrators, like super administrators, are managed by super
+  administrators: status, group, budget and invitations, and groups with an
+  administrator in them.
+- CI fails on moderate npm advisories as well. `postcss-selector-parser`
+  (used by the Tailwind typography plugin at build time) is raised to 7.1.6
+  for GHSA-rj75-hqrm-r3gf; the built CSS is unchanged.
+- Claude Code on the web: a SessionStart hook (`.claude/hooks/session-start.sh`)
+  starts MySQL, creates the databases and installs dependencies, so tests,
+  linters and the build work in a fresh session.
+
 ## [1.4.2] - 2026-10-06
 
 A security release. Release notes:
