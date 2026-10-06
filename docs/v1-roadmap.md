@@ -198,6 +198,9 @@ Then the v1.3.0 release notes ✅ ([docs/releases/v1.3.0.md](releases/v1.3.0.md)
 **1.3.1** ✅: fixes from a full security audit, and invitation e-mails
 ([docs/releases/v1.3.1.md](releases/v1.3.1.md)).
 
+**1.4.0** ✅: landing page, welcome e-mails, Admin → Texts
+([docs/releases/v1.4.0.md](releases/v1.4.0.md)).
+
 ## Candidates for V2
 
 - OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).
