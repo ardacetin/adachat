@@ -23,11 +23,13 @@ import type { NavItem } from '@/types';
 export function AppSidebar() {
     const { can } = usePage().props;
 
-    // Ctrl+K / ⌘K opens the conversation search from anywhere.
+    // Ctrl+K / ⌘K opens the conversation search from anywhere. On a Mac only
+    // ⌘K: ⌃K deletes to the end of the line in text fields.
     useEffect(() => {
+        const mac = /Mac|iPhone|iPad/.test(navigator.platform);
         const open = (event: KeyboardEvent) => {
             if (
-                (event.ctrlKey || event.metaKey) &&
+                (mac ? event.metaKey : event.ctrlKey) &&
                 event.key.toLowerCase() === 'k'
             ) {
                 event.preventDefault();

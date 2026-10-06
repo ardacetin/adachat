@@ -51,6 +51,28 @@ test('deleted conversations are removed after the grace period, others are kept'
         ->and(Message::query()->where('conversation_id', $longDeleted->id)->exists())->toBeFalse();
 });
 
+test('long threads are removed too', function () {
+    // Each message points at the previous one; MySQL cascades at most 15
+    // levels deep, so a cascade through the thread would refuse this.
+    $conversation = Conversation::factory()->create(['last_message_at' => '2026-08-01', 'deleted_at' => '2026-09-01']);
+    $parent = null;
+
+    foreach (range(1, 40) as $i) {
+        $parent = Message::query()->forceCreate([
+            'conversation_id' => $conversation->id,
+            'parent_message_id' => $parent?->id,
+            'role' => $i % 2 === 1 ? 'user' : 'assistant',
+            'content' => "Message {$i}",
+            'status' => 'completed',
+        ]);
+    }
+
+    $this->artisan('ada:retention:prune')->assertSuccessful();
+
+    expect(Conversation::withTrashed()->whereKey($conversation->id)->exists())->toBeFalse()
+        ->and(Message::query()->where('conversation_id', $conversation->id)->exists())->toBeFalse();
+});
+
 test('conversations expire after the retention period when one is set', function () {
     updateSettings(PrivacySettings::class, ['conversation_retention_days' => 90]);
     $expired = conversationAt('2026-07-01');

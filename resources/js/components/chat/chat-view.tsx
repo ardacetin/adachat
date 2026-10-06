@@ -86,6 +86,8 @@ export default function ChatView({
             : rememberedAlias(aliases, conversationAliasId),
     );
     const [pending, setPending] = useState<Pending | null>(null);
+    /** The finished answer is being loaded from the server. */
+    const [settling, setSettling] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const bottom = useRef<HTMLDivElement>(null);
     const streaming = status === 'streaming';
@@ -156,6 +158,25 @@ export default function ChatView({
     ) => {
         let targetConversation = conversationId;
         let started = false;
+        let answerId: string | null = null;
+        // Only this message's own pending state is cleared: a later one
+        // may already have replaced it.
+        const clear = () =>
+            setPending((current) =>
+                current === next ||
+                (answerId !== null && current?.assistant.id === answerId)
+                    ? null
+                    : current,
+            );
+        const giveBack = () => {
+            if (restoreInput !== null) {
+                setInput(restoreInput);
+            }
+
+            if (restoreFiles.length > 0) {
+                attachments.restore(restoreFiles);
+            }
+        };
 
         setError(null);
         setPending(next);
@@ -163,6 +184,7 @@ export default function ChatView({
         void run(url, body, {
             onStarted: (event) => {
                 started = true;
+                answerId = event.assistant_message_id;
                 targetConversation = event.conversation_id;
                 setPending(
                     (current) =>
@@ -188,13 +210,7 @@ export default function ChatView({
                         setError(describe(event));
                     }
 
-                    if (restoreInput !== null) {
-                        setInput(restoreInput);
-                    }
-
-                    if (restoreFiles.length > 0) {
-                        attachments.restore(restoreFiles);
-                    }
+                    giveBack();
 
                     return;
                 }
@@ -211,15 +227,26 @@ export default function ChatView({
                         },
                 );
             },
+            onAborted: () => {
+                // Stopped before the answer started: the text comes back, and
+                // the list shows the conversation if the server kept it.
+                setPending(null);
+                giveBack();
+                router.reload({ only: ['conversations'] });
+            },
             onSettled: () => {
                 if (!started || targetConversation === null) {
                     return;
                 }
 
                 // The server has the final state; show it without a jump.
+                setSettling(true);
                 const done = {
                     preserveScroll: true,
-                    onFinish: () => setPending(null),
+                    onFinish: () => {
+                        clear();
+                        setSettling(false);
+                    },
                 };
 
                 if (targetConversation === conversationId) {
@@ -482,6 +509,7 @@ export default function ChatView({
                         onSubmit={send}
                         onStop={() => stop((id) => cancel.url(id))}
                         streaming={streaming}
+                        busy={settling}
                         disabled={exhausted}
                         attachments={{
                             items: attachments.items,

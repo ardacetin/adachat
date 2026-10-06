@@ -100,6 +100,26 @@ test('updating without a key keeps the current credential', function () {
         ->and(AuditLog::query()->where('action', 'provider.updated')->sole()->new_values)->toEqual(['name' => 'Renamed']);
 });
 
+test('a new address needs the key again', function () {
+    $provider = Provider::factory()->create(['driver' => 'openai', 'base_url' => null]);
+    app(CredentialVault::class)->rotate($provider, DUMMY_KEY);
+    $payload = ['slug' => $provider->slug, 'name' => $provider->name, 'enabled' => true];
+
+    // The same address (empty or spelled out) keeps the key.
+    $this->actingAs(superAdmin())->put(route('admin.providers.update', $provider), [...$payload, 'base_url' => 'https://api.openai.com/v1/'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs(superAdmin())->put(route('admin.providers.update', $provider), [...$payload, 'base_url' => 'https://elsewhere.example/v1'])
+        ->assertSessionHasErrors('api_key');
+
+    expect($provider->refresh()->base_url)->toBe('https://api.openai.com/v1/');
+
+    $this->actingAs(superAdmin())->put(route('admin.providers.update', $provider), [...$payload, 'base_url' => 'https://elsewhere.example/v1', 'api_key' => 'sk-new-key-for-proxy'])
+        ->assertSessionHasNoErrors();
+
+    expect($provider->refresh()->base_url)->toBe('https://elsewhere.example/v1');
+});
+
 test('slugs must be unique and well formed', function () {
     Provider::factory()->create(['slug' => 'openai']);
     $this->actingAs(superAdmin());

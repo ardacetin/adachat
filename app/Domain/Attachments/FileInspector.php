@@ -7,6 +7,7 @@ use App\Domain\Attachments\Exceptions\AttachmentRejected;
 use App\Domain\Attachments\Extractors\ExtractedText;
 use App\Domain\Attachments\Extractors\OfficeExtractor;
 use App\Domain\Attachments\Extractors\PdfExtractor;
+use Closure;
 use finfo;
 use Illuminate\Support\Str;
 
@@ -64,8 +65,8 @@ final class FileInspector
 
         $attributes = match (true) {
             $allowImages && in_array($mime, self::IMAGE_TYPES, true) => $this->image($path, $mime, $size),
-            $office !== null => $this->document($path, $size, $this->office->extract($path), AttachmentKind::Document),
-            $mime === 'application/pdf' => $this->document($path, $size, $this->pdf->extract($path), AttachmentKind::Pdf),
+            $office !== null => $this->document($size, fn () => $this->office->extract($path), AttachmentKind::Document),
+            $mime === 'application/pdf' => $this->document($size, fn () => $this->pdf->extract($path), AttachmentKind::Pdf),
             $this->isText($mime, $path) => $this->text($path, $size),
             default => throw new AttachmentRejected('unsupported_type'),
         };
@@ -139,11 +140,15 @@ final class FileInspector
      * PDF and Office files: the text is extracted once, here, and cut to
      * ada.attachments.max_text_chars with a note for the model.
      *
+     * @param  Closure(): ExtractedText  $extract
      * @return array{kind: AttachmentKind, extracted_text: string, page_count: int|null, token_estimate: int}
      */
-    private function document(string $path, int $size, ExtractedText $extracted, AttachmentKind $kind): array
+    private function document(int $size, Closure $extract, AttachmentKind $kind): array
     {
+        // Refused before parsing: extraction of a large file is the costly part.
         $this->assertSize($size, 'max_document_mb');
+
+        $extracted = $extract();
 
         $limit = (int) config('ada.attachments.max_text_chars');
         $text = $extracted->text;

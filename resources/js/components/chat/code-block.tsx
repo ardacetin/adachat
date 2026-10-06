@@ -28,11 +28,19 @@ async function highlightCode(
         return null;
     }
 
-    highlighter ??= shiki.createHighlighter({
-        themes: ['github-light', 'github-dark'],
-        langs: [],
-        engine: createJavaScriptRegexEngine({ forgiving: true }),
-    });
+    highlighter ??= shiki
+        .createHighlighter({
+            themes: ['github-light', 'github-dark'],
+            langs: [],
+            engine: createJavaScriptRegexEngine({ forgiving: true }),
+        })
+        .catch((error: unknown) => {
+            // A failed load (e.g. a chunk gone after a deploy) is retried
+            // by the next code block instead of sticking for the session.
+            highlighter = null;
+
+            throw error;
+        });
 
     const instance = await highlighter;
 

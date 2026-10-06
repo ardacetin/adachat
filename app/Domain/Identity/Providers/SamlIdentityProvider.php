@@ -132,7 +132,8 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
         // SameSite=None: the IdP returns the browser with a cross-site POST.
         $cookie = Cookie::create(self::BINDING_COOKIE, $binding)
             ->withExpires(time() + self::REQUEST_TTL_SECONDS)
-            ->withPath('/auth/saml/acs')
+            // The path the IdP posts back to, also when Ada runs under a sub-path.
+            ->withPath((string) (parse_url($this->acsUrl(), PHP_URL_PATH) ?: '/auth/saml/acs'))
             ->withSecure(true)
             ->withHttpOnly(true)
             ->withSameSite(Cookie::SAMESITE_NONE);

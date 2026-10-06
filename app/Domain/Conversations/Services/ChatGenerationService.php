@@ -13,6 +13,7 @@ use App\Domain\AI\Data\InputTokenCount;
 use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\FinishReason;
 use App\Domain\AI\Enums\MessageRole;
+use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\AI\Exceptions\ProviderException;
 use App\Domain\AI\Services\CallbackCancellation;
 use App\Domain\AI\Services\ProviderManager;
@@ -174,6 +175,12 @@ final class ChatGenerationService
             yield self::error($refused->errorCode, $refused->retryable);
 
             return;
+        } catch (Throwable $failed) {
+            // Nothing was stored: the budget is free again at once instead of
+            // after the reservation's deadline.
+            $this->budget->release($reservation, 'internal_error');
+
+            throw $failed;
         }
 
         $outputCapped = $reservation->max_output_tokens < min($alias->effectiveMaxOutputTokens(), $model->context_window - $count->tokens);
@@ -276,6 +283,22 @@ final class ChatGenerationService
     }
 
     /**
+     * OpenAI reports usage only at the end and does not stream the reasoning
+     * itself: a reasoning model stopped or cut off before that may have
+     * reasoned up to the whole output cap, which the provider still bills.
+     */
+    private function hiddenReasoning(BudgetReservation $reservation, TokenUsage $observed, bool $complete): int
+    {
+        $model = $reservation->aiModel;
+
+        if ($complete || ! $model->supports_reasoning || $model->provider->driver !== ProviderDriver::OpenAI) {
+            return 0;
+        }
+
+        return max(0, $reservation->max_output_tokens - $observed->output);
+    }
+
+    /**
      * Output tokens of the streamed text and reasoning, scaled down together
      * to the reservation's output cap.
      */
@@ -332,16 +355,26 @@ final class ChatGenerationService
         // What the stream delivered, at a pessimistic 2 bytes per token and
         // never above the cap the provider enforces.
         $observed = self::observedOutput(strlen($text), $reasoningBytes, $reservation->max_output_tokens);
-        $complete = $failure === null && ! $cancelled && $reason !== null;
+        // FinishReason::Error: the stream ended without the provider's final
+        // event (connection dropped), so its usage is partial too.
+        $complete = $failure === null && ! $cancelled && $reason !== null && $reason !== FinishReason::Error;
         $estimated = $usage === null;
 
+        // Searches seen in the stream but not in the usage: each also added
+        // its results to the input, estimated as the reservation did.
+        $perSearch = (int) config('ada.web_search.reserve_tokens_per_search', 4000);
+
         if ($usage === null) {
-            $usage = new TokenUsage(input: $count->tokens, output: $observed->output, reasoning: $observed->reasoning, webSearches: $searches);
-        } elseif (! $complete && $usage->totalOutput() < $observed->totalOutput()) {
+            $usage = new TokenUsage(input: $count->tokens + $searches * $perSearch, output: $observed->output, reasoning: max($observed->reasoning, $this->hiddenReasoning($reservation, $observed, $complete)), webSearches: $searches);
+        } elseif (! $complete && ($usage->totalOutput() < $observed->totalOutput() || $usage->webSearches < $searches)) {
             // A stopped or broken stream ends before the provider's final usage:
             // what it reported so far (e.g. Anthropic's message_start) is not
             // what was generated. Charge at least what was delivered.
-            $usage = $usage->merge($observed);
+            $unreported = max(0, $searches - $usage->webSearches);
+            $usage = $usage->merge($observed)->merge(new TokenUsage(
+                input: $usage->input + $unreported * $perSearch,
+                webSearches: $searches,
+            ));
             $estimated = true;
         }
 

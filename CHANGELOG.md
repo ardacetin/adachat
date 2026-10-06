@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+Findings of a full code review (2026-10):
+
+- Retention pruning failed on any conversation with more than 15 messages
+  in a thread (MySQL limits cascading deletes to 15 levels), and then
+  stopped every later clean-up step. The message thread link no longer
+  cascades; messages go with their conversation.
+- Files of a deleted conversation could still be downloaded by their owner
+  until retention removed them.
+- Charging:
+  - an answer saved as finished whose settlement then failed was never
+    charged; the cleanup job now charges it;
+  - a late settlement after the cleanup job's estimate charged cache reads
+    a second time; it now adds only the cost above the estimate;
+  - a stream stopped or cut off after web searches did not pay for them,
+    and a stream cut off before the provider's final event was charged only
+    its early usage;
+  - OpenAI reasoning models stopped before their usage arrived were charged
+    no reasoning; they are now charged up to the output cap;
+  - a reservation is released at once when saving the message fails.
+- Changing a provider's base URL now requires entering the API key again,
+  so a stored key is never sent to another address.
+- Administrators can no longer change their own group or budget (super
+  administrators still can).
+- Cap and user budget alerts that failed to send are tried again on the
+  next run instead of being marked as sent.
+- PDF extraction is limited to 32 MB per decoded stream, and documents over
+  the size limit are refused before they are parsed. Office files with
+  non-UTF-8 XML parts are refused.
+- Chat:
+  - leaving a conversation while an answer streams no longer navigates back
+    to it;
+  - Stop pressed before the answer starts cancels it once it does, and
+    gives the text back if it never starts;
+  - sending again while the previous answer is being saved no longer clears
+    the new message;
+  - a streaming answer no longer rebuilds its whole content on every
+    update, so text can be selected while it streams;
+  - on a Mac only ⌘K opens search (⌃K edits text again);
+  - code highlighting recovers after a failed load.
+- Smaller fixes: pinned conversations beyond the first 20 now show in the
+  sidebar, search snippets in one query, the adjustment author on the user page in one
+  query, users with a limit of 0 no longer counted as having used up their
+  budget, an index for the nightly orphan-file sweep, the SAML binding
+  cookie under a sub-path, the CSP never turned off by a stray `public/hot`
+  in production, private files never served through signed storage URLs,
+  and an invitation of a disabled account that tried to sign in can no
+  longer be "removed" into an error.
+
 ## [1.4.0] - 2026-10-06
 
 A landing page, invitation e-mails that work as a welcome, an

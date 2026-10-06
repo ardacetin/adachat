@@ -1,12 +1,16 @@
 <?php
 
+use App\Domain\AI\Data\InputTokenCount;
+use App\Domain\AI\Enums\InputCountMethod;
 use App\Domain\AI\Services\AliasAccess;
 use App\Domain\AI\Services\CredentialVault;
+use App\Domain\Budget\Services\BudgetEngine;
 use App\Domain\Conversations\Services\ChatGenerationService;
 use App\Domain\Conversations\Services\InterruptedGenerations;
 use App\Models\AiModel;
 use App\Models\BudgetPeriod;
 use App\Models\BudgetReservation;
+use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\ModelAlias;
@@ -166,4 +170,28 @@ test('a stream the cleanup job took for dead still pays in full when it ends', f
         ->and($period->spent_usd->toString())->toBe($events[0]->total_cost_usd->plus($events[1]->total_cost_usd)->toString())
         ->and($period->reserved_usd->isZero())->toBeTrue()
         ->and(BudgetReservation::query()->sole()->status_reason)->toBe('settled_late');
+});
+
+test('an answer saved as finished whose settlement failed is still charged', function () {
+    // The request saved the answer, then its settlement failed (e.g. a lock
+    // timeout) or the process died: the reservation is still active.
+    $reservation = app(BudgetEngine::class)->reserve($this->user, $this->alias->aiModel, new InputTokenCount(1000, InputCountMethod::ProviderEndpoint, 0.0), 8000);
+    $conversation = Conversation::factory()->for($this->user)->create();
+    $answer = Message::query()->forceCreate([
+        'conversation_id' => $conversation->id,
+        'role' => 'assistant',
+        'content' => str_repeat('word ', 400),
+        'status' => 'completed',
+        'model_alias_id' => $this->alias->id,
+        'reservation_id' => $reservation->id,
+    ]);
+
+    expect(app(InterruptedGenerations::class)->resolve(CarbonImmutable::now()->addHour()))->toBe(1);
+
+    $usage = UsageEvent::query()->sole();
+    expect($usage->output_tokens)->toBe(1000)
+        ->and($usage->is_estimated)->toBeTrue()
+        // The answer keeps its status.
+        ->and($answer->refresh()->status->value)->toBe('completed')
+        ->and($answer->error_code)->toBeNull();
 });

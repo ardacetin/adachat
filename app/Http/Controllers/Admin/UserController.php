@@ -110,12 +110,14 @@ class UserController extends Controller
             ->where('type', UsageEventType::Adjustment)
             ->latest('created_at')
             ->limit(10)
-            ->get()
+            ->get();
+        $authors = User::query()->whereKey($adjustments->pluck('created_by')->filter()->unique())->pluck('name', 'id');
+        $adjustments = $adjustments
             ->map(fn (UsageEvent $event) => [
                 'id' => $event->id,
                 'amount_usd' => BudgetSummary::cents($event->total_cost_usd, RoundingMode::HalfUp),
                 'reason' => $event->reason,
-                'by' => User::query()->whereKey($event->created_by)->value('name'),
+                'by' => $event->created_by === null ? null : $authors->get($event->created_by),
                 'created_at' => $event->created_at->toIso8601String(),
             ]);
 

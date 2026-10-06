@@ -9,6 +9,7 @@ use App\Models\InstitutionPeriod;
 use Brick\Math\RoundingMode;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * E-mails the notification addresses once per month when the institution's
@@ -45,6 +46,7 @@ final class CapAlerts
             }
 
             $column = "alerted_{$threshold}_at";
+            $before = ['alerted_80_at' => $status['period']->alerted_80_at, 'alerted_100_at' => $status['period']->alerted_100_at];
             $claimed = InstitutionPeriod::query()
                 ->whereKey($status['period']->id)
                 ->whereNull($column)
@@ -61,15 +63,22 @@ final class CapAlerts
                 'cap_usd' => BudgetSummary::cents($status['cap'], RoundingMode::Down),
             ];
 
-            Mail::to($recipients)
-                ->locale($this->institution->default_locale)
-                ->send(new CapAlert(
-                    institution: $this->institution->name,
-                    threshold: $threshold,
-                    usedUsd: $values['used_usd'],
-                    capUsd: $values['cap_usd'],
-                    resetsOn: $status['resets_on']->toDateString(),
-                ));
+            try {
+                Mail::to($recipients)
+                    ->locale($this->institution->default_locale)
+                    ->send(new CapAlert(
+                        institution: $this->institution->name,
+                        threshold: $threshold,
+                        usedUsd: $values['used_usd'],
+                        capUsd: $values['cap_usd'],
+                        resetsOn: $status['resets_on']->toDateString(),
+                    ));
+            } catch (Throwable $failed) {
+                // Not sent: the next run tries again.
+                InstitutionPeriod::query()->whereKey($status['period']->id)->update($before);
+
+                throw $failed;
+            }
 
             $this->audit->record('budget.cap_alert', 'InstitutionSettings', [], $values);
 

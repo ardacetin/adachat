@@ -5,6 +5,7 @@ use App\Domain\AI\Data\TokenUsage;
 use App\Domain\AI\Enums\InputCountMethod;
 use App\Domain\Budget\Data\Settlement;
 use App\Domain\Budget\Services\BudgetEngine;
+use App\Domain\Budget\Services\CapAlerts;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Mail\CapAlert;
 use App\Mail\TestMail;
@@ -16,7 +17,9 @@ use App\Models\InstitutionPeriod;
 use App\Models\User;
 use Brick\Math\BigDecimal;
 use Carbon\CarbonImmutable;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportException;
 
 beforeEach(function () {
     Mail::fake();
@@ -161,4 +164,21 @@ test('the cap alert e-mail renders in the institution language', function () {
     $html = (new CapAlert('Örnek Üniversitesi', 100, '1.20', '1.00', '2026-11-01'))->locale('tr')->render();
 
     expect($html)->toContain('Aylık bütçe tükendi')->toContain('Örnek Üniversitesi')->toContain('$1.00');
+});
+
+test('an alert that could not be sent is tried again', function () {
+    spendInstitution('0.85');
+
+    // An SMTP server nobody listens on.
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1', 'mail.mailers.smtp.port' => 1]);
+    Mail::swap(new MailManager(app()));
+
+    expect(fn () => app(CapAlerts::class)->check())->toThrow(TransportException::class);
+
+    expect(InstitutionPeriod::query()->sole()->alerted_80_at)->toBeNull();
+
+    Mail::fake();
+    $this->artisan('ada:budget:cap-alerts')->assertSuccessful();
+
+    Mail::assertSent(CapAlert::class, 1);
 });

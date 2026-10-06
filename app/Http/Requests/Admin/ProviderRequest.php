@@ -33,8 +33,37 @@ class ProviderRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'base_url' => [$needsUrl ? 'required' : 'nullable', 'url:https,http', 'max:2048'],
             'enabled' => ['required', 'boolean'],
-            // Write-only: never sent back to the browser.
-            'api_key' => ['nullable', 'string', 'min:8', 'max:512'],
+            // Write-only: never sent back to the browser. A new address needs
+            // the key again: the stored one must never go to another host.
+            'api_key' => [$this->movesStoredKey($provider) ? 'required' : 'nullable', 'string', 'min:8', 'max:512'],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return ['api_key.required' => __('admin.provider_key_for_new_url')];
+    }
+
+    /**
+     * The address changes while a key (stored, or from .env) would follow it.
+     */
+    private function movesStoredKey(?Provider $provider): bool
+    {
+        if ($provider === null) {
+            return false;
+        }
+
+        $url = $this->input('base_url');
+        $next = rtrim(is_string($url) && $url !== '' ? $url : $provider->driver->defaultBaseUrl(), '/');
+
+        if ($next === $provider->baseUrl()) {
+            return false;
+        }
+
+        return $provider->activeCredential()->exists()
+            || filled(config('ada.providers.env_keys.'.$provider->driver->value));
     }
 }

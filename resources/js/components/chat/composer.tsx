@@ -19,6 +19,8 @@ type Props = {
     onSubmit: () => void;
     onStop: () => void;
     streaming: boolean;
+    /** The previous answer is still being saved: typing works, sending waits. */
+    busy?: boolean;
     disabled?: boolean;
     /** Shown in the toolbar, e.g. the model selector. */
     toolbar?: ReactNode;
@@ -45,6 +47,7 @@ export default function Composer({
     onSubmit,
     onStop,
     streaming,
+    busy = false,
     disabled = false,
     toolbar,
     attachments,
@@ -56,6 +59,7 @@ export default function Composer({
     const [dragging, setDragging] = useState(false);
     const canSend =
         !streaming &&
+        !busy &&
         !disabled &&
         !attachments?.uploading &&
         (value.trim() !== '' || (attachments?.readyCount ?? 0) > 0);

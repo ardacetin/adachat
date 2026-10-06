@@ -112,6 +112,7 @@ final class MonthlyReport
                 'overshoots' => $this->statistics->overshoots($filters)['count'],
                 'users_at_limit' => DB::table('budget_periods')
                     ->where('period_start', $utcStart)
+                    ->where('limit_usd', '>', 0)
                     ->whereColumn('spent_usd', '>=', 'limit_usd')
                     ->count(),
                 // Today's cap against that month's spending.

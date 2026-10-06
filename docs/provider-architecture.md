@@ -131,7 +131,9 @@ supplies its payload, URLs, count body and event translation.
 | Connection check | `GET /models` | `GET /models` | `GET /models` | `GET /models` |
 
 The base URL is per provider row (`providers.base_url`), so regional
-endpoints or proxies can be configured without code changes. Gateways and
+endpoints or proxies can be configured without code changes. Changing it
+requires entering the API key again: a stored key (or the `.env` one) is
+never sent to a new address. Gateways and
 local servers that speak Chat Completions use the OpenAI-compatible driver
 (§9).
 

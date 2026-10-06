@@ -326,8 +326,11 @@ final class OfficeExtractor
 
         $xml = $zip->getFromName($part);
 
-        // No document type declarations: nothing to expand or fetch.
-        if (! is_string($xml) || stripos($xml, '<!DOCTYPE') !== false || stripos($xml, '<!ENTITY') !== false) {
+        // No document type declarations: nothing to expand or fetch. Office
+        // writes UTF-8; anything else (UTF-16, whose NUL bytes would hide a
+        // declaration from this check) is refused.
+        if (! is_string($xml) || ! mb_check_encoding($xml, 'UTF-8') || str_contains($xml, "\0")
+            || stripos($xml, '<!DOCTYPE') !== false || stripos($xml, '<!ENTITY') !== false) {
             throw new AttachmentRejected('unreadable_document');
         }
 

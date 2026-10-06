@@ -1,6 +1,8 @@
 <?php
 
 use App\Domain\Attachments\Enums\AttachmentKind;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\MessageAttachment;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
@@ -102,6 +104,20 @@ test('only the owner can see or remove an attachment', function () {
 
     expect(MessageAttachment::query()->count())->toBe(0);
     Storage::disk('local')->assertMissing($attachment->path);
+});
+
+test('files of a deleted conversation are no longer served', function () {
+    upload('a.png', pngBytes())->assertCreated();
+    $attachment = MessageAttachment::query()->sole();
+    $conversation = Conversation::factory()->for($this->user)->create();
+    $message = Message::query()->forceCreate(['conversation_id' => $conversation->id, 'role' => 'user', 'content' => 'Hi', 'status' => 'completed']);
+    $attachment->forceFill(['message_id' => $message->id])->save();
+
+    $this->get(route('attachments.show', $attachment))->assertOk();
+
+    $conversation->delete();
+
+    $this->get(route('attachments.show', $attachment))->assertNotFound();
 });
 
 test('guests cannot upload', function () {

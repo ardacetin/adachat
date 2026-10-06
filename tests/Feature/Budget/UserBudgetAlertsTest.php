@@ -8,6 +8,7 @@ use App\Mail\UserBudgetAlert;
 use App\Models\BudgetPeriod;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function () {
@@ -135,4 +136,22 @@ test('administrators turn budget e-mails off for the institution', function () {
         ->assertSessionHasNoErrors();
 
     expect(app(InstitutionSettings::class)->refresh()->user_budget_emails)->toBeFalse();
+});
+
+test('an alert that could not be sent is tried again', function () {
+    $period = spentOfTen($this->user, '10');
+
+    // An SMTP server nobody listens on.
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1', 'mail.mailers.smtp.port' => 1]);
+    Mail::swap(new MailManager(app()));
+
+    $this->artisan('ada:budget:user-alerts')->assertSuccessful();
+
+    expect($period->refresh()->alerted_100_at)->toBeNull()
+        ->and($period->alerted_80_at)->toBeNull();
+
+    Mail::fake();
+    $this->artisan('ada:budget:user-alerts')->assertSuccessful();
+
+    Mail::assertSent(UserBudgetAlert::class, fn (UserBudgetAlert $mail) => $mail->threshold === 100);
 });
