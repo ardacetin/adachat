@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AssistantController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuthSettingsController;
 use App\Http\Controllers\Admin\BudgetPolicyController;
+use App\Http\Controllers\Admin\ContentSettingsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeedbackReportController;
 use App\Http\Controllers\Admin\GroupController;
@@ -45,6 +46,9 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
         // POST (not PUT): the form carries file uploads.
         Route::post('institution', [InstitutionSettingsController::class, 'update'])->name('institution.update');
         Route::post('institution/test-mail', [InstitutionSettingsController::class, 'testMail'])->name('institution.test-mail');
+
+        Route::get('texts', [ContentSettingsController::class, 'edit'])->name('texts.edit');
+        Route::put('texts', [ContentSettingsController::class, 'update'])->name('texts.update');
 
         Route::get('authentication', [AuthSettingsController::class, 'edit'])->name('authentication.edit');
         Route::put('authentication', [AuthSettingsController::class, 'update'])->name('authentication.update');

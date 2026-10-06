@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   institution's name and logo, what Ada offers (models, budget, privacy)
   and a sign-in button; signed-in users still land in the chat. Sign-in
   itself stays on `/login`.
+- Admin → Texts: super administrators reword the landing page and the
+  invitation e-mail in each language. Empty fields keep Ada's defaults,
+  shown greyed; `:app`, `:institution` (and `:name`, `:email` in the
+  e-mail) are filled in. Audited as `content.texts_updated`.
 
 ### Fixed
 
