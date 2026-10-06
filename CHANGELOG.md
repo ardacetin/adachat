@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Landing page. Guests who open Ada see a short public page: the
+  institution's name and logo, what Ada offers (models, budget, privacy)
+  and a sign-in button; signed-in users still land in the chat. Sign-in
+  itself stays on `/login`.
+
 ### Fixed
 
 - Invitation e-mails were not sent when the "Add users" form did not

@@ -38,6 +38,11 @@ async function expectNoViolations(page: Page, name: string): Promise<void> {
     expect(serious).toEqual([]);
 }
 
+test('the landing page is accessible', async ({ page }) => {
+    await page.goto('/');
+    await expectNoViolations(page, 'landing');
+});
+
 test('the sign-in page is accessible', async ({ page }) => {
     await page.goto('/login');
     await expectNoViolations(page, 'login');

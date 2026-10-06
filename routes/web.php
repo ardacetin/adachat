@@ -14,6 +14,7 @@ use App\Http\Controllers\Chat\ConversationShareController;
 use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\Chat\MessageFeedbackController;
 use App\Http\Controllers\Chat\SearchController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,9 @@ Route::middleware('guest')->group(function () {
     }
 });
 
+// The chat for signed-in users, the landing page for everyone else.
+Route::get('/', HomeController::class)->middleware('throttle:app')->name('home');
+
 Route::middleware(['auth', 'throttle:app'])->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -62,7 +66,6 @@ Route::middleware(['auth', 'throttle:app'])->group(function () {
         ->middleware('throttle:10,1,acknowledgment:')
         ->name('acknowledgment.store');
 
-    Route::get('/', [ConversationController::class, 'index'])->name('home');
     Route::get('usage', [UsageController::class, 'show'])->name('usage');
     Route::get('c/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::patch('c/{conversation}', [ConversationController::class, 'update'])->name('conversations.update');

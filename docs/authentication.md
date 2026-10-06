@@ -17,6 +17,10 @@ added as an adapter.
 > and secret). The institution chose a Google Workspace SAML app instead; the
 > OAuth adapter and `laravel/socialite` were removed.
 
+Guests who open `/` see a public landing page (institution branding, three
+feature cards, a sign-in button) and no data; every other page sends them
+to `/login`, which lists the enabled identity providers.
+
 ## 1. V1 flow (SP-initiated SAML, Google Workspace)
 
 ```
