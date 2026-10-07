@@ -15,6 +15,7 @@ use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\Chat\MessageFeedbackController;
 use App\Http\Controllers\Chat\SearchController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,11 @@ Route::middleware('guest')->group(function () {
             ->name('dev-login');
     }
 });
+
+// The language switch on the landing and sign-in pages (also for guests).
+Route::post('locale', LocaleController::class)
+    ->middleware('throttle:30,1,locale:')
+    ->name('locale.update');
 
 // The chat for signed-in users, the landing page for everyone else.
 Route::get('/', HomeController::class)->middleware('throttle:app')->name('home');

@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A language switch on the landing and sign-in pages. A visitor's choice is
+  kept in a cookie (`ada_locale`) and wins over the institution's default
+  language; a signed-in user's choice is saved as their preference.
+
 ### Changed
 
 - Administrators manage only users with the `user` role. Other
   administrators, like super administrators, are managed by super
   administrators: status, group, budget and invitations, and groups with an
   administrator in them.
+- `shell-quote` (used by the `concurrently` dev script runner) is raised to
+  1.11+ for GHSA-pqg4-j6r4-53mv, a critical advisory published on
+  2026-10-06; it is not part of the built application.
 - CI fails on moderate npm advisories as well. `postcss-selector-parser`
   (used by the Tailwind typography plugin at build time) is raised to 7.1.6
   for GHSA-rj75-hqrm-r3gf; the built CSS is unchanged.
