@@ -112,6 +112,7 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
             'idp_entity_id' => is_string($this->config['idp_entity_id'] ?? null) ? $this->config['idp_entity_id'] : null,
             'idp_sso_url' => is_string($this->config['idp_sso_url'] ?? null) ? $this->config['idp_sso_url'] : null,
             'certificate' => $this->certificateDetails(),
+            'groups_attribute' => $this->groupsAttribute(),
         ];
     }
 
@@ -263,7 +264,18 @@ final class SamlIdentityProvider implements RedirectIdentityProvider
                 'name_id_format' => $response->getNameIdFormat(),
             ],
             previousSubject: $previousSubject,
+            groups: $this->groupsAttribute() === null ? null : ExternalIdentity::groupValues($attributes[$this->groupsAttribute()] ?? []),
         );
+    }
+
+    /**
+     * The multi-valued attribute holding the person's groups, if one is configured.
+     */
+    public function groupsAttribute(): ?string
+    {
+        $name = $this->config['attributes']['groups'] ?? null;
+
+        return is_string($name) && trim($name) !== '' ? trim($name) : null;
     }
 
     /**

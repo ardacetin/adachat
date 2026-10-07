@@ -128,6 +128,7 @@ final class OidcIdentityProvider implements RedirectIdentityProvider
             'client_id' => $clientId !== '' ? Str::mask($clientId, '•', 8) : null,
             'redirect_uri' => $this->redirectUri(),
             'scopes' => implode(' ', $this->scopes()),
+            'groups_claim' => $this->groupsClaim(),
         ];
     }
 
@@ -337,7 +338,43 @@ final class OidcIdentityProvider implements RedirectIdentityProvider
                 'tid' => is_string($claims['tid'] ?? null) ? $claims['tid'] : null,
                 'email_verified' => $verified,
             ], fn (mixed $value): bool => $value !== null),
+            groups: $this->groups($claims),
         );
+    }
+
+    /**
+     * The ID token claim holding the person's groups, if one is configured.
+     */
+    public function groupsClaim(): ?string
+    {
+        $name = $this->config['groups_claim'] ?? null;
+
+        return is_string($name) && trim($name) !== '' ? trim($name) : null;
+    }
+
+    /**
+     * A configured claim that is missing means no groups, except when Entra
+     * ID leaves the groups out because there are too many ("overage",
+     * signalled in _claim_names): then they are unknown and nothing changes.
+     *
+     * @param  array<string, mixed>  $claims
+     * @return list<string>|null
+     */
+    private function groups(array $claims): ?array
+    {
+        $claim = $this->groupsClaim();
+
+        if ($claim === null) {
+            return null;
+        }
+
+        if (! array_key_exists($claim, $claims) && is_array($claims['_claim_names'] ?? null) && array_key_exists($claim, $claims['_claim_names'])) {
+            Log::warning('OIDC ID token left the groups out (too many groups); group mapping skipped.', ['claim' => $claim]);
+
+            return null;
+        }
+
+        return ExternalIdentity::groupValues($claims[$claim] ?? []);
     }
 
     /**

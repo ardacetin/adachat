@@ -6,6 +6,17 @@ return [
     'web_search_unavailable' => 'Web search is not available with this model.',
     'alias_not_allowed' => 'This model is not available to you.',
 
+    'personal_data' => [
+        'warn' => 'Your message seems to contain personal data (:kinds). Check that it is needed before you send it.',
+        'block' => 'Messages with personal data (:kinds) cannot be sent here. Remove it and try again.',
+        'kinds' => [
+            'tckn' => 'Turkish identity number',
+            'iban' => 'IBAN',
+            'card' => 'card number',
+            'phone' => 'phone number',
+            'email' => 'e-mail address',
+        ],
+    ],
     'attachments' => [
         'unsupported_type' => 'This file type is not supported. Attach images (PNG, JPEG, WebP, GIF), PDF, Word, Excel or PowerPoint files (.docx, .xlsx, .pptx), or text and code files.',
         'unreadable_document' => 'The document could not be read. It may be damaged or password-protected.',

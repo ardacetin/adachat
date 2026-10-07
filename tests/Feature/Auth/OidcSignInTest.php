@@ -2,6 +2,7 @@
 
 use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Institution\Settings\AuthSettings;
+use App\Models\Group;
 use App\Models\User;
 use App\Models\UserIdentity;
 use Illuminate\Http\Client\Request;
@@ -327,6 +328,26 @@ test('generic: the e-mail must be verified', function (?bool $verified, bool $si
     'not verified' => [false, false],
     'claim missing' => [null, false],
 ]);
+
+test('the groups claim maps the user to a group', function () {
+    config(['ada.auth.oidc.groups_claim' => 'groups']);
+    updateSettings(AuthSettings::class, ['group_mapping' => true, 'group_mapping_unmatched' => 'default']);
+    $staff = Group::factory()->create(['idp_groups' => ['3f1c0d4e-0000-4000-8000-000000000001']]);
+
+    oidcCallback(startOidcSignIn(), ['groups' => ['3f1c0d4e-0000-4000-8000-000000000001']])->assertRedirect(route('home'));
+    $user = User::query()->sole();
+    expect($user->group_id)->toBe($staff->id);
+    auth()->logout();
+
+    // Entra ID leaves the groups out when there are too many: nothing changes.
+    oidcCallback(startOidcSignIn(), ['_claim_names' => ['groups' => 'src1']])->assertRedirect(route('home'));
+    expect($user->refresh()->group_id)->toBe($staff->id);
+    auth()->logout();
+
+    // A token without the claim means no groups.
+    oidcCallback(startOidcSignIn())->assertRedirect(route('home'));
+    expect($user->refresh()->group_id)->toBe(Group::default()->id);
+});
 
 test('the e-mail domain policy still applies', function () {
     oidcCallback(startOidcSignIn(), ['preferred_username' => 'someone@other.edu'])

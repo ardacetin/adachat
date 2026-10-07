@@ -221,6 +221,16 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   answers (text and sources) and say why. `ada:doctor` warns while a
   Gemini alias allows search and conversation retention is unset or over
   730 days.
+- **Personal data protection (2.0)** checks a new message and its
+  attachment text for personal data before anything is stored or sent
+  (Admin → Personal data, off by default): warned kinds need the user's
+  confirmation, blocked kinds are refused, masked values are replaced with
+  placeholders in the whole request and put back in the streamed answer.
+  The placeholder mapping exists only in memory for one request. Refusals
+  and the note under a message name kinds and counts, never values; the
+  values are not logged. Institution patterns run with a low PCRE
+  backtracking limit (no ReDoS). Detection is pattern based and does not
+  cover images ([personal-data.md](personal-data.md)).
 
 ## 10. Audit logging
 

@@ -12,6 +12,8 @@ export type ChatMessage = {
     sources?: Source[];
     /** Google's Search Suggestions (HTML) for an answer grounded in Google Search. */
     search_suggestions?: string | null;
+    /** Personal data replaced before the message reached the model. */
+    personal_data_masked?: { kind: string; count: number }[];
     /** The user's own vote on an answer. */
     feedback?: MessageFeedback | null;
     /** Searches the provider runs while the answer streams. */
@@ -93,6 +95,8 @@ export type ErrorEvent = {
     assistant_message_id?: string;
     /** A validation message from the server, already translated. */
     message?: string;
+    /** The message holds personal data the institution warns about or blocks. */
+    personal_data?: { action: 'warn' | 'block'; kinds: string[] };
 };
 
 export type AssistantSummary = {

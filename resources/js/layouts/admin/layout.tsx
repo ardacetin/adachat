@@ -18,6 +18,7 @@ import { index as groups } from '@/routes/admin/groups';
 import { index as feedback } from '@/routes/admin/feedback';
 import { edit as editInstitution } from '@/routes/admin/institution';
 import { index as models } from '@/routes/admin/models';
+import { edit as editPersonalData } from '@/routes/admin/personal-data';
 import { edit as editPrivacy } from '@/routes/admin/privacy';
 import { edit as editTexts } from '@/routes/admin/texts';
 import { index as providers } from '@/routes/admin/providers';
@@ -55,6 +56,10 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                   {
                       titleKey: 'admin:nav.privacy',
                       href: editPrivacy(),
+                  } satisfies NavItem,
+                  {
+                      titleKey: 'admin:nav.personalData',
+                      href: editPersonalData(),
                   } satisfies NavItem,
                   {
                       titleKey: 'admin:nav.providers',

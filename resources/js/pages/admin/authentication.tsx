@@ -8,6 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { edit, oidcTest, update } from '@/routes/admin/authentication';
 
@@ -15,7 +22,10 @@ type Props = {
     settings: {
         allowed_domains: string[];
         auto_provision: boolean;
+        group_mapping: boolean;
+        group_mapping_unmatched: Unmatched;
     };
+    mapped_groups: number;
     saml: {
         acs_url: string;
         entity_id: string;
@@ -25,6 +35,7 @@ type Props = {
         idp_entity_id: string | null;
         idp_sso_url: string | null;
         certificate: { fingerprint: string; expires_at: string | null } | null;
+        groups_attribute: string | null;
     };
     oidc: {
         enabled: boolean;
@@ -35,17 +46,41 @@ type Props = {
         client_id: string | null;
         redirect_uri: string;
         scopes: string;
+        groups_claim: string | null;
     };
 };
 
-export default function Authentication({ settings, saml, oidc }: Props) {
+type Unmatched = 'keep' | 'default' | 'reject';
+
+const UNMATCHED: Unmatched[] = ['keep', 'default', 'reject'];
+
+export default function Authentication({
+    settings,
+    mapped_groups,
+    saml,
+    oidc,
+}: Props) {
     const { t } = useTranslation('admin');
     const { t: tCommon } = useTranslation('common');
 
     const form = useForm({
         allowed_domains: settings.allowed_domains.join('\n'),
         auto_provision: settings.auto_provision,
+        group_mapping: settings.group_mapping,
+        group_mapping_unmatched: settings.group_mapping_unmatched,
     });
+
+    // Where the identity providers send the groups, if set up on the server.
+    const groupSources = [
+        saml.groups_attribute &&
+            t('authentication.groupMapping.samlSource', {
+                name: saml.groups_attribute,
+            }),
+        oidc.groups_claim &&
+            t('authentication.groupMapping.oidcSource', {
+                name: oidc.groups_claim,
+            }),
+    ].filter((source): source is string => Boolean(source));
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -110,6 +145,84 @@ export default function Authentication({ settings, saml, oidc }: Props) {
                         {t('authentication.autoProvisionHelp')}
                     </p>
                 </div>
+
+                <section className="space-y-4" data-test="group-mapping">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-medium">
+                            {t('authentication.groupMapping.title')}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            {t('authentication.groupMapping.description')}
+                        </p>
+                    </div>
+
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="group_mapping"
+                                checked={form.data.group_mapping}
+                                aria-describedby="group_mapping-help"
+                                onCheckedChange={(checked) =>
+                                    form.setData(
+                                        'group_mapping',
+                                        checked === true,
+                                    )
+                                }
+                            />
+                            <Label htmlFor="group_mapping">
+                                {t('authentication.groupMapping.enabled')}
+                            </Label>
+                        </div>
+                        <p
+                            id="group_mapping-help"
+                            className="text-xs text-muted-foreground"
+                        >
+                            {groupSources.length > 0
+                                ? t('authentication.groupMapping.sources', {
+                                      sources: groupSources.join(', '),
+                                      groups: mapped_groups,
+                                  })
+                                : t('authentication.groupMapping.noSource')}
+                        </p>
+                    </div>
+
+                    <FormField
+                        id="group_mapping_unmatched"
+                        label={t('authentication.groupMapping.unmatched')}
+                        help={t(
+                            `authentication.groupMapping.unmatchedHelp.${form.data.group_mapping_unmatched}`,
+                        )}
+                        error={form.errors.group_mapping_unmatched}
+                    >
+                        <Select
+                            value={form.data.group_mapping_unmatched}
+                            disabled={!form.data.group_mapping}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'group_mapping_unmatched',
+                                    value as Unmatched,
+                                )
+                            }
+                        >
+                            <SelectTrigger
+                                id="group_mapping_unmatched"
+                                className="w-full sm:w-80"
+                                aria-describedby="group_mapping_unmatched-help"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {UNMATCHED.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                        {t(
+                                            `authentication.groupMapping.unmatchedOption.${option}`,
+                                        )}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </FormField>
+                </section>
 
                 <section className="space-y-4">
                     <div className="space-y-1">

@@ -47,3 +47,12 @@ test('in production the doctor warns about a log file that never rotates', funct
 
     $this->artisan('ada:doctor')->doesntExpectOutputToContain('Set LOG_CHANNEL=json');
 });
+
+test('the doctor warns while group mapping has nothing to work with', function () {
+    updateSettings(AuthSettings::class, ['group_mapping' => true]);
+
+    $this->artisan('ada:doctor')
+        ->expectsOutputToContain('Group mapping: the identity provider sends groups')
+        ->expectsOutputToContain('SAML_ATTRIBUTE_GROUPS or OIDC_GROUPS_CLAIM')
+        ->expectsOutputToContain('Admin > Groups: enter the identity provider groups');
+});

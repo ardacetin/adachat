@@ -9,6 +9,8 @@ use App\Domain\Attachments\Enums\AttachmentKind;
 use App\Domain\Conversations\Data\ChatStreamEvent;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Services\ChatGenerationService;
+use App\Domain\PersonalData\PersonalDataCheck;
+use App\Domain\PersonalData\PersonalDataLabels;
 use App\Http\Controllers\Controller;
 use App\Models\Assistant;
 use App\Models\Conversation;
@@ -18,6 +20,7 @@ use App\Models\ModelAlias;
 use App\Models\User;
 use Generator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -36,6 +39,7 @@ class MessageController extends Controller
         private readonly ChatGenerationService $chat,
         private readonly AliasAccess $aliases,
         private readonly AssistantAccess $assistants,
+        private readonly PersonalDataCheck $personalData,
     ) {}
 
     public function store(Request $request): StreamedResponse
@@ -50,6 +54,8 @@ class MessageController extends Controller
             'attachment_ids' => ['nullable', 'array', 'max:'.(int) config('ada.attachments.max_per_message')],
             'attachment_ids.*' => ['uuid', 'distinct'],
             'web_search' => ['sometimes', 'boolean'],
+            // The user saw the personal data warning and sends anyway.
+            'personal_data_confirmed' => ['sometimes', 'boolean'],
         ], [
             'attachment_ids.max' => __('chat.attachments.too_many', ['max' => (int) config('ada.attachments.max_per_message')]),
         ]);
@@ -75,6 +81,8 @@ class MessageController extends Controller
         if ($content === '' && $attachments->isEmpty()) {
             throw ValidationException::withMessages(['content' => __('validation.required', ['attribute' => 'content'])]);
         }
+
+        $this->checkPersonalData($content, $attachments, $request->boolean('personal_data_confirmed'));
 
         $webSearch = $this->webSearch($alias, $request->boolean('web_search'), $assistant);
 
@@ -107,6 +115,32 @@ class MessageController extends Controller
         }
 
         return response()->noContent();
+    }
+
+    /**
+     * A message with personal data the institution blocks, or warns about
+     * without the user's confirmation, is refused before anything is
+     * stored or sent. The response names the kinds, never the values.
+     *
+     * @param  EloquentCollection<int, MessageAttachment>  $attachments
+     */
+    private function checkPersonalData(string $content, EloquentCollection $attachments, bool $confirmed): void
+    {
+        $text = $attachments->reduce(fn (string $text, MessageAttachment $file): string => $text."\n".$file->extracted_text, $content);
+        $refusal = $this->personalData->refusal($text, $confirmed);
+
+        if ($refusal === null) {
+            return;
+        }
+
+        $kinds = implode(', ', array_map(PersonalDataLabels::label(...), $refusal['kinds']));
+        $message = __('chat.personal_data.'.$refusal['action'], ['kinds' => $kinds]);
+
+        throw new HttpResponseException(response()->json([
+            'message' => $message,
+            'errors' => ['content' => [$message]],
+            'personal_data' => $refusal,
+        ], 422));
     }
 
     /**

@@ -15,4 +15,5 @@ enum RejectionReason: string
     case NotProvisioned = 'not_provisioned';
     case AccountDisabled = 'account_disabled';
     case AccountConflict = 'account_conflict';
+    case NoMappedGroup = 'no_mapped_group';
 }

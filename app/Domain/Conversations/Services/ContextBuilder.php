@@ -44,10 +44,11 @@ final class ContextBuilder
      * @param  Collection<int, Message>  $history  oldest first, ending with the new user message
      * @param  string|null  $instructions  an assistant's instructions (and documents)
      * @param  bool  $cacheInstructions  the instructions are long and the same every time
+     * @param  bool  $documentsAsText  send PDFs as their text, e.g. so personal data in them can be masked
      *
      * @throws ContextLengthExceeded when even the newest message alone does not fit
      */
-    public function build(ModelAlias $alias, Collection $history, ?string $instructions = null, bool $cacheInstructions = false): ChatRequest
+    public function build(ModelAlias $alias, Collection $history, ?string $instructions = null, bool $cacheInstructions = false, bool $documentsAsText = false): ChatRequest
     {
         $systemPrompt = self::systemPrompt($alias, $instructions);
         $model = $alias->aiModel;
@@ -59,7 +60,7 @@ final class ContextBuilder
         $messages = [];
         $used = 0;
         $bytesLeft = (int) (config('ada.attachments.max_request_mb') * 1024 * 1024);
-        $nativePdf = $model->supports_files && $model->provider->driver->sendsDocuments();
+        $nativePdf = ! $documentsAsText && $model->supports_files && $model->provider->driver->sendsDocuments();
 
         foreach ($history->reverse() as $message) {
             if (! self::usable($message)) {

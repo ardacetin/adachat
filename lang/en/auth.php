@@ -21,6 +21,7 @@ return [
         'account_disabled' => 'Your account has been disabled. Please contact your administrator.',
         'session_expired' => 'Your session has ended. Please sign in again.',
         'account_conflict' => 'Your account could not be linked. Please contact your administrator.',
+        'no_mapped_group' => 'Your account is not in a group that may use this service. Please contact your administrator.',
     ],
 
 ];

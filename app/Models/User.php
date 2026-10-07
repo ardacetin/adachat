@@ -27,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $avatar_url
  * @property UserRole $role
  * @property int $group_id
+ * @property bool $group_pinned Set by hand while group mapping was on; mapping leaves it.
  * @property Usd|null $monthly_limit_override_usd Individual limit; null → the group's policy.
  * @property string|null $locale
  * @property Appearance $appearance
@@ -64,6 +65,7 @@ class User extends Authenticatable
         'budget_emails' => true,
         'status' => 'active',
         'monthly_limit_override_usd' => null,
+        'group_pinned' => false,
     ];
 
     /**
@@ -77,6 +79,7 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'appearance' => Appearance::class,
             'budget_emails' => 'boolean',
+            'group_pinned' => 'boolean',
             'status' => UserStatus::class,
             'monthly_limit_override_usd' => UsdCast::class,
             'disabled_at' => 'datetime',

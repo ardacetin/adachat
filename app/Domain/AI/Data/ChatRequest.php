@@ -44,6 +44,14 @@ final readonly class ChatRequest
         return new self($this->model, $this->messages, $maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt, $this->webSearchMaxUses);
     }
 
+    /**
+     * @param  list<ChatMessage>  $messages
+     */
+    public function withMessages(array $messages, ?string $systemPrompt): self
+    {
+        return new self($this->model, $messages, $this->maxOutputTokens, $systemPrompt, $this->temperature, $this->cacheSystemPrompt, $this->webSearchMaxUses);
+    }
+
     public function withWebSearch(?int $maxUses): self
     {
         return new self($this->model, $this->messages, $this->maxOutputTokens, $this->systemPrompt, $this->temperature, $this->cacheSystemPrompt, $maxUses);

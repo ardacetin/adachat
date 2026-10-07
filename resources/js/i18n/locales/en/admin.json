@@ -16,7 +16,8 @@
         "reports": "Reports",
         "privacy": "Privacy",
         "assistants": "Assistants",
-        "feedback": "Satisfaction"
+        "feedback": "Satisfaction",
+        "personalData": "Personal data"
     },
     "index": {
         "intro": "This month at a glance."
@@ -103,6 +104,26 @@
             "clientId": "Client ID",
             "scopes": "Scopes",
             "test": "Test connection"
+        },
+        "groupMapping": {
+            "title": "Group mapping",
+            "description": "Put each user in a group from the groups your identity provider sends at sign-in. List the provider's groups in each Ada group (Administration → Groups).",
+            "enabled": "Set users' groups from the identity provider",
+            "sources": "Groups are read from {{sources}}. {{groups}} Ada groups have identity provider groups.",
+            "noSource": "The identity provider sends no groups yet: set SAML_ATTRIBUTE_GROUPS or OIDC_GROUPS_CLAIM on the server (see the authentication guide).",
+            "samlSource": "the SAML attribute “{{name}}”",
+            "oidcSource": "the OIDC claim “{{name}}”",
+            "unmatched": "Users in none of the mapped groups",
+            "unmatchedOption": {
+                "keep": "Keep their current group",
+                "default": "Move them to the default group",
+                "reject": "Do not let them sign in"
+            },
+            "unmatchedHelp": {
+                "keep": "New users start in the default group; others stay where they are.",
+                "default": "Users leave the group they were mapped to once they are no longer in its identity provider group.",
+                "reject": "Only people in a mapped group can sign in. Administrators and users whose group was set by hand can always sign in."
+            }
         }
     },
     "common": {
@@ -288,7 +309,12 @@
         "applyToCurrentPeriodHelp": "Otherwise members keep this month’s limit and get the new one next month. Individual budgets are not affected.",
         "deleteTitle": "Delete group?",
         "deleteConfirm": "The group “{{name}}” will be removed. Only groups without members can be deleted.",
-        "reserved": "Only a super administrator can change this group: it includes an administrator."
+        "reserved": "Only a super administrator can change this group: it includes an administrator.",
+        "idpGroups": "Identity provider groups",
+        "idpGroupsHelp": "One per line: the group names or IDs your identity provider sends (Entra ID: group object IDs). Members of these groups are put in this group when they sign in, while group mapping is on. A user's last values are shown on their page.",
+        "idpPriority": "Mapping priority",
+        "idpPriorityHelp": "When a person is in the identity provider groups of several Ada groups, the lowest number wins.",
+        "mapped": "Mapped"
     },
     "budgetPolicies": {
         "title": "Budget policies",
@@ -382,7 +408,12 @@
         "accessChange": "Change in Sign-in settings",
         "actionsFor": "Actions for {{name}}",
         "disableTitle": "Disable {{name}}?",
-        "actionFailed": "The change could not be saved."
+        "actionFailed": "The change could not be saved.",
+        "groupPinned": "Set by hand: sign-ins keep this group.",
+        "groupMapped": "Set from the identity provider at each sign-in.",
+        "pinGroup": "Keep this group at later sign-ins",
+        "idpGroupsSeen": "Groups sent at the last sign-in",
+        "idpGroupsNone": "none"
     },
     "auditLog": {
         "title": "Audit log",
@@ -600,5 +631,49 @@
                 "button": "Button"
             }
         }
+    },
+    "personalData": {
+        "title": "Personal data",
+        "description": "What happens to personal data in messages before they are sent to an AI provider. Applies to what users write and to the text of their attachments; images are not checked.",
+        "actions": {
+            "off": "Off",
+            "warn": "Warn",
+            "mask": "Mask",
+            "block": "Block"
+        },
+        "actionHelp": {
+            "warn": "the user is told and can edit the message or send it anyway.",
+            "mask": "the value is replaced with a placeholder such as [TCKN_1] before it is sent, and put back in the answer the user sees. PDFs are then sent as text.",
+            "block": "the message is not sent."
+        },
+        "builtIn": "Built-in checks",
+        "kinds": {
+            "tckn": "Turkish identity number",
+            "iban": "IBAN",
+            "card": "Card number",
+            "phone": "Phone number",
+            "email": "E-mail address"
+        },
+        "kindHelp": {
+            "tckn": "11 digits with valid check digits.",
+            "iban": "Any country, with a valid check number; groups of four allowed.",
+            "card": "13–19 digits that pass the Luhn check.",
+            "phone": "Turkish mobile and landline numbers, with or without +90 or 0.",
+            "email": "Addresses such as name@example.edu."
+        },
+        "patterns": "Institution patterns",
+        "patternsHelp": "Regular expressions for data of your own, such as student numbers (example: \\b20\\d{7}\\b). Up to 20; patterns that take too long find nothing.",
+        "patternName": "Name",
+        "pattern": "Pattern",
+        "patternAction": "Action for {{name}}",
+        "removePattern": "Remove pattern",
+        "addPattern": "Add pattern",
+        "test": "Try it",
+        "testHelp": "Checks a sample text with the rules above, saved or not. Nothing is stored.",
+        "runTest": "Check",
+        "testFailed": "The rules could not be checked.",
+        "nothingFound": "Nothing found.",
+        "sent": "What the provider would receive:",
+        "patternPlaceholder": "\\b20\\d{7}\\b"
     }
 }

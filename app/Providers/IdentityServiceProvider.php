@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Domain\Audit\AuditLogger;
+use App\Domain\Budget\Services\CurrentLimits;
 use App\Domain\Identity\Actions\LoginUser;
 use App\Domain\Identity\Oidc\IdTokenVerifier;
 use App\Domain\Identity\Oidc\OidcDiscovery;
 use App\Domain\Identity\Providers\OidcIdentityProvider;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\AllowedDomainPolicy;
+use App\Domain\Identity\Services\GroupMapping;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Models\User;
@@ -51,9 +54,17 @@ class IdentityServiceProvider extends ServiceProvider
             $app->make(OidcIdentityProvider::class),
         ]));
 
+        $this->app->bind(GroupMapping::class, fn (Application $app): GroupMapping => new GroupMapping(
+            $app->make(AuthSettings::class)->group_mapping,
+            $app->make(AuthSettings::class)->group_mapping_unmatched,
+        ));
+
         $this->app->bind(LoginUser::class, fn (Application $app): LoginUser => new LoginUser(
             $app->make(AllowedDomainPolicy::class),
             $app->make(AuthSettings::class)->auto_provision,
+            $app->make(GroupMapping::class),
+            $app->make(AuditLogger::class),
+            $app->make(CurrentLimits::class),
         ));
     }
 

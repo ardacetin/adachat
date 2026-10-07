@@ -79,6 +79,8 @@ test('administration screens are accessible', async ({ page }) => {
         '/admin/groups',
         '/admin/audit-log',
         '/admin/privacy',
+        '/admin/personal-data',
+        '/admin/authentication',
         '/admin/institution',
         '/admin/texts',
         '/admin/assistants',

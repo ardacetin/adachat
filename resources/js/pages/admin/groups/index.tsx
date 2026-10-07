@@ -24,6 +24,7 @@ type GroupRow = {
     max_concurrent_streams: number;
     users_count: number;
     aliases_count: number;
+    idp_groups_count: number;
 };
 
 export default function GroupsIndex({ groups }: { groups: GroupRow[] }) {
@@ -76,6 +77,11 @@ export default function GroupsIndex({ groups }: { groups: GroupRow[] }) {
                                     {group.is_default && (
                                         <Badge variant="secondary">
                                             {t('groups.default')}
+                                        </Badge>
+                                    )}{' '}
+                                    {group.idp_groups_count > 0 && (
+                                        <Badge variant="outline">
+                                            {t('groups.mapped')}
                                         </Badge>
                                     )}
                                 </TableCell>

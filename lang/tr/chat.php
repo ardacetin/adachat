@@ -6,6 +6,17 @@ return [
     'web_search_unavailable' => 'Bu modelle web araması kullanılamıyor.',
     'alias_not_allowed' => 'Bu model sizin kullanımınıza açık değil.',
 
+    'personal_data' => [
+        'warn' => 'Mesajınızda kişisel veri var gibi görünüyor (:kinds). Göndermeden önce gerekli olduğundan emin olun.',
+        'block' => 'Kişisel veri (:kinds) içeren mesajlar burada gönderilemez. Bunları çıkarıp yeniden deneyin.',
+        'kinds' => [
+            'tckn' => 'T.C. kimlik numarası',
+            'iban' => 'IBAN',
+            'card' => 'kart numarası',
+            'phone' => 'telefon numarası',
+            'email' => 'e-posta adresi',
+        ],
+    ],
     'attachments' => [
         'unsupported_type' => 'Bu dosya türü desteklenmiyor. Görsel (PNG, JPEG, WebP, GIF), PDF, Word, Excel ya da PowerPoint (.docx, .xlsx, .pptx) veya metin ve kod dosyası ekleyebilirsiniz.',
         'unreadable_document' => 'Belge okunamadı. Bozuk ya da parola korumalı olabilir.',

@@ -4,6 +4,7 @@ import CheckboxField from '@/components/admin/checkbox-field';
 import DeleteButton from '@/components/admin/delete-button';
 import FormField from '@/components/admin/form-field';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,8 @@ type Group = {
     requests_per_minute: number;
     max_concurrent_streams: number;
     alias_ids: number[];
+    idp_groups: string[] | null;
+    idp_priority: number;
 };
 
 type Props = {
@@ -53,10 +56,18 @@ export default function GroupForm({ group, policies, aliases }: Props) {
         requests_per_minute: String(group?.requests_per_minute ?? 20),
         max_concurrent_streams: String(group?.max_concurrent_streams ?? 2),
         alias_ids: group?.alias_ids ?? [],
+        idp_groups: (group?.idp_groups ?? []).join('\n'),
+        idp_priority: String(group?.idp_priority ?? 100),
         apply_to_current_period: true,
     });
 
     const errors = form.errors as Record<string, string | undefined>;
+
+    // Errors arrive per value (idp_groups.0, …) or for the whole list.
+    const idpErrors = Object.entries(errors)
+        .filter(([key]) => key.startsWith('idp_groups'))
+        .map(([, message]) => message)
+        .filter((message): message is string => Boolean(message));
 
     const toggleAlias = (id: number, checked: boolean) =>
         form.setData(
@@ -227,6 +238,49 @@ export default function GroupForm({ group, policies, aliases }: Props) {
                                 )
                             }
                             required
+                        />
+                    </FormField>
+                </div>
+
+                <Separator />
+
+                <div className="grid gap-4 sm:grid-cols-[1fr_12rem]">
+                    <FormField
+                        id="idp_groups"
+                        label={t('groups.idpGroups')}
+                        help={t('groups.idpGroupsHelp')}
+                    >
+                        <Textarea
+                            id="idp_groups"
+                            rows={3}
+                            className="font-mono"
+                            value={form.data.idp_groups}
+                            aria-describedby="idp_groups-help"
+                            aria-invalid={idpErrors.length > 0}
+                            onChange={(event) =>
+                                form.setData('idp_groups', event.target.value)
+                            }
+                        />
+                        {idpErrors.map((message) => (
+                            <InputError key={message} message={message} />
+                        ))}
+                    </FormField>
+                    <FormField
+                        id="idp_priority"
+                        label={t('groups.idpPriority')}
+                        help={t('groups.idpPriorityHelp')}
+                        error={form.errors.idp_priority}
+                    >
+                        <Input
+                            id="idp_priority"
+                            type="number"
+                            min={1}
+                            max={1000}
+                            value={form.data.idp_priority}
+                            aria-describedby="idp_priority-help"
+                            onChange={(event) =>
+                                form.setData('idp_priority', event.target.value)
+                            }
                         />
                     </FormField>
                 </div>

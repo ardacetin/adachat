@@ -17,7 +17,7 @@ use Inertia\Response;
 
 class GroupController extends Controller
 {
-    private const FIELDS = ['name', 'description', 'budget_policy_id', 'requests_per_minute', 'max_concurrent_streams'];
+    private const FIELDS = ['name', 'description', 'budget_policy_id', 'requests_per_minute', 'max_concurrent_streams', 'idp_groups', 'idp_priority'];
 
     public function index(): Response
     {
@@ -37,6 +37,7 @@ class GroupController extends Controller
                 'max_concurrent_streams' => $group->max_concurrent_streams,
                 'users_count' => (int) $group->users_count,
                 'aliases_count' => (int) $group->model_aliases_count,
+                'idp_groups_count' => count($group->idp_groups ?? []),
             ]);
 
         return Inertia::render('admin/groups/index', ['groups' => $groups]);
@@ -54,7 +55,7 @@ class GroupController extends Controller
 
     public function store(GroupRequest $request, AuditLogger $audit): RedirectResponse
     {
-        $group = Group::query()->create($request->safe()->only(self::FIELDS));
+        $group = Group::query()->create($this->fields($request));
         $group->modelAliases()->sync($this->aliasIds($request));
 
         $audit->record('group.created', $group, [], $this->audited($group));
@@ -66,7 +67,7 @@ class GroupController extends Controller
     {
         $before = $this->audited($group);
 
-        $group->fill($request->safe()->only(self::FIELDS))->save();
+        $group->fill($this->fields($request))->save();
         $group->modelAliases()->sync($this->aliasIds($request));
 
         [$old, $new] = AuditLogger::diff($before, $this->audited($group->refresh()));
@@ -95,6 +96,20 @@ class GroupController extends Controller
         $group->delete();
 
         return $this->saved();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function fields(GroupRequest $request): array
+    {
+        $fields = $request->safe()->only(self::FIELDS);
+
+        if (array_key_exists('idp_groups', $fields)) {
+            $fields['idp_groups'] = $fields['idp_groups'] === [] ? null : $fields['idp_groups'];
+        }
+
+        return $fields;
     }
 
     /**

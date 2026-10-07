@@ -26,6 +26,8 @@ use App\Domain\Conversations\Data\ChatStreamEvent;
 use App\Domain\Conversations\Data\SourceList;
 use App\Domain\Conversations\Enums\MessageStatus;
 use App\Domain\Conversations\Exceptions\ChatRefused;
+use App\Domain\PersonalData\Masker;
+use App\Domain\PersonalData\PersonalDataScanner;
 use App\Domain\Usage\Enums\UsageEventStatus;
 use App\Models\AiModel;
 use App\Models\Assistant;
@@ -73,6 +75,7 @@ final class ChatGenerationService
         private readonly BudgetEngine $budget,
         private readonly ProviderManager $providers,
         private readonly ContextBuilder $context,
+        private readonly PersonalDataScanner $personalData,
     ) {}
 
     public static function cancelKey(string $assistantMessageId): string
@@ -146,6 +149,10 @@ final class ChatGenerationService
     {
         $model = $alias->aiModel;
 
+        // Personal data the institution masks never reaches the provider;
+        // the answer gets the values back (docs/personal-data.md).
+        $masker = $this->personalData->masks() ? new Masker($this->personalData) : null;
+
         try {
             $this->throttle($user);
             $request = $this->context->build(
@@ -153,7 +160,14 @@ final class ChatGenerationService
                 $history,
                 $assistant?->systemInstructions(),
                 cacheInstructions: $assistant !== null && $assistant->documents()->exists(),
+                documentsAsText: $masker !== null,
             )->withWebSearch($webSearch);
+
+            if ($masker !== null) {
+                $request = $masker->request($request);
+                $this->recordMasked($masker, $userMessage);
+            }
+
             $count = $this->counting->count($model, $request);
             $reservation = $this->budget->reserve($user, $model, $count, $alias->effectiveMaxOutputTokens(), webSearches: $webSearch ?? 0);
         } catch (ChatRefused $refused) {
@@ -204,16 +218,40 @@ final class ChatGenerationService
             'output_capped' => $outputCapped,
         ]);
 
-        yield from $this->stream($user, $conversation, $alias, $request->withMaxOutputTokens($reservation->max_output_tokens), $count, $reservation, $answer, $clientGone);
+        yield from $this->stream($user, $conversation, $alias, $request->withMaxOutputTokens($reservation->max_output_tokens), $count, $reservation, $answer, $clientGone, $masker);
+    }
+
+    /**
+     * The new message notes how many values of each kind were masked (never
+     * the values), so the user can see it.
+     */
+    private function recordMasked(Masker $masker, ?Message $userMessage): void
+    {
+        if ($userMessage === null) {
+            return;
+        }
+
+        $text = $userMessage->content;
+
+        foreach ($userMessage->attachments as $file) {
+            $text .= "\n".$file->extracted_text;
+        }
+
+        $counts = $masker->counts($text);
+
+        if ($counts !== []) {
+            $userMessage->metadata = [...($userMessage->metadata ?? []), 'personal_data_masked' => $counts];
+        }
     }
 
     /**
      * @param  Closure(): bool  $clientGone
      * @return Generator<int, ChatStreamEvent>
      */
-    private function stream(User $user, Conversation $conversation, ModelAlias $alias, ChatRequest $request, InputTokenCount $count, BudgetReservation $reservation, Message $answer, Closure $clientGone): Generator
+    private function stream(User $user, Conversation $conversation, ModelAlias $alias, ChatRequest $request, InputTokenCount $count, BudgetReservation $reservation, Message $answer, Closure $clientGone, ?Masker $masker = null): Generator
     {
         $text = '';
+        $unmasker = $masker?->stream();
         $reasoningBytes = 0;
         $sources = new SourceList;
         $searches = 0;
@@ -246,9 +284,15 @@ final class ChatGenerationService
                 $started = true;
 
                 if ($event instanceof TextDelta && $event->text !== '') {
-                    $text .= $event->text;
+                    $delta = $unmasker !== null ? $unmasker->push($event->text) : $event->text;
 
-                    yield new ChatStreamEvent('delta', ['text' => $event->text]);
+                    if ($delta === '') {
+                        continue;
+                    }
+
+                    $text .= $delta;
+
+                    yield new ChatStreamEvent('delta', ['text' => $delta]);
 
                     if (microtime(true) - $lastFlush >= self::FLUSH_SECONDS) {
                         $answer->forceFill(['content' => $text])->save();
@@ -277,6 +321,14 @@ final class ChatGenerationService
                     $requestId = $event->providerRequestId;
                 }
             }
+
+            $rest = $unmasker?->flush() ?? '';
+
+            if ($rest !== '') {
+                $text .= $rest;
+
+                yield new ChatStreamEvent('delta', ['text' => $rest]);
+            }
         } catch (ProviderException $exception) {
             self::logProviderFailure($exception, $alias->aiModel);
             $failure = $exception;
@@ -284,6 +336,9 @@ final class ChatGenerationService
             report($exception);
             $failure = $exception;
         } finally {
+            // A placeholder cut off by a failure or a disconnect.
+            $text .= $unmasker?->flush() ?? '';
+
             // Runs even if the client disconnected and the generator is destroyed.
             $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $reasoningBytes, $usage, $reason, $requestId, $started, $failure, $sources, $searches, $suggestions);
         }

@@ -21,13 +21,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $requests_per_minute
  * @property int $max_concurrent_streams
  * @property bool $is_default
+ * @property list<string>|null $idp_groups Identity provider group values whose members this group takes.
+ * @property int $idp_priority Lower wins when a person is in several mapped groups.
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read BudgetPolicy $budgetPolicy
  * @property-read int|null $users_count withCount('users')
  * @property-read int|null $model_aliases_count withCount('modelAliases')
  */
-#[Fillable(['name', 'description', 'budget_policy_id', 'requests_per_minute', 'max_concurrent_streams'])]
+#[Fillable(['name', 'description', 'budget_policy_id', 'requests_per_minute', 'max_concurrent_streams', 'idp_groups', 'idp_priority'])]
 class Group extends Model
 {
     /** @use HasFactory<GroupFactory> */
@@ -41,6 +43,8 @@ class Group extends Model
         'requests_per_minute' => 20,
         'max_concurrent_streams' => 2,
         'is_default' => false,
+        'idp_groups' => null,
+        'idp_priority' => 100,
     ];
 
     /**
@@ -86,6 +90,8 @@ class Group extends Model
             'is_default' => 'boolean',
             'requests_per_minute' => 'integer',
             'max_concurrent_streams' => 'integer',
+            'idp_groups' => 'array',
+            'idp_priority' => 'integer',
         ];
     }
 }
