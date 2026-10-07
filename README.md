@@ -7,9 +7,12 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.4.2** ([release notes](docs/releases/v1.4.2.md)): fixes from a
-> full security audit. Version 1.4 adds a public landing page, welcome e-mails
-> for added users, an admin page to reword both and a default model. Version 1.3 adds
+> **Status: 1.5.0** ([release notes](docs/releases/v1.5.0.md)): web search
+> with Gemini, Anthropic searches that no longer stop when paused, Azure
+> OpenAI as a provider, a language switch for visitors and stricter roles
+> between administrators. Version 1.4.2 fixed findings of a full security
+> audit. Version 1.4 added a public landing page, welcome e-mails
+> for added users, an admin page to reword both and a default model. Version 1.3 added
 > web search through the providers' own tools, budget alerts for users, answer
 > feedback with a satisfaction report and read-only sharing of conversations.
 > Version 1.2 added

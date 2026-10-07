@@ -207,8 +207,13 @@ Then the v1.3.0 release notes ✅ ([docs/releases/v1.3.0.md](releases/v1.3.0.md)
 **1.4.2** ✅: fixes and hardening from a full security audit
 ([docs/releases/v1.4.2.md](releases/v1.4.2.md)).
 
+**1.5.0** ✅: Gemini web search with Google's Search Suggestions, continued
+Anthropic searches after a pause, an Azure OpenAI driver, a language switch
+on the landing and sign-in pages, administrators limited to managing users
+([docs/releases/v1.5.0.md](releases/v1.5.0.md)).
+
 ## Candidates for V2
 
 - OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).
 - LDAP.
-- Azure OpenAI, AWS Bedrock as dedicated drivers.
+- AWS Bedrock as a dedicated driver; Microsoft Entra ID tokens for Azure OpenAI.
