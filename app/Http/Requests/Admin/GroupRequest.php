@@ -22,16 +22,14 @@ class GroupRequest extends FormRequest
     }
 
     /**
-     * Administrators do not change their own group or super administrators'
-     * limits (UserPolicy::update); a group's policy, aliases and rate limits
-     * are those limits for its members.
+     * Administrators change only users' limits (UserPolicy::update), not
+     * their own or another administrator's: a group's policy, aliases and
+     * rate limits are those limits for its members.
      */
     public static function reservedFor(User $actor, Group $group): bool
     {
         return ! $actor->can('manage-system') && $group->users()
-            ->where(fn ($members) => $members
-                ->whereKey($actor->getKey())
-                ->orWhere('role', UserRole::SuperAdmin->value))
+            ->where('role', '!=', UserRole::User->value)
             ->exists();
     }
 

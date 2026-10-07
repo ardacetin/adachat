@@ -27,8 +27,9 @@ use Illuminate\Http\Client\Response;
  *
  * Web search uses the basic server tool (web_search_20250305): it works with
  * every Claude model, and search results stay out of later turns because
- * Ada keeps only the answer text. A turn the API pauses (pause_turn) ends
- * the answer as cut off.
+ * Ada keeps only the answer text. A turn the API pauses (pause_turn) during
+ * its searches is continued: the content streamed so far is sent back as
+ * the assistant turn, and the server resumes where it stopped.
  */
 final class AnthropicChatProvider extends HttpChatProvider
 {
@@ -121,11 +122,42 @@ final class AnthropicChatProvider extends HttpChatProvider
         return $response->header('request-id') ?: null;
     }
 
+    protected function continuation(ChatRequest $request, array $payload, StreamState $state): ?array
+    {
+        // The output cap and the searches hold for the whole turn, across its requests.
+        $used = $state->usage ?? new TokenUsage;
+        $remaining = $request->maxOutputTokens - $used->totalOutput();
+
+        // Nothing streamed yet: there is no turn to resume.
+        if ($remaining < 1 || $state->continuation === null || $state->continuation === []) {
+            return null;
+        }
+
+        /** @var list<array<string, mixed>> $messages */
+        $messages = $payload['messages'];
+        $messages[] = ['role' => 'assistant', 'content' => $state->continuation];
+        $payload['messages'] = $messages;
+        $payload['max_tokens'] = $remaining;
+
+        if ($request->webSearchMaxUses !== null) {
+            // The tool must stay declared while the turn holds its calls.
+            $payload['tools'] = [[
+                'type' => self::WEB_SEARCH_TOOL,
+                'name' => 'web_search',
+                'max_uses' => max(1, $request->webSearchMaxUses - $used->webSearches),
+            ]];
+        }
+
+        return $payload;
+    }
+
     protected function translate(Generator $events, StreamState $state): Generator
     {
         $reason = FinishReason::Error;
-        // Search queries arrive as streamed JSON, per content block index.
-        $queries = [];
+        // Server tool inputs arrive as streamed JSON, per content block index.
+        $json = [];
+        // The turn's content blocks as the API sends them, to continue a paused turn.
+        $blocks = [];
 
         foreach ($events as $event) {
             $data = $event->json() ?? [];
@@ -140,10 +172,11 @@ final class AnthropicChatProvider extends HttpChatProvider
                 case 'content_block_start':
                     $block = is_array($data['content_block'] ?? null) ? $data['content_block'] : [];
                     $index = (int) ($data['index'] ?? 0);
+                    $blocks[$index] = $block;
 
-                    if (($block['type'] ?? null) === 'server_tool_use' && ($block['name'] ?? null) === 'web_search') {
+                    if (($block['type'] ?? null) === 'server_tool_use') {
                         $input = is_array($block['input'] ?? null) ? $block['input'] : [];
-                        $queries[$index] = is_string($input['query'] ?? null) ? (string) json_encode($input) : '';
+                        $json[$index] = $input !== [] ? (string) json_encode($input) : '';
                     } elseif (($block['type'] ?? null) === 'web_search_tool_result' && is_array($block['content'] ?? null) && array_is_list($block['content'])) {
                         // A list of results; an error is a single object.
                         foreach ($block['content'] as $result) {
@@ -160,18 +193,33 @@ final class AnthropicChatProvider extends HttpChatProvider
 
                     switch ($delta['type'] ?? null) {
                         case 'text_delta':
-                            yield new TextDelta((string) ($delta['text'] ?? ''));
+                            $text = (string) ($delta['text'] ?? '');
+                            self::append($blocks, $index, 'text', $text);
+                            yield new TextDelta($text);
                             break;
                         case 'thinking_delta':
-                            yield new ReasoningDelta((string) ($delta['thinking'] ?? ''));
+                            $thinking = (string) ($delta['thinking'] ?? '');
+                            self::append($blocks, $index, 'thinking', $thinking);
+                            yield new ReasoningDelta($thinking);
+                            break;
+                        case 'signature_delta':
+                            if (isset($blocks[$index])) {
+                                $blocks[$index]['signature'] = (string) ($delta['signature'] ?? '');
+                            }
                             break;
                         case 'input_json_delta':
-                            if (isset($queries[$index])) {
-                                $queries[$index] .= (string) ($delta['partial_json'] ?? '');
+                            if (isset($json[$index])) {
+                                $json[$index] .= (string) ($delta['partial_json'] ?? '');
                             }
                             break;
                         case 'citations_delta':
                             $citation = $delta['citation'] ?? [];
+
+                            if (is_array($citation) && isset($blocks[$index])) {
+                                $citations = is_array($blocks[$index]['citations'] ?? null) ? $blocks[$index]['citations'] : [];
+                                $citations[] = $citation;
+                                $blocks[$index]['citations'] = $citations;
+                            }
 
                             if (is_array($citation) && is_string($citation['url'] ?? null)) {
                                 yield new SourceFound($citation['url'], self::title($citation));
@@ -183,10 +231,14 @@ final class AnthropicChatProvider extends HttpChatProvider
                 case 'content_block_stop':
                     $index = (int) ($data['index'] ?? 0);
 
-                    if (isset($queries[$index])) {
-                        $input = json_decode($queries[$index], true);
-                        unset($queries[$index]);
-                        yield new WebSearchStarted(is_array($input) && is_string($input['query'] ?? null) ? $input['query'] : null);
+                    if (isset($json[$index])) {
+                        $input = json_decode($json[$index] === '' ? '{}' : $json[$index], true);
+                        unset($json[$index]);
+                        $blocks[$index]['input'] = is_array($input) ? $input : [];
+
+                        if (($blocks[$index]['name'] ?? null) === 'web_search') {
+                            yield new WebSearchStarted(is_string($input['query'] ?? null) ? $input['query'] : null);
+                        }
                     }
                     break;
 
@@ -194,6 +246,10 @@ final class AnthropicChatProvider extends HttpChatProvider
                     // Cumulative usage for the whole message; with server
                     // tools it includes the input read from search results.
                     $state->addUsage(self::usage($data['usage'] ?? []));
+                    if (($data['delta']['stop_reason'] ?? null) === 'pause_turn') {
+                        $state->continuation = self::content($blocks);
+                    }
+
                     $reason = match ($data['delta']['stop_reason'] ?? null) {
                         'end_turn', 'stop_sequence', 'tool_use' => FinishReason::Stop,
                         'max_tokens', 'pause_turn' => FinishReason::Length,
@@ -209,6 +265,30 @@ final class AnthropicChatProvider extends HttpChatProvider
         }
 
         return $reason;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $blocks
+     */
+    private static function append(array &$blocks, int $index, string $field, string $text): void
+    {
+        if (isset($blocks[$index])) {
+            $blocks[$index][$field] = (is_string($blocks[$index][$field] ?? null) ? $blocks[$index][$field] : '').$text;
+        }
+    }
+
+    /**
+     * The streamed blocks in order, as the assistant turn to send back. The
+     * API refuses empty text blocks.
+     *
+     * @param  array<int, array<string, mixed>>  $blocks
+     * @return list<array<string, mixed>>
+     */
+    private static function content(array $blocks): array
+    {
+        ksort($blocks);
+
+        return array_values(array_filter($blocks, static fn (array $block): bool => ($block['type'] ?? null) !== 'text' || ($block['text'] ?? '') !== ''));
     }
 
     private static function usage(mixed $usage): TokenUsage

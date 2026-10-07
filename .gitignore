@@ -29,7 +29,9 @@ yarn-error.log
 /.zed
 /.agents
 /.amp
-/.claude
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
 /.cursor
 /.factory
 /.grok

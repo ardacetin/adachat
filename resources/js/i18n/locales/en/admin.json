@@ -150,7 +150,8 @@
         "enabled": "Enabled",
         "driverLocked": "The type cannot be changed after creation.",
         "baseUrlCompatibleHelp": "Required: the address that ends in /v1, e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) or http://your-server:8000/v1 (vLLM). Ada calls <address>/chat/completions.",
-        "apiKeyOptional": "Optional for servers without authentication (Ollama, vLLM)."
+        "apiKeyOptional": "Optional for servers without authentication (Ollama, vLLM).",
+        "baseUrlAzureHelp": "Required: your Azure OpenAI resource's v1 endpoint, https://<resource>.openai.azure.com/openai/v1 (or …services.ai.azure.com/openai/v1). Ada calls <address>/responses with the resource key; models use the deployment name as their ID."
     },
     "models": {
         "title": "Models",
@@ -226,7 +227,7 @@
         "webSearchPrice": "Web search (USD per 1,000 searches)",
         "webSearchPriceHelp": "Charged for every search the provider runs, on top of the tokens its results add.",
         "catalogWebSearch": "Web search: {{price}} per 1,000 searches.",
-        "webSearchGeminiTerms": "Google's Gemini API terms require showing Google's Search Suggestions with every answer grounded in Google Search. Ada does not show them yet, so check the terms before turning this on."
+        "webSearchGeminiTerms": "Google's terms: answers grounded in Google Search are shown with Google's Search Suggestions, only to the user who asked (shared links leave them out), and may be kept for at most two years: set conversation retention accordingly. Google's monthly free searches are not taken into account; Ada charges every search."
     },
     "aliases": {
         "title": "Model aliases",
@@ -287,7 +288,7 @@
         "applyToCurrentPeriodHelp": "Otherwise members keep this month’s limit and get the new one next month. Individual budgets are not affected.",
         "deleteTitle": "Delete group?",
         "deleteConfirm": "The group “{{name}}” will be removed. Only groups without members can be deleted.",
-        "reserved": "Only a super administrator can change this group: it includes you or a super administrator."
+        "reserved": "Only a super administrator can change this group: it includes an administrator."
     },
     "budgetPolicies": {
         "title": "Budget policies",

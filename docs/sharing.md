@@ -55,7 +55,10 @@ it. The copy respects the viewer's own access:
   (`AliasAccess`); otherwise the viewer picks a model when they write;
 - the assistant and its instructions are not copied;
 - attachments are not copied (a message that had only files gets their
-  names as its text).
+  names as its text);
+- answers grounded in Google Search (Gemini web search) are withheld, text
+  and sources: Google's terms allow showing them only to the user who
+  asked. The link and a copy show a note in their place.
 
 ## Turning it off and deleting
 

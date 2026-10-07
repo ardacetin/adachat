@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-07
+
+A feature release. Release notes:
+[docs/releases/v1.5.0.md](docs/releases/v1.5.0.md).
+
+### Added
+
+- An Azure OpenAI driver (`azure_openai`): the v1 API of the institution's
+  own Azure OpenAI or Foundry resource (Responses API, resource key in
+  `api-key`, deployment names as model IDs). Prices are entered in the
+  Advanced form; input is estimated; no web search.
+- Web search with Gemini (Grounding with Google Search). Google's Search
+  Suggestions are shown, unmodified, under each grounded answer in a
+  sandboxed frame; shared links and copies withhold grounded answers, as
+  Google's terms allow showing them only to the user who asked. The catalog
+  lists Gemini models with web search ($14 per 1,000 searches), and
+  `ada:doctor` warns while conversation retention is unset or longer than
+  two years.
+- Answers that Anthropic pauses during long web searches (`pause_turn`)
+  are continued instead of ending with "The answer reached its length
+  limit." (at most twice, within the time limit and the output cap). Each
+  request is charged.
+- A language switch on the landing and sign-in pages. A visitor's choice is
+  kept in a cookie (`ada_locale`) and wins over the institution's default
+  language; a signed-in user's choice is saved as their preference.
+
+### Changed
+
+- Administrators manage only users with the `user` role. Other
+  administrators, like super administrators, are managed by super
+  administrators: status, group, budget and invitations, and groups with an
+  administrator in them.
+- `shell-quote` (used by the `concurrently` dev script runner) is raised to
+  1.11+ for GHSA-pqg4-j6r4-53mv, a critical advisory published on
+  2026-10-06; it is not part of the built application.
+- CI fails on moderate npm advisories as well. `postcss-selector-parser`
+  (used by the Tailwind typography plugin at build time) is raised to 7.1.6
+  for GHSA-rj75-hqrm-r3gf; the built CSS is unchanged.
+- Claude Code on the web: a SessionStart hook (`.claude/hooks/session-start.sh`)
+  starts MySQL, creates the databases and installs dependencies, so tests,
+  linters and the build work in a fresh session.
+
 ## [1.4.2] - 2026-10-06
 
 A security release. Release notes:
@@ -482,7 +524,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ardacetin/adachat/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/ardacetin/adachat/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ardacetin/adachat/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ardacetin/adachat/compare/v1.3.1...v1.4.0

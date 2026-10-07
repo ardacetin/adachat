@@ -5,6 +5,7 @@ namespace App\Domain\AI\Services;
 use App\Domain\AI\Enums\ProviderDriver;
 use App\Domain\AI\Exceptions\ProviderAuthFailed;
 use App\Domain\AI\Providers\Anthropic\AnthropicChatProvider;
+use App\Domain\AI\Providers\AzureOpenAI\AzureOpenAIChatProvider;
 use App\Domain\AI\Providers\Gemini\GeminiChatProvider;
 use App\Domain\AI\Providers\HttpChatProvider;
 use App\Domain\AI\Providers\OpenAI\OpenAIChatProvider;
@@ -43,6 +44,7 @@ final class ProviderManager
             ProviderDriver::Anthropic => new AnthropicChatProvider(...$arguments),
             ProviderDriver::Gemini => new GeminiChatProvider(...$arguments),
             ProviderDriver::OpenAICompatible => new OpenAICompatibleChatProvider(...$arguments),
+            ProviderDriver::AzureOpenAI => new AzureOpenAIChatProvider(...$arguments),
         };
     }
 

@@ -150,7 +150,7 @@ final class ConversationSharing
             $parent = null;
 
             foreach ($snapshot['messages'] as $item) {
-                $content = $item['content'];
+                $content = ($item['withheld'] ?? false) ? __('chat.share.withheld') : $item['content'];
 
                 if ($content === '' && $item['attachments'] !== []) {
                     $content = implode(', ', $item['attachments']);
@@ -180,7 +180,11 @@ final class ConversationSharing
     }
 
     /**
-     * @return array{model_alias_id: int|null, messages: list<array{role: string, content: string, alias_id: int|null, alias: array<string, string>|null, attachments: list<string>, sources: list<array{url: string, title: string|null}>}>}
+     * Answers grounded in Google Search (they carry Search Suggestions) are
+     * withheld: Google's terms allow showing them only to the user who
+     * asked. The snapshot keeps their place, not their text or sources.
+     *
+     * @return array{model_alias_id: int|null, messages: list<array{role: string, content: string, alias_id: int|null, alias: array<string, string>|null, attachments: list<string>, sources: list<array{url: string, title: string|null}>, withheld: bool}>}
      */
     private function snapshot(Conversation $conversation): array
     {
@@ -192,14 +196,16 @@ final class ConversationSharing
 
         foreach ($thread as $message) {
             $alias = $message->model_alias_id === null ? null : $aliases->get($message->model_alias_id);
+            $withheld = isset($message->metadata['search_suggestions']);
 
             $messages[] = [
                 'role' => $message->role->value,
-                'content' => $message->content,
+                'content' => $withheld ? '' : $message->content,
                 'alias_id' => $message->model_alias_id,
                 'alias' => $alias?->name,
                 'attachments' => array_values($message->attachments->map(fn (MessageAttachment $attachment) => $attachment->original_name)->all()),
-                'sources' => self::sources($message->metadata['sources'] ?? null),
+                'sources' => $withheld ? [] : self::sources($message->metadata['sources'] ?? null),
+                'withheld' => $withheld,
             ];
         }
 
