@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A language switch on the landing and sign-in pages. A visitor's choice is
+  kept in a cookie (`ada_locale`) and wins over the institution's default
+  language; a signed-in user's choice is saved as their preference.
+
 ### Changed
 
 - Administrators manage only users with the `user` role. Other

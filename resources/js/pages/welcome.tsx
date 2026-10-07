@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { Bot, Lock, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -55,9 +56,12 @@ export default function Welcome({ texts }: Props) {
                     </span>
                 )}
 
-                <Button asChild variant="outline" size="sm">
-                    <Link href={login.url()}>{t('landing.signIn')}</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <LocaleSwitcher />
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={login.url()}>{t('landing.signIn')}</Link>
+                    </Button>
+                </div>
             </header>
 
             <main className="mx-auto w-full max-w-5xl flex-1 px-6">

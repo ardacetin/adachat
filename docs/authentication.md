@@ -18,7 +18,7 @@ added as an adapter.
 > OAuth adapter and `laravel/socialite` were removed.
 
 Guests who open `/` see a public landing page (institution branding, three
-feature cards, a sign-in button) and no data; every other page sends them
+feature cards, a sign-in button, a language switch) and no data; every other page sends them
 to `/login`, which lists the enabled identity providers. Its wording, like
 the invitation e-mail's, can be changed per language in **Administration →
 Texts** (`ContentSettings`); empty fields keep Ada's defaults from

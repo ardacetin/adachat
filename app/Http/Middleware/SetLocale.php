@@ -9,11 +9,15 @@ use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Resolves the UI locale: user preference → institution default →
- * browser Accept-Language → fallback locale.
+ * Resolves the UI locale: user preference → the visitor's choice on the
+ * landing or sign-in page → institution default → browser Accept-Language →
+ * fallback locale.
  */
 class SetLocale
 {
+    /** The visitor's choice (LocaleController). */
+    public const COOKIE = 'ada_locale';
+
     /**
      * @param  Closure(Request): (Response)  $next
      */
@@ -31,6 +35,7 @@ class SetLocale
 
         $candidates = [
             $request->user()?->locale,
+            $request->cookie(self::COOKIE),
             app(InstitutionSettings::class)->default_locale,
         ];
 
