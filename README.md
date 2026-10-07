@@ -7,10 +7,12 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.5.0** ([release notes](docs/releases/v1.5.0.md)): web search
-> with Gemini, Anthropic searches that no longer stop when paused, Azure
-> OpenAI as a provider, a language switch for visitors and stricter roles
-> between administrators. Version 1.4.2 fixed findings of a full security
+> **Status: 2.0.0** ([release notes](docs/releases/v2.0.0.md)): groups that
+> follow the identity provider (SAML, OIDC) and protection of personal data
+> (warn, mask or block) before it reaches an AI provider. Version 1.5 added
+> web search with Gemini, Anthropic searches that no longer stop when
+> paused, Azure OpenAI as a provider, a language switch for visitors and
+> stricter roles between administrators. Version 1.4.2 fixed findings of a full security
 > audit. Version 1.4 added a public landing page, welcome e-mails
 > for added users, an admin page to reword both and a default model. Version 1.3 added
 > web search through the providers' own tools, budget alerts for users, answer

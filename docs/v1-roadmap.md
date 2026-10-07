@@ -212,8 +212,11 @@ Anthropic searches after a pause, an Azure OpenAI driver, a language switch
 on the landing and sign-in pages, administrators limited to managing users
 ([docs/releases/v1.5.0.md](releases/v1.5.0.md)).
 
-## Candidates for V2
+**2.0.0** ✅: group mapping from the identity provider, personal data
+protection (warn, mask, block)
+([docs/releases/v2.0.0.md](releases/v2.0.0.md)).
 
-- OpenAI-compatible `/v1/chat/completions` with personal API tokens (same budget).
+## Candidates for later versions
+
 - LDAP.
 - AWS Bedrock as a dedicated driver; Microsoft Entra ID tokens for Azure OpenAI.

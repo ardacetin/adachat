@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-07
+
+A feature release. Release notes:
+[docs/releases/v2.0.0.md](docs/releases/v2.0.0.md).
+
 ### Added
 
 - Group mapping from the identity provider: each group lists the SAML
@@ -33,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   1.85 and Oxfmt 0.70); the built application is unchanged in behaviour.
 - Dependabot no longer proposes major `@types/node` updates: the types
   follow the Node version CI and the Docker image use (22).
+- Dependencies: `lucide-react` 1.49, `@rollup/rollup-*` 4.63.6.
 
 ## [1.5.0] - 2026-10-07
 
@@ -551,7 +557,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/ardacetin/adachat/compare/v1.5.0...v2.0.0
 [1.5.0]: https://github.com/ardacetin/adachat/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/ardacetin/adachat/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ardacetin/adachat/compare/v1.4.0...v1.4.1
