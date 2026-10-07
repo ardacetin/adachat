@@ -57,6 +57,21 @@ final readonly class TokenUsage
         );
     }
 
+    /**
+     * Add the usage of another request (a continued turn is billed per request).
+     */
+    public function plus(self $other): self
+    {
+        return new self(
+            $this->input + $other->input,
+            $this->cachedInput + $other->cachedInput,
+            $this->cacheWrite + $other->cacheWrite,
+            $this->output + $other->output,
+            $this->reasoning + $other->reasoning,
+            $this->webSearches + $other->webSearches,
+        );
+    }
+
     public function totalInput(): int
     {
         return $this->input + $this->cachedInput + $this->cacheWrite;

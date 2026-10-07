@@ -393,8 +393,19 @@ answers with citations.
   model, and its results reach the model directly. Ada keeps only the
   answer text, so later turns never resend search results (no
   `encrypted_content` round trip). A turn the API pauses (`pause_turn`,
-  long search loops) ends as cut off (`length`); `max_uses` is at most 5,
-  which keeps such turns rare.
+  long search loops) is continued (1.5): the adapter rebuilds the content
+  blocks it streamed (text with citations, `server_tool_use` with its
+  input, `web_search_tool_result` with `encrypted_content`, thinking with
+  its signature), sends them back as the assistant turn and keeps
+  streaming, at most `ada.providers.max_continuations` (2) times within the
+  same time limit. The continued request gets what is left of the output
+  cap and of `max_uses` (at least 1 while the turn holds tool calls, so a
+  continuation may run one search more than the alias allows). Each
+  request's usage is summed and charged; the continuation re-reads the
+  earlier search results as input, which can go beyond the reservation
+  like any overshoot (§8, logged). A turn paused before any content, a
+  failed continuation request, or one past the limit ends as cut off
+  (`length`).
 - **Gemini** has no per-request search limit; the model decides how many
   queries to run. The reservation assumes the alias's limit, and a request
   that searches more is still charged in full (§8, overshoot log).
