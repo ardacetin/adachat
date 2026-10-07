@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The build tooling is updated to `vite-plus` 1.0 (with Vitest 5, Oxlint
+  1.85 and Oxfmt 0.70); the built application is unchanged in behaviour.
+- Dependabot no longer proposes major `@types/node` updates: the types
+  follow the Node version CI and the Docker image use (22).
+
 ## [1.5.0] - 2026-10-07
 
 A feature release. Release notes:

@@ -22,3 +22,7 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 5
+    ignore:
+      # The types follow the Node version CI and the Docker image use (22).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
