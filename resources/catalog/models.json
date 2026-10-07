@@ -150,7 +150,7 @@
             "supports_vision": true,
             "supports_files": true,
             "supports_reasoning": true,
-            "supports_web_search": false,
+            "supports_web_search": true,
             "prices": {
                 "input": "2",
                 "output": "12",
@@ -158,7 +158,7 @@
                 "web_search": "14"
             },
             "source": "https://ai.google.dev/gemini-api/docs/pricing",
-            "as_of": "2026-10-02"
+            "as_of": "2026-10-07"
         },
         {
             "driver": "gemini",
@@ -169,7 +169,7 @@
             "supports_vision": true,
             "supports_files": true,
             "supports_reasoning": true,
-            "supports_web_search": false,
+            "supports_web_search": true,
             "prices": {
                 "input": "0.75",
                 "output": "3.75",
@@ -177,7 +177,7 @@
                 "web_search": "14"
             },
             "source": "https://ai.google.dev/gemini-api/docs/pricing",
-            "as_of": "2026-10-02",
+            "as_of": "2026-10-07",
             "price_changes": [
                 {
                     "from": "2027-01-01",
@@ -199,7 +199,7 @@
             "supports_vision": true,
             "supports_files": true,
             "supports_reasoning": true,
-            "supports_web_search": false,
+            "supports_web_search": true,
             "prices": {
                 "input": "0.30",
                 "output": "2.50",
@@ -207,7 +207,7 @@
                 "web_search": "14"
             },
             "source": "https://ai.google.dev/gemini-api/docs/pricing",
-            "as_of": "2026-10-02"
+            "as_of": "2026-10-07"
         },
         {
             "driver": "gemini",
@@ -218,14 +218,15 @@
             "supports_vision": true,
             "supports_files": true,
             "supports_reasoning": true,
-            "supports_web_search": false,
+            "supports_web_search": true,
             "prices": {
                 "input": "0.25",
                 "output": "1.50",
-                "cached_input": "0.025"
+                "cached_input": "0.025",
+                "web_search": "14"
             },
             "source": "https://ai.google.dev/gemini-api/docs/pricing",
-            "as_of": "2026-10-02"
+            "as_of": "2026-10-07"
         }
     ]
 }

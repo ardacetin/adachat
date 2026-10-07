@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property string $token_hash
  * @property string|null $title
- * @property array{model_alias_id: int|null, messages: list<array{role: string, content: string, alias_id: int|null, alias: array<string, string>|null, attachments: list<string>, sources: list<array{url: string, title: string|null}>}>} $snapshot
+ * @property array{model_alias_id: int|null, messages: list<array{role: string, content: string, alias_id: int|null, alias: array<string, string>|null, attachments: list<string>, sources: list<array{url: string, title: string|null}>, withheld?: bool}>} $snapshot
  * @property int $view_count
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $revoked_at

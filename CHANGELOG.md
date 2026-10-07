@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web search with Gemini (Grounding with Google Search). Google's Search
+  Suggestions are shown, unmodified, under each grounded answer in a
+  sandboxed frame; shared links and copies withhold grounded answers, as
+  Google's terms allow showing them only to the user who asked. The catalog
+  lists Gemini models with web search ($14 per 1,000 searches), and
+  `ada:doctor` warns while conversation retention is unset or longer than
+  two years.
 - Answers that Anthropic pauses during long web searches (`pause_turn`)
   are continued instead of ending with "The answer reached its length
   limit." (at most twice, within the time limit and the output cap). Each

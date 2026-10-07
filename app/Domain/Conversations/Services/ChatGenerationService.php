@@ -5,6 +5,7 @@ namespace App\Domain\Conversations\Services;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\Events\Finished;
 use App\Domain\AI\Data\Events\ReasoningDelta;
+use App\Domain\AI\Data\Events\SearchSuggestionsFound;
 use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\Events\UsageReported;
@@ -60,6 +61,9 @@ final class ChatGenerationService
 {
     /** Assistant content is written to the database at most this often. */
     private const FLUSH_SECONDS = 1.0;
+
+    /** Google's Search Suggestions are a few kilobytes of HTML and CSS. */
+    private const MAX_SUGGESTIONS_BYTES = 65536;
 
     /** The cancel flag in the cache is checked at most this often. */
     private const CANCEL_CHECK_SECONDS = 0.5;
@@ -213,6 +217,7 @@ final class ChatGenerationService
         $reasoningBytes = 0;
         $sources = new SourceList;
         $searches = 0;
+        $suggestions = null;
         $usage = null;
         $reason = null;
         $requestId = null;
@@ -255,6 +260,10 @@ final class ChatGenerationService
                     $searches++;
 
                     yield new ChatStreamEvent('search', array_filter(['query' => $event->query], fn ($value) => $value !== null));
+                } elseif ($event instanceof SearchSuggestionsFound) {
+                    // The last one the provider sends is the answer's; an
+                    // implausibly large one is not stored.
+                    $suggestions = strlen($event->html) <= self::MAX_SUGGESTIONS_BYTES ? $event->html : $suggestions;
                 } elseif ($event instanceof SourceFound) {
                     $source = $sources->add($event);
 
@@ -276,7 +285,7 @@ final class ChatGenerationService
             $failure = $exception;
         } finally {
             // Runs even if the client disconnected and the generator is destroyed.
-            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $reasoningBytes, $usage, $reason, $requestId, $started, $failure, $sources, $searches);
+            $event = $this->finish($user, $conversation, $reservation, $answer, $count, $text, $reasoningBytes, $usage, $reason, $requestId, $started, $failure, $sources, $searches, $suggestions);
         }
 
         yield $event;
@@ -318,7 +327,7 @@ final class ChatGenerationService
         return new TokenUsage(output: $output, reasoning: $reasoning);
     }
 
-    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, int $reasoningBytes, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure, SourceList $sources, int $searches): ChatStreamEvent
+    private function finish(User $user, Conversation $conversation, BudgetReservation $reservation, Message $answer, InputTokenCount $count, string $text, int $reasoningBytes, ?TokenUsage $usage, ?FinishReason $reason, ?string $requestId, bool $started, ?Throwable $failure, SourceList $sources, int $searches, ?string $suggestions = null): ChatStreamEvent
     {
         $errorCode = match (true) {
             $failure instanceof ProviderException => $failure->code(),
@@ -333,6 +342,10 @@ final class ChatGenerationService
 
         if ($list !== []) {
             $answer->metadata = [...($answer->metadata ?? []), 'sources' => $list];
+        }
+
+        if ($suggestions !== null) {
+            $answer->metadata = [...($answer->metadata ?? []), 'search_suggestions' => $suggestions];
         }
 
         $answer->forceFill([

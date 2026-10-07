@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import AnswerFeedback from '@/components/chat/answer-feedback';
 import FileIcon from '@/components/chat/file-icon';
 import Markdown from '@/components/chat/markdown';
+import { SearchSuggestions } from '@/components/chat/search-suggestions';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -76,6 +77,10 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
             )}
 
             {sources.length > 0 && <Sources sources={sources} />}
+
+            {message.search_suggestions && !streaming && (
+                <SearchSuggestions html={message.search_suggestions} />
+            )}
 
             {message.output_capped && (
                 <p className="text-xs text-muted-foreground">

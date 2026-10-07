@@ -6,6 +6,7 @@ use App\Domain\AI\Data\ChatMessage;
 use App\Domain\AI\Data\ChatRequest;
 use App\Domain\AI\Data\DocumentPart;
 use App\Domain\AI\Data\Events\ReasoningDelta;
+use App\Domain\AI\Data\Events\SearchSuggestionsFound;
 use App\Domain\AI\Data\Events\SourceFound;
 use App\Domain\AI\Data\Events\TextDelta;
 use App\Domain\AI\Data\Events\WebSearchStarted;
@@ -148,6 +149,13 @@ final class GeminiChatProvider extends HttpChatProvider
                     $queries[$query] = true;
                     yield new WebSearchStarted($query);
                 }
+            }
+
+            // Google's terms: grounded answers are shown with these.
+            $rendered = $grounding['searchEntryPoint']['renderedContent'] ?? null;
+
+            if (is_string($rendered) && trim($rendered) !== '') {
+                yield new SearchSuggestionsFound($rendered);
             }
 
             // When streaming, each chunk lists only the sources it adds.
