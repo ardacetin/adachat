@@ -23,6 +23,7 @@ return [
     ],
     'share' => [
         'too_many_links' => 'Bir sohbetin en fazla :max etkin bağlantısı olabilir. Önce birini iptal edin.',
+        'withheld' => '(Bu yanıt Google Arama ile oluşturuldu. Google, yalnızca soruyu soran kişiye gösterilmesine izin veriyor.)',
         'daily_limit' => 'Bugün çok fazla paylaşım bağlantısı oluşturdunuz ya da kopyaladınız. Yarın yeniden deneyin.',
     ],
     'export' => [

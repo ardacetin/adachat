@@ -64,7 +64,8 @@ class ConversationShareController extends Controller
         $locale = app()->getLocale();
         $messages = array_map(fn (array $message) => [
             'role' => $message['role'],
-            'content' => $message['content'],
+            'content' => ($message['withheld'] ?? false) ? __('chat.share.withheld') : $message['content'],
+            'withheld' => $message['withheld'] ?? false,
             'model' => $message['alias'] === null ? null : ($message['alias'][$locale] ?? $message['alias']['en'] ?? null),
             'attachments' => $message['attachments'],
             'sources' => $message['sources'],

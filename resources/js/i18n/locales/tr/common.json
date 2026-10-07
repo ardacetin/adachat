@@ -13,5 +13,6 @@
     "locales": {
         "en": "English",
         "tr": "Türkçe"
-    }
+    },
+    "language": "Dil"
 }

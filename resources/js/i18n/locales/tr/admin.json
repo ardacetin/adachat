@@ -150,7 +150,8 @@
         "enabled": "Etkin",
         "driverLocked": "Tür, oluşturulduktan sonra değiştirilemez.",
         "baseUrlCompatibleHelp": "Zorunlu: /v1 ile biten adres, ör. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) veya http://sunucunuz:8000/v1 (vLLM). Ada <adres>/chat/completions adresini çağırır.",
-        "apiKeyOptional": "Kimlik doğrulaması olmayan sunucular (Ollama, vLLM) için isteğe bağlı."
+        "apiKeyOptional": "Kimlik doğrulaması olmayan sunucular (Ollama, vLLM) için isteğe bağlı.",
+        "baseUrlAzureHelp": "Zorunlu: Azure OpenAI kaynağınızın v1 adresi, https://<kaynak>.openai.azure.com/openai/v1 (ya da …services.ai.azure.com/openai/v1). Ada kaynak anahtarıyla <adres>/responses adresini çağırır; modellerde kimlik olarak dağıtım (deployment) adı kullanılır."
     },
     "models": {
         "title": "Modeller",
@@ -226,7 +227,7 @@
         "webSearchPrice": "Web araması (1000 arama başına USD)",
         "webSearchPriceHelp": "Sağlayıcının yaptığı her arama için, sonuçların eklediği tokenlara ek olarak düşülür.",
         "catalogWebSearch": "Web araması: 1000 arama başına {{price}}.",
-        "webSearchGeminiTerms": "Google'ın Gemini API şartları, Google Arama'ya dayanan her yanıtla birlikte Google'ın arama önerilerinin (Search Suggestions) gösterilmesini istiyor. Ada bunları henüz göstermiyor; açmadan önce şartları inceleyin."
+        "webSearchGeminiTerms": "Google'ın şartları: Google Arama ile oluşturulan yanıtlar Google'ın arama önerileriyle birlikte ve yalnızca soran kullanıcıya gösterilir (paylaşım bağlantılarında yer almaz), en fazla iki yıl saklanabilir; sohbet saklama süresini buna göre ayarlayın. Google'ın aylık ücretsiz aramaları hesaba katılmaz; Ada her aramayı ücretlendirir."
     },
     "aliases": {
         "title": "Model takma adları",
@@ -287,7 +288,7 @@
         "applyToCurrentPeriodHelp": "Aksi hâlde üyeler bu ayın limitini korur, yenisi gelecek ay geçerli olur. Bireysel bütçeler etkilenmez.",
         "deleteTitle": "Grup silinsin mi?",
         "deleteConfirm": "“{{name}}” grubu kaldırılacak. Yalnızca üyesi olmayan gruplar silinebilir.",
-        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde siz ya da bir süper yönetici var."
+        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde bir yönetici var."
     },
     "budgetPolicies": {
         "title": "Bütçe politikaları",

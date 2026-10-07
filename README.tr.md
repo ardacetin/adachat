@@ -7,10 +7,13 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 1.4.2** ([sürüm notları](docs/releases/v1.4.2.md#türkçe-özet)): tam
-> güvenlik denetiminin düzeltmeleri. 1.4 sürümü karşılama sayfası, eklenen
+> **Durum: 1.5.0** ([sürüm notları](docs/releases/v1.5.0.md#türkçe-özet)):
+> Gemini ile web araması, duraklatıldığında yarıda kalmayan Anthropic
+> aramaları, sağlayıcı olarak Azure OpenAI, ziyaretçiler için dil seçimi ve
+> yöneticiler arasında daha sıkı yetkiler. 1.4.2 sürümü tam güvenlik
+> denetiminin düzeltmelerini getirdi. 1.4 sürümü karşılama sayfası, eklenen
 > kullanıcılara hoş geldin e-postası, ikisinin metnini düzenleyen yönetim
-> sayfası ve varsayılan model getirir. 1.3 sürümü
+> sayfası ve varsayılan model getirmişti. 1.3 sürümü
 > sağlayıcıların kendi araçlarıyla web araması, kullanıcılara bütçe uyarıları,
 > memnuniyet raporlu yanıt geri bildirimi ve salt okunur sohbet paylaşımı
 > getirdi. 1.2 sürümü
@@ -60,8 +63,9 @@ iş görebileceğini öngörmüştür.
   Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
 - Roller (super admin, admin, user) ve gruplar
-- Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini; ayrıca
-  OpenAI uyumlu sunucular (OpenRouter, Groq, Ollama, vLLM, LM Studio)
+- Provider abstraction üzerinden OpenAI, Anthropic, Google Gemini ve Azure
+  OpenAI; ayrıca OpenAI uyumlu sunucular (OpenRouter, Groq, Ollama, vLLM,
+  LM Studio)
 - Model kaydı, model alias'ları ve grup bazlı model izinleri
 - Streaming sohbet, Markdown gösterimi, konuşma geçmişi
 - Dosya ekleri: görsel, PDF, Word, Excel, PowerPoint, metin ve kod dosyaları

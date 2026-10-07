@@ -686,7 +686,9 @@ export default function ModelForm({
                                     }
                                 />
                             ))}
-                            {provider?.driver !== 'openai_compatible' && (
+                            {!['openai_compatible', 'azure_openai'].includes(
+                                provider?.driver ?? '',
+                            ) && (
                                 <>
                                     <CheckboxField
                                         id="supports_web_search"

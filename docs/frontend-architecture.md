@@ -169,10 +169,12 @@ Enforcement:
 - A Pest test checks that every locale has identical key sets, for both
   `lang/` and the frontend JSON files.
 
-Locale resolution (server, middleware): user preference → institution default
-(`InstitutionSettings.default_locale`) → `Accept-Language` → `en`. The current
-locale is shared via Inertia; switching language in settings persists to the
-user and reloads translations. Dates, numbers and currency use `Intl` with the
+Locale resolution (server, middleware): user preference → the visitor's choice
+(cookie `ada_locale`, from the language switch on the landing and sign-in
+pages, 1.5) → institution default (`InstitutionSettings.default_locale`) →
+`Accept-Language` → `en`. The current locale is shared via Inertia; switching
+language in settings, or with the switch while signed in, persists to the user
+and reloads translations. Dates, numbers and currency use `Intl` with the
 active locale and the institution timezone.
 
 ## 7. Theming, dark mode and branding

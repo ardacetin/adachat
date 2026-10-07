@@ -77,21 +77,52 @@ abstract class HttpChatProvider implements ChatProvider, InputTokenCounter
      */
     abstract protected function translate(Generator $events, StreamState $state): Generator;
 
+    /**
+     * The payload that resumes a turn the provider paused ($state->continuation),
+     * or null to end it as cut off. Only Anthropic pauses turns.
+     *
+     * @param  array<string, mixed>  $payload  the previous request's
+     * @return array<string, mixed>|null
+     */
+    protected function continuation(ChatRequest $request, array $payload, StreamState $state): ?array
+    {
+        return null;
+    }
+
     public function stream(ChatRequest $request, ?CancellationToken $cancellation = null): Generator
     {
-        $response = $this->send(
-            $this->request($this->timeoutSeconds)->withOptions(['stream' => true]),
-            $this->streamUrl($request),
-            $this->payload($request),
-        );
-
+        $payload = $this->payload($request);
+        $response = $this->send($this->request($this->timeoutSeconds)->withOptions(['stream' => true]), $this->streamUrl($request), $payload);
         $state = new StreamState($this->requestId($response));
-        $events = SseParser::events($response->toPsrResponse()->getBody(), $cancellation);
+        $continued = 0;
 
-        $translated = $this->translate($events, $state);
-        yield from $translated;
+        while (true) {
+            $events = SseParser::events($response->toPsrResponse()->getBody(), $cancellation);
 
-        $reason = $cancellation?->isCancelled() ? FinishReason::Cancelled : $translated->getReturn();
+            $translated = $this->translate($events, $state);
+            yield from $translated;
+
+            $reason = $cancellation?->isCancelled() ? FinishReason::Cancelled : $translated->getReturn();
+            $next = $reason !== FinishReason::Cancelled && $state->continuation !== null
+                && $continued < (int) config('ada.providers.max_continuations', 2)
+                ? $this->continuation($request, $payload, $state)
+                : null;
+
+            if ($next === null) {
+                break;
+            }
+
+            try {
+                $response = $this->send($this->request($this->timeoutSeconds)->withOptions(['stream' => true]), $this->streamUrl($request), $next);
+            } catch (ProviderException) {
+                // What the first part delivered stands; the answer ends as cut off.
+                break;
+            }
+
+            $payload = $next;
+            $state->nextRequest();
+            $continued++;
+        }
 
         if ($state->usage !== null) {
             yield new UsageReported($state->usage);

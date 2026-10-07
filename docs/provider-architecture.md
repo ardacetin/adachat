@@ -173,7 +173,7 @@ The adapter's job is to turn each provider's conventions into the disjoint
   and timeouts (`ada.providers.timeout`, `ada.providers.counter_timeout`).
 - Credentials: active row in `provider_credentials` (Laravel `encrypted`
   cast) → fallback to `.env` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`). The `.env` key of OpenAI,
+  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`, `AZURE_OPENAI_API_KEY`). The `.env` key of OpenAI,
   Anthropic and Gemini goes only to that driver's own address: a provider
   whose base URL was changed in the panel needs its own key, entered when
   the address is set (on create as on update). Decrypted secrets live only
@@ -372,6 +372,30 @@ with the model name exactly as the server expects it.
 - **Reasoning:** `reasoning_content` (DeepSeek, vLLM) and `reasoning`
   (OpenRouter) deltas are shown as reasoning.
 
+### 9.1 Azure OpenAI (1.5)
+
+The `azure_openai` driver calls the **v1 API** of the institution's own Azure
+OpenAI (or Foundry) resource: the OpenAI Responses API at
+`{base}/responses`, with no `api-version`. Prompts and answers stay in the
+institution's Azure tenant and region.
+
+- **Base URL** (required): `https://<resource>.openai.azure.com/openai/v1`
+  (or `https://<resource>.services.ai.azure.com/openai/v1`).
+- **Key:** the resource key (Azure portal → resource → Keys and Endpoint),
+  sent in the `api-key` header; `.env` fallback `AZURE_OPENAI_API_KEY`.
+  Microsoft Entra ID tokens are not supported yet.
+- **Models:** the model ID is the **deployment name**; context window and
+  output cap as for the deployed model.
+- **Prices:** Azure's prices depend on the deployment type (global, data
+  zone, regional) and the agreement, so there is no catalog: enter them in
+  the Advanced form.
+- **Token counting:** estimated with the 0.25 margin (no count endpoint is
+  documented for the v1 API), settled with the reported usage.
+- **Files:** PDFs are sent as their text (file input depends on the
+  deployed model and region). Images are sent as for OpenAI.
+- **Web search:** not offered (Azure's Grounding with Bing is a separate,
+  separately billed Foundry tool).
+
 ## 10. Web search
 
 Since v1.3 a request can use the provider's own search tool. Ada does not
@@ -393,8 +417,19 @@ answers with citations.
   model, and its results reach the model directly. Ada keeps only the
   answer text, so later turns never resend search results (no
   `encrypted_content` round trip). A turn the API pauses (`pause_turn`,
-  long search loops) ends as cut off (`length`); `max_uses` is at most 5,
-  which keeps such turns rare.
+  long search loops) is continued (1.5): the adapter rebuilds the content
+  blocks it streamed (text with citations, `server_tool_use` with its
+  input, `web_search_tool_result` with `encrypted_content`, thinking with
+  its signature), sends them back as the assistant turn and keeps
+  streaming, at most `ada.providers.max_continuations` (2) times within the
+  same time limit. The continued request gets what is left of the output
+  cap and of `max_uses` (at least 1 while the turn holds tool calls, so a
+  continuation may run one search more than the alias allows). Each
+  request's usage is summed and charged; the continuation re-reads the
+  earlier search results as input, which can go beyond the reservation
+  like any overshoot (§8, logged). A turn paused before any content, a
+  failed continuation request, or one past the limit ends as cut off
+  (`length`).
 - **Gemini** has no per-request search limit; the model decides how many
   queries to run. The reservation assumes the alias's limit, and a request
   that searches more is still charged in full (§8, overshoot log).
@@ -415,11 +450,14 @@ answers with citations.
   the answer streams, each search is shown ("Searching: …"); the sources are
   listed under the answer, also in the Markdown export. Reports and their
   CSV have a web search column.
-- **Gemini and Google's terms:** grounded answers must be shown with
-  Google's Search Suggestions (`groundingMetadata.searchEntryPoint`), which
-  Ada does not render yet. The catalog therefore lists Gemini models
-  without web search, and the model form warns when it is turned on for a
-  Gemini model ([security.md §9](security.md#9-prompt-privacy)).
+- **Gemini and Google's terms:** grounded answers are shown with Google's
+  Search Suggestions (`groundingMetadata.searchEntryPoint.renderedContent`,
+  event `SearchSuggestionsFound`, stored in `messages.metadata.
+  search_suggestions`) in a sandboxed frame, only to the user who asked:
+  shared links withhold them (1.5). The catalog lists Gemini models with
+  web search at Google's list price ($14 per 1,000 searches for Gemini 3;
+  the monthly free searches are not taken into account), and the model
+  form summarizes the terms ([security.md §9](security.md#9-prompt-privacy)).
 
 Pricing: [budget-engine.md §5.4](budget-engine.md#54-reservation-amount).
 

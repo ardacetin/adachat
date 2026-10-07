@@ -210,11 +210,17 @@ Rate limits as built (M10), per user when signed in, otherwise per IP:
   `rel="noopener noreferrer nofollow"`.
 - **Gemini (Grounding with Google Search):** Google's Gemini API terms
   require Google's Search Suggestions to be shown with every grounded
-  answer, and limit how long grounded answers may be kept (chat history up
-  to two years). Ada does not show Search Suggestions yet, so the catalog
-  lists Gemini models without web search; administrators who turn it on
-  in the advanced model form must review those terms and the retention
-  setting first.
+  answer, allow showing grounded answers only to the user who asked, and
+  limit how long they may be kept (chat history up to two years). Since 1.5
+  Ada stores the Search Suggestions (`groundingMetadata.searchEntryPoint.
+  renderedContent`, at most 64 KiB) in `messages.metadata` and shows them
+  unmodified under the answer in a sandboxed `srcdoc` frame
+  (`sandbox="allow-popups allow-popups-to-escape-sandbox"`: no scripts,
+  no same-origin access, links open in a new tab), under the page's own
+  Content Security Policy. Shared links and their copies withhold such
+  answers (text and sources) and say why. `ada:doctor` warns while a
+  Gemini alias allows search and conversation retention is unset or over
+  730 days.
 
 ## 10. Audit logging
 
