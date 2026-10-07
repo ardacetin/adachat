@@ -90,3 +90,14 @@ test('the estimate includes the images of the request', function () {
     // 4 bytes / 2 + 2 × 8 overhead + 2 × 1600.
     expect((new EstimatedInputTokenCounter)->count($request))->toBe(3218);
 });
+
+test('Azure OpenAI providers are estimated without a count call', function () {
+    config(['ada.budget.on_counter_failure' => 'reject']);
+    Http::fake();
+
+    $count = app(TokenCounting::class)->count(countingModel(ProviderDriver::AzureOpenAI), countingRequest());
+
+    expect($count->method)->toBe(InputCountMethod::Estimated)
+        ->and($count->marginRatio)->toBe(0.25);
+    Http::assertNothingSent();
+});

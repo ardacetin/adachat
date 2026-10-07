@@ -22,9 +22,9 @@ class ProviderRequest extends FormRequest
     {
         /** @var Provider|null $provider */
         $provider = $this->route('provider');
-        // OpenAI-compatible endpoints have no default address.
+        // OpenAI-compatible servers and Azure resources have no default address.
         $driver = $provider !== null ? $provider->driver : ProviderDriver::tryFrom((string) $this->input('driver'));
-        $needsUrl = $driver === ProviderDriver::OpenAICompatible;
+        $needsUrl = $driver?->needsBaseUrl() ?? false;
 
         return [
             'slug' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', Rule::unique('providers', 'slug')->ignore($provider?->id)],

@@ -48,6 +48,8 @@ export default function ProviderForm({ provider, drivers }: Props) {
     // OpenAI-compatible endpoints (OpenRouter, Ollama, vLLM…) have no
     // default address, and local servers need no key.
     const compatible = form.data.driver === 'openai_compatible';
+    // Azure OpenAI: the resource's v1 endpoint, always with its key.
+    const azure = form.data.driver === 'azure_openai';
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -146,7 +148,9 @@ export default function ProviderForm({ provider, drivers }: Props) {
                     help={
                         compatible
                             ? t('providers.baseUrlCompatibleHelp')
-                            : t('providers.baseUrlHelp', { url: defaultUrl })
+                            : azure
+                              ? t('providers.baseUrlAzureHelp')
+                              : t('providers.baseUrlHelp', { url: defaultUrl })
                     }
                     error={form.errors.base_url}
                 >
@@ -157,9 +161,11 @@ export default function ProviderForm({ provider, drivers }: Props) {
                         placeholder={
                             compatible
                                 ? 'https://openrouter.ai/api/v1'
-                                : defaultUrl
+                                : azure
+                                  ? 'https://your-resource.openai.azure.com/openai/v1'
+                                  : defaultUrl
                         }
-                        required={compatible}
+                        required={compatible || azure}
                         aria-describedby="base_url-help"
                         onChange={(event) =>
                             form.setData('base_url', event.target.value)

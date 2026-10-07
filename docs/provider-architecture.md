@@ -173,7 +173,7 @@ The adapter's job is to turn each provider's conventions into the disjoint
   and timeouts (`ada.providers.timeout`, `ada.providers.counter_timeout`).
 - Credentials: active row in `provider_credentials` (Laravel `encrypted`
   cast) → fallback to `.env` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`). The `.env` key of OpenAI,
+  `GEMINI_API_KEY`, `OPENAI_COMPATIBLE_API_KEY`, `AZURE_OPENAI_API_KEY`). The `.env` key of OpenAI,
   Anthropic and Gemini goes only to that driver's own address: a provider
   whose base URL was changed in the panel needs its own key, entered when
   the address is set (on create as on update). Decrypted secrets live only
@@ -371,6 +371,30 @@ with the model name exactly as the server expects it.
   `429` count as rate limits.
 - **Reasoning:** `reasoning_content` (DeepSeek, vLLM) and `reasoning`
   (OpenRouter) deltas are shown as reasoning.
+
+### 9.1 Azure OpenAI (1.5)
+
+The `azure_openai` driver calls the **v1 API** of the institution's own Azure
+OpenAI (or Foundry) resource: the OpenAI Responses API at
+`{base}/responses`, with no `api-version`. Prompts and answers stay in the
+institution's Azure tenant and region.
+
+- **Base URL** (required): `https://<resource>.openai.azure.com/openai/v1`
+  (or `https://<resource>.services.ai.azure.com/openai/v1`).
+- **Key:** the resource key (Azure portal → resource → Keys and Endpoint),
+  sent in the `api-key` header; `.env` fallback `AZURE_OPENAI_API_KEY`.
+  Microsoft Entra ID tokens are not supported yet.
+- **Models:** the model ID is the **deployment name**; context window and
+  output cap as for the deployed model.
+- **Prices:** Azure's prices depend on the deployment type (global, data
+  zone, regional) and the agreement, so there is no catalog: enter them in
+  the Advanced form.
+- **Token counting:** estimated with the 0.25 margin (no count endpoint is
+  documented for the v1 API), settled with the reported usage.
+- **Files:** PDFs are sent as their text (file input depends on the
+  deployed model and region). Images are sent as for OpenAI.
+- **Web search:** not offered (Azure's Grounding with Bing is a separate,
+  separately billed Foundry tool).
 
 ## 10. Web search
 

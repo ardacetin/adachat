@@ -21,6 +21,7 @@ use App\Domain\AI\Exceptions\ProviderRateLimited;
 use App\Domain\AI\Exceptions\ProviderTimeout;
 use App\Domain\AI\Exceptions\ProviderUnavailable;
 use App\Domain\AI\Providers\Anthropic\AnthropicChatProvider;
+use App\Domain\AI\Providers\AzureOpenAI\AzureOpenAIChatProvider;
 use App\Domain\AI\Providers\Gemini\GeminiChatProvider;
 use App\Domain\AI\Providers\HttpChatProvider;
 use App\Domain\AI\Providers\OpenAI\OpenAIChatProvider;
@@ -90,6 +91,24 @@ dataset('providers', [
         'streamError' => ProviderRateLimited::class,
         'imageMarker' => '"inline_data":{"mime_type":"image/png","data":"',
         'documentMarker' => '"inline_data":{"mime_type":"application/pdf","data":"',
+    ]],
+    'azure_openai' => [[
+        'class' => AzureOpenAIChatProvider::class,
+        'fixture' => 'openai',
+        'base' => 'https://ada.openai.azure.com/openai/v1',
+        'streamUrl' => 'https://ada.openai.azure.com/openai/v1/responses',
+        'countUrl' => null,
+        'countBody' => null,
+        'authHeader' => ['api-key', TEST_API_KEY],
+        'maxTokens' => fn (array $body) => $body['max_output_tokens'],
+        'system' => fn (array $body) => $body['instructions'],
+        'messages' => fn (array $body) => $body['input'],
+        'usage' => new TokenUsage(input: 200, cachedInput: 1000, output: 50, reasoning: 250),
+        'requestId' => 'req_openai',
+        'reasoning' => false,
+        'streamError' => ProviderRateLimited::class,
+        'imageMarker' => '"type":"input_image","image_url":"data:image/png;base64,',
+        'documentMarker' => null,
     ]],
     'openai_compatible' => [[
         'class' => OpenAICompatibleChatProvider::class,
@@ -333,7 +352,8 @@ test('an image without text sends no empty text block', function (array $provide
 test('PDFs are sent as documents and counted with the request', function (array $provider) {
     if ($provider['documentMarker'] === null) {
         // Chat Completions servers get the PDF's text instead (ContextBuilder).
-        expect(ProviderDriver::OpenAICompatible->sendsDocuments())->toBeFalse();
+        expect(ProviderDriver::OpenAICompatible->sendsDocuments())->toBeFalse()
+            ->and(ProviderDriver::AzureOpenAI->sendsDocuments())->toBeFalse();
 
         return;
     }
@@ -352,3 +372,14 @@ test('PDFs are sent as documents and counted with the request', function (array 
 
     expect($sent)->toHaveCount(2)->each->toContain($provider['documentMarker'].'cGRm');
 })->with('providers');
+
+test('Azure OpenAI sends the resource key in api-key, never as a bearer token', function () {
+    fakeStream(['fixture' => 'openai']);
+
+    iterator_to_array((new AzureOpenAIChatProvider(app(Factory::class), TEST_API_KEY, 'https://ada.openai.azure.com/openai/v1', 30, 3))->stream(chatRequest()));
+
+    Http::assertSent(fn (Request $request) => $request->hasHeader('api-key', TEST_API_KEY)
+        && ! $request->hasHeader('Authorization')
+        && $request->data()['model'] === 'test-model'
+        && ! str_contains($request->url(), 'api-version'));
+});

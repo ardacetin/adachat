@@ -150,7 +150,8 @@
         "enabled": "Enabled",
         "driverLocked": "The type cannot be changed after creation.",
         "baseUrlCompatibleHelp": "Required: the address that ends in /v1, e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) or http://your-server:8000/v1 (vLLM). Ada calls <address>/chat/completions.",
-        "apiKeyOptional": "Optional for servers without authentication (Ollama, vLLM)."
+        "apiKeyOptional": "Optional for servers without authentication (Ollama, vLLM).",
+        "baseUrlAzureHelp": "Required: your Azure OpenAI resource's v1 endpoint, https://<resource>.openai.azure.com/openai/v1 (or …services.ai.azure.com/openai/v1). Ada calls <address>/responses with the resource key; models use the deployment name as their ID."
     },
     "models": {
         "title": "Models",

@@ -61,8 +61,9 @@ numbers.
 - Answer feedback (thumbs up / down) and a satisfaction report without content
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
-- OpenAI, Anthropic and Google Gemini through a provider abstraction, and
-  any OpenAI-compatible server (OpenRouter, Groq, Ollama, vLLM, LM Studio)
+- OpenAI, Anthropic, Google Gemini and Azure OpenAI through a provider
+  abstraction, and any OpenAI-compatible server (OpenRouter, Groq, Ollama,
+  vLLM, LM Studio)
 - Model registry, model aliases and per-group model permissions
 - Streaming chat with Markdown rendering and conversation history
 - Attachments: images, PDF, Word, Excel, PowerPoint, text and code files

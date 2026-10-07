@@ -60,8 +60,9 @@ iş görebileceğini öngörmüştür.
   Microsoft Entra ID ile diğer OpenID Connect sağlayıcıları
 - Türkçe ve İngilizce arayüz, karanlık mod, kurum markalaması
 - Roller (super admin, admin, user) ve gruplar
-- Provider abstraction üzerinden OpenAI, Anthropic ve Google Gemini; ayrıca
-  OpenAI uyumlu sunucular (OpenRouter, Groq, Ollama, vLLM, LM Studio)
+- Provider abstraction üzerinden OpenAI, Anthropic, Google Gemini ve Azure
+  OpenAI; ayrıca OpenAI uyumlu sunucular (OpenRouter, Groq, Ollama, vLLM,
+  LM Studio)
 - Model kaydı, model alias'ları ve grup bazlı model izinleri
 - Streaming sohbet, Markdown gösterimi, konuşma geçmişi
 - Dosya ekleri: görsel, PDF, Word, Excel, PowerPoint, metin ve kod dosyaları

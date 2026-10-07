@@ -199,3 +199,16 @@ test('a keyless OpenAI-compatible connection check sends no credentials', functi
     Http::assertSent(fn ($request) => $request->url() === 'http://ollama:11434/v1/models'
         && ! $request->hasHeader('Authorization'));
 });
+
+test('an Azure OpenAI provider needs its resource address and a key', function () {
+    $input = ['slug' => 'azure', 'driver' => 'azure_openai', 'name' => 'Azure OpenAI', 'base_url' => '', 'enabled' => true];
+
+    $this->actingAs(superAdmin())->post(route('admin.providers.store'), $input)->assertSessionHasErrors('base_url');
+
+    $this->actingAs(superAdmin())->post(route('admin.providers.store'), [...$input, 'base_url' => 'https://ada.openai.azure.com/openai/v1', 'api_key' => 'azure-key-0000'])
+        ->assertSessionHasNoErrors();
+
+    $provider = Provider::query()->where('slug', 'azure')->sole();
+    expect($provider->driver->value)->toBe('azure_openai')
+        ->and($provider->activeCredential?->last_four)->toBe('0000');
+});

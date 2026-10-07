@@ -150,7 +150,8 @@
         "enabled": "Etkin",
         "driverLocked": "Tür, oluşturulduktan sonra değiştirilemez.",
         "baseUrlCompatibleHelp": "Zorunlu: /v1 ile biten adres, ör. https://openrouter.ai/api/v1, http://localhost:11434/v1 (Ollama) veya http://sunucunuz:8000/v1 (vLLM). Ada <adres>/chat/completions adresini çağırır.",
-        "apiKeyOptional": "Kimlik doğrulaması olmayan sunucular (Ollama, vLLM) için isteğe bağlı."
+        "apiKeyOptional": "Kimlik doğrulaması olmayan sunucular (Ollama, vLLM) için isteğe bağlı.",
+        "baseUrlAzureHelp": "Zorunlu: Azure OpenAI kaynağınızın v1 adresi, https://<kaynak>.openai.azure.com/openai/v1 (ya da …services.ai.azure.com/openai/v1). Ada kaynak anahtarıyla <adres>/responses adresini çağırır; modellerde kimlik olarak dağıtım (deployment) adı kullanılır."
     },
     "models": {
         "title": "Modeller",

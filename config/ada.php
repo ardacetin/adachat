@@ -188,6 +188,7 @@ return [
             'anthropic' => env('ANTHROPIC_API_KEY'),
             'gemini' => env('GEMINI_API_KEY'),
             'openai_compatible' => env('OPENAI_COMPATIBLE_API_KEY'),
+            'azure_openai' => env('AZURE_OPENAI_API_KEY'),
         ],
     ],
 
@@ -201,6 +202,8 @@ return [
             'gemini' => 0.0,
             // No count endpoint: the conservative estimate plus this margin.
             'openai_compatible' => 0.25,
+            // Azure OpenAI: OpenAI models, estimated like the above.
+            'azure_openai' => 0.25,
             'estimated' => 0.5,
         ],
 
