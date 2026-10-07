@@ -75,6 +75,7 @@
     },
     "overrides": {
         "postcss-selector-parser": "^7.1.6",
+        "shell-quote": "^1.11.0",
         "vite": "npm:@voidzero-dev/vite-plus-core@0.3.3"
     }
 }
