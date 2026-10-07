@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\FeedbackReportController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstitutionSettingsController;
 use App\Http\Controllers\Admin\ModelAliasController;
+use App\Http\Controllers\Admin\PersonalDataController;
 use App\Http\Controllers\Admin\PrivacySettingsController;
 use App\Http\Controllers\Admin\ProviderController;
 use App\Http\Controllers\Admin\ReportController;
@@ -58,6 +59,9 @@ Route::middleware(['auth', 'can:access-admin', 'throttle:admin'])->prefix('admin
 
         Route::get('privacy', [PrivacySettingsController::class, 'edit'])->name('privacy.edit');
         Route::put('privacy', [PrivacySettingsController::class, 'update'])->name('privacy.update');
+        Route::get('personal-data', [PersonalDataController::class, 'edit'])->name('personal-data.edit');
+        Route::put('personal-data', [PersonalDataController::class, 'update'])->name('personal-data.update');
+        Route::post('personal-data/test', [PersonalDataController::class, 'test'])->middleware('throttle:30,1,personal-data-test:')->name('personal-data.test');
 
         Route::resource('providers', ProviderController::class)->except(['show', 'destroy']);
         Route::post('providers/{provider}/check', [ProviderController::class, 'check'])

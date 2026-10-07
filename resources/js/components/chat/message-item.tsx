@@ -1,4 +1,4 @@
-import { Check, Copy, Globe, RefreshCw } from 'lucide-react';
+import { Check, Copy, Globe, RefreshCw, ShieldCheck } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import AnswerFeedback from '@/components/chat/answer-feedback';
@@ -32,6 +32,21 @@ function MessageItem({ message, streaming = false, onRegenerate }: Props) {
                         <span className="sr-only">{t('message.you')}: </span>
                         {message.content}
                     </div>
+                )}
+                {(message.personal_data_masked ?? []).length > 0 && (
+                    <p
+                        className="flex items-center gap-1 text-xs text-muted-foreground"
+                        data-test="personal-data-masked"
+                    >
+                        <ShieldCheck className="size-3.5 shrink-0" />
+                        {t('personalData.masked', {
+                            kinds: (message.personal_data_masked ?? [])
+                                .map(({ kind, count }) =>
+                                    count > 1 ? `${kind} ×${count}` : kind,
+                                )
+                                .join(', '),
+                        })}
+                    </p>
                 )}
             </div>
         );

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Domain\AI\Catalog\ModelCatalog;
+use App\Domain\PersonalData\PersonalDataScanner;
+use App\Domain\PersonalData\PersonalDataSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ModelCatalog::class, fn () => new ModelCatalog((string) config('ada.catalog.path')));
+        $this->app->bind(PersonalDataScanner::class, fn ($app) => PersonalDataScanner::fromSettings($app->make(PersonalDataSettings::class)));
     }
 
     /**

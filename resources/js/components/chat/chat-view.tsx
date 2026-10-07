@@ -89,6 +89,10 @@ export default function ChatView({
     /** The finished answer is being loaded from the server. */
     const [settling, setSettling] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    /** Personal data the institution warns about: the user may send anyway. */
+    const [personalDataWarning, setPersonalDataWarning] = useState<
+        string | null
+    >(null);
     const bottom = useRef<HTMLDivElement>(null);
     const streaming = status === 'streaming';
     const alias = aliases.find((candidate) => candidate.id === aliasId);
@@ -179,6 +183,7 @@ export default function ChatView({
         };
 
         setError(null);
+        setPersonalDataWarning(null);
         setPending(next);
 
         void run(url, body, {
@@ -206,6 +211,8 @@ export default function ChatView({
                     if (event.code === 'budget_exhausted') {
                         // The budget alert below explains it, with the renewal date.
                         router.reload({ only: ['budget'] });
+                    } else if (event.personal_data?.action === 'warn') {
+                        setPersonalDataWarning(describe(event));
                     } else {
                         setError(describe(event));
                     }
@@ -274,7 +281,7 @@ export default function ChatView({
         output_capped: false,
     });
 
-    const send = (text?: string) => {
+    const send = (text?: string, personalDataConfirmed = false) => {
         const content = (text ?? input).trim();
         const files = attachments.ready;
 
@@ -301,6 +308,7 @@ export default function ChatView({
                     conversationId === null ? (assistant?.id ?? null) : null,
                 attachment_ids: files.map((file) => file.id),
                 web_search: searching,
+                personal_data_confirmed: personalDataConfirmed,
             },
             {
                 user: {
@@ -442,6 +450,31 @@ export default function ChatView({
                 {error && (
                     <Alert variant="destructive" className="mb-2">
                         <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {personalDataWarning && (
+                    <Alert className="mb-2" data-test="personal-data-warning">
+                        <AlertDescription className="space-y-2">
+                            <p>{personalDataWarning}</p>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled={streaming}
+                                    onClick={() => send(undefined, true)}
+                                >
+                                    {t('personalData.sendAnyway')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setPersonalDataWarning(null)}
+                                >
+                                    {t('personalData.edit')}
+                                </Button>
+                            </div>
+                        </AlertDescription>
                     </Alert>
                 )}
                 {nearLimit && budget && (

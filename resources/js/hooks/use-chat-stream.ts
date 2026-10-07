@@ -31,17 +31,21 @@ type Handlers = {
     onSettled?: () => void;
 };
 
-async function firstValidationError(
-    response: Response,
-): Promise<string | undefined> {
+async function validationError(response: Response): Promise<ErrorEvent> {
     try {
         const body = (await response.json()) as {
             errors?: Record<string, string[]>;
+            personal_data?: ErrorEvent['personal_data'];
         };
 
-        return Object.values(body.errors ?? {})[0]?.[0];
+        return {
+            code: body.personal_data ? 'personal_data' : 'validation',
+            retryable: false,
+            message: Object.values(body.errors ?? {})[0]?.[0],
+            personal_data: body.personal_data,
+        };
     } catch {
-        return undefined;
+        return { code: 'validation', retryable: false };
     }
 }
 
@@ -165,11 +169,7 @@ export function useChatStream() {
                 ).startsWith('text/event-stream');
 
                 if (response.status === 422) {
-                    handlers.onError?.({
-                        code: 'validation',
-                        retryable: false,
-                        message: await firstValidationError(response),
-                    });
+                    handlers.onError?.(await validationError(response));
 
                     return;
                 }

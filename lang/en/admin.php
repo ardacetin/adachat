@@ -11,6 +11,8 @@ return [
     'policy_in_use' => 'This budget policy is used by a group and cannot be deleted.',
     'group_not_deletable' => 'The default group and groups with members cannot be deleted.',
     'idp_group_taken' => '“:value” already maps to another group.',
+    'personal_data_invalid_pattern' => 'The pattern is not a valid regular expression.',
+    'personal_data_empty_pattern' => 'The pattern matches an empty text: it would match everywhere.',
     'last_super_admin' => 'The last active super administrator cannot be demoted or disabled.',
     'credit_exceeds_spent' => 'A credit cannot be larger than what was spent this month.',
     'report_range_order' => 'The end date must not be before the start date.',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat;
 use App\Domain\Conversations\Services\ChatPageProps;
 use App\Domain\Conversations\Services\ConversationSharing;
 use App\Domain\Conversations\Services\ConversationThread;
+use App\Domain\PersonalData\PersonalDataLabels;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\ConversationShare;
@@ -54,6 +55,12 @@ class ConversationController extends Controller
                 'output_capped' => (bool) ($message->metadata['output_capped'] ?? false),
                 'sources' => $message->metadata['sources'] ?? [],
                 'search_suggestions' => is_string($message->metadata['search_suggestions'] ?? null) ? $message->metadata['search_suggestions'] : null,
+                // Kinds and counts only; the values are in the message itself.
+                'personal_data_masked' => array_map(
+                    fn (string $kind, int $count) => ['kind' => PersonalDataLabels::label($kind), 'count' => $count],
+                    array_keys((array) ($message->metadata['personal_data_masked'] ?? [])),
+                    array_values((array) ($message->metadata['personal_data_masked'] ?? [])),
+                ),
                 'feedback' => $message->feedback === null ? null : [
                     'rating' => $message->feedback->rating,
                     'reason' => $message->feedback->reason,

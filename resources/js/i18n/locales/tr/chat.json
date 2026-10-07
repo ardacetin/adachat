@@ -187,5 +187,10 @@
         "copy": "Sohbetlerime kopyala",
         "own": "Bu sohbeti siz paylaştınız.",
         "attachments": "Ekli dosyalar (paylaşılmadı): {{names}}"
+    },
+    "personalData": {
+        "sendAnyway": "Yine de gönder",
+        "edit": "Mesajı düzenle",
+        "masked": "Yapay zekâ modelinden gizlendi: {{kinds}}. Yanıtta gerçek değerler gösterilir."
     }
 }

@@ -16,7 +16,8 @@
         "reports": "Raporlar",
         "privacy": "Gizlilik",
         "assistants": "Asistanlar",
-        "feedback": "Memnuniyet"
+        "feedback": "Memnuniyet",
+        "personalData": "Kişisel veriler"
     },
     "index": {
         "intro": "Bu ayın özeti."
@@ -630,5 +631,49 @@
                 "button": "Düğme"
             }
         }
+    },
+    "personalData": {
+        "title": "Kişisel veriler",
+        "description": "Mesajlardaki kişisel verilere, bir yapay zekâ sağlayıcısına gönderilmeden önce ne olacağı. Kullanıcıların yazdıklarına ve eklerinin metnine uygulanır; görseller kontrol edilmez.",
+        "actions": {
+            "off": "Kapalı",
+            "warn": "Uyar",
+            "mask": "Maskele",
+            "block": "Engelle"
+        },
+        "actionHelp": {
+            "warn": "kullanıcı bilgilendirilir; mesajı düzenleyebilir ya da yine de gönderebilir.",
+            "mask": "değer gönderilmeden önce [TCKN_1] gibi bir yer tutucuyla değiştirilir ve kullanıcının gördüğü yanıtta geri konur. PDF'ler bu durumda metin olarak gönderilir.",
+            "block": "mesaj gönderilmez."
+        },
+        "builtIn": "Hazır kontroller",
+        "kinds": {
+            "tckn": "T.C. kimlik numarası",
+            "iban": "IBAN",
+            "card": "Kart numarası",
+            "phone": "Telefon numarası",
+            "email": "E-posta adresi"
+        },
+        "kindHelp": {
+            "tckn": "Kontrol basamakları doğru olan 11 hane.",
+            "iban": "Her ülke, geçerli kontrol numarasıyla; dörtlü gruplar olabilir.",
+            "card": "Luhn kontrolünden geçen 13–19 hane.",
+            "phone": "+90 veya 0 ile ya da onlarsız Türkiye cep ve sabit hat numaraları.",
+            "email": "ad@ornek.edu.tr gibi adresler."
+        },
+        "patterns": "Kurum kalıpları",
+        "patternsHelp": "Öğrenci numarası gibi size özgü veriler için düzenli ifadeler (örnek: \\b20\\d{7}\\b). En fazla 20; çok uzun süren kalıplar hiçbir şey bulmaz.",
+        "patternName": "Ad",
+        "pattern": "Kalıp",
+        "patternAction": "{{name}} için işlem",
+        "removePattern": "Kalıbı kaldır",
+        "addPattern": "Kalıp ekle",
+        "test": "Deneyin",
+        "testHelp": "Örnek bir metni, kaydedilmiş olsun olmasın yukarıdaki kurallarla kontrol eder. Hiçbir şey saklanmaz.",
+        "runTest": "Kontrol et",
+        "testFailed": "Kurallar kontrol edilemedi.",
+        "nothingFound": "Bir şey bulunmadı.",
+        "sent": "Sağlayıcıya gidecek metin:",
+        "patternPlaceholder": "\\b20\\d{7}\\b"
     }
 }

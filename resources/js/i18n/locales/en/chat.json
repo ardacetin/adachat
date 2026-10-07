@@ -187,5 +187,10 @@
         "copy": "Copy to my conversations",
         "own": "You shared this conversation.",
         "attachments": "Attached files (not shared): {{names}}"
+    },
+    "personalData": {
+        "sendAnyway": "Send anyway",
+        "edit": "Edit the message",
+        "masked": "Hidden from the AI model: {{kinds}}. The answer shows the real values."
     }
 }
