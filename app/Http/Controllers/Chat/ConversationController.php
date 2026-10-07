@@ -53,6 +53,7 @@ class ConversationController extends Controller
                 'finish_reason' => $message->finish_reason,
                 'output_capped' => (bool) ($message->metadata['output_capped'] ?? false),
                 'sources' => $message->metadata['sources'] ?? [],
+                'search_suggestions' => is_string($message->metadata['search_suggestions'] ?? null) ? $message->metadata['search_suggestions'] : null,
                 'feedback' => $message->feedback === null ? null : [
                     'rating' => $message->feedback->rating,
                     'reason' => $message->feedback->reason,

@@ -226,7 +226,7 @@
         "webSearchPrice": "Web search (USD per 1,000 searches)",
         "webSearchPriceHelp": "Charged for every search the provider runs, on top of the tokens its results add.",
         "catalogWebSearch": "Web search: {{price}} per 1,000 searches.",
-        "webSearchGeminiTerms": "Google's Gemini API terms require showing Google's Search Suggestions with every answer grounded in Google Search. Ada does not show them yet, so check the terms before turning this on."
+        "webSearchGeminiTerms": "Google's terms: answers grounded in Google Search are shown with Google's Search Suggestions, only to the user who asked (shared links leave them out), and may be kept for at most two years: set conversation retention accordingly. Google's monthly free searches are not taken into account; Ada charges every search."
     },
     "aliases": {
         "title": "Model aliases",

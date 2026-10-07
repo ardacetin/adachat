@@ -426,11 +426,14 @@ answers with citations.
   the answer streams, each search is shown ("Searching: …"); the sources are
   listed under the answer, also in the Markdown export. Reports and their
   CSV have a web search column.
-- **Gemini and Google's terms:** grounded answers must be shown with
-  Google's Search Suggestions (`groundingMetadata.searchEntryPoint`), which
-  Ada does not render yet. The catalog therefore lists Gemini models
-  without web search, and the model form warns when it is turned on for a
-  Gemini model ([security.md §9](security.md#9-prompt-privacy)).
+- **Gemini and Google's terms:** grounded answers are shown with Google's
+  Search Suggestions (`groundingMetadata.searchEntryPoint.renderedContent`,
+  event `SearchSuggestionsFound`, stored in `messages.metadata.
+  search_suggestions`) in a sandboxed frame, only to the user who asked:
+  shared links withhold them (1.5). The catalog lists Gemini models with
+  web search at Google's list price ($14 per 1,000 searches for Gemini 3;
+  the monthly free searches are not taken into account), and the model
+  form summarizes the terms ([security.md §9](security.md#9-prompt-privacy)).
 
 Pricing: [budget-engine.md §5.4](budget-engine.md#54-reservation-amount).
 

@@ -226,7 +226,7 @@
         "webSearchPrice": "Web araması (1000 arama başına USD)",
         "webSearchPriceHelp": "Sağlayıcının yaptığı her arama için, sonuçların eklediği tokenlara ek olarak düşülür.",
         "catalogWebSearch": "Web araması: 1000 arama başına {{price}}.",
-        "webSearchGeminiTerms": "Google'ın Gemini API şartları, Google Arama'ya dayanan her yanıtla birlikte Google'ın arama önerilerinin (Search Suggestions) gösterilmesini istiyor. Ada bunları henüz göstermiyor; açmadan önce şartları inceleyin."
+        "webSearchGeminiTerms": "Google'ın şartları: Google Arama ile oluşturulan yanıtlar Google'ın arama önerileriyle birlikte ve yalnızca soran kullanıcıya gösterilir (paylaşım bağlantılarında yer almaz), en fazla iki yıl saklanabilir; sohbet saklama süresini buna göre ayarlayın. Google'ın aylık ücretsiz aramaları hesaba katılmaz; Ada her aramayı ücretlendirir."
     },
     "aliases": {
         "title": "Model takma adları",

@@ -24,6 +24,7 @@ return [
     'share' => [
         'too_many_links' => 'A conversation can have at most :max active links. Revoke one first.',
         'daily_limit' => 'You have created or copied too many shared conversations today. Try again tomorrow.',
+        'withheld' => '(This answer used Google Search. Google allows showing it only to the person who asked.)',
     ],
     'export' => [
         'untitled' => 'Untitled conversation',

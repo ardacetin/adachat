@@ -164,7 +164,8 @@
         "searching": "Aranıyor: {{query}}",
         "searchingUnknown": "Web'de aranıyor…",
         "sources": "Kaynaklar",
-        "sourceLink": "{{title}} (yeni sekmede açılır)"
+        "sourceLink": "{{title}} (yeni sekmede açılır)",
+        "googleSuggestions": "Google Arama önerileri"
     },
     "feedback": {
         "up": "İyi yanıt",

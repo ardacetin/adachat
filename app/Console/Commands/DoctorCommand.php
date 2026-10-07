@@ -10,6 +10,7 @@ use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
+use App\Domain\Institution\Settings\PrivacySettings;
 use App\Models\AiModel;
 use App\Models\Group;
 use App\Models\ModelAlias;
@@ -106,6 +107,12 @@ class DoctorCommand extends Command
             ->filter(fn (ModelAlias $alias) => $alias->webSearchMaxUses() === null)
             ->map(fn (ModelAlias $alias) => $alias->slug);
         $this->check('Aliases with web search can search', $noSearch->isEmpty(), warnOnly: true, hint: 'The model of '.$noSearch->implode(', ').' does not support web search or has no search price. Admin > Models.');
+
+        // Google's terms let grounded answers be kept for at most two years.
+        $gemini = ModelAlias::query()->with('aiModel.provider')->where('enabled', true)->get()
+            ->contains(fn (ModelAlias $alias) => $alias->webSearchMaxUses() !== null && $alias->aiModel->provider->driver === ProviderDriver::Gemini);
+        $retention = app(PrivacySettings::class)->conversation_retention_days;
+        $this->check('Answers grounded in Google Search are kept at most two years', ! $gemini || ($retention !== null && $retention <= 730), warnOnly: true, hint: 'A Gemini alias allows web search: set conversation retention to 730 days or less (Admin > Privacy), as Google\'s terms require.');
 
         $this->newLine();
 

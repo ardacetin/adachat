@@ -164,7 +164,8 @@
         "searching": "Searching: {{query}}",
         "searchingUnknown": "Searching the web…",
         "sources": "Sources",
-        "sourceLink": "{{title}} (opens in a new tab)"
+        "sourceLink": "{{title}} (opens in a new tab)",
+        "googleSuggestions": "Google Search suggestions"
     },
     "feedback": {
         "up": "Good answer",

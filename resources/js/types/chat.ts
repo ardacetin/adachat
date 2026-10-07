@@ -10,6 +10,8 @@ export type ChatMessage = {
     output_capped: boolean;
     attachments?: AttachmentInfo[];
     sources?: Source[];
+    /** Google's Search Suggestions (HTML) for an answer grounded in Google Search. */
+    search_suggestions?: string | null;
     /** The user's own vote on an answer. */
     feedback?: MessageFeedback | null;
     /** Searches the provider runs while the answer streams. */
