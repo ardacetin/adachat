@@ -5,6 +5,7 @@ use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Exceptions\LastSuperAdmin;
 use App\Domain\Identity\Services\UserAdministration;
+use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Models\AuditLog;
 use App\Models\BudgetPeriod;
@@ -99,6 +100,25 @@ test('an administrator changes the group and it applies to this month', function
     expect($user->refresh()->group_id)->toBe($target->id)
         ->and(BudgetPeriod::query()->where('user_id', $user->id)->sole()->limit_usd->toString())->toBe('30.0000000000')
         ->and(AuditLog::query()->where('action', 'user.group_changed')->sole()->new_values)->toBe(['group_id' => $target->id]);
+});
+
+test('while group mapping is on, a group set by hand is pinned unless the administrator says otherwise', function () {
+    updateSettings(AuthSettings::class, ['group_mapping' => true]);
+    $user = member('10');
+    $target = Group::factory()->create();
+
+    $this->actingAs($this->admin)->put(route('admin.users.group', $user), ['group_id' => $target->id]);
+    expect($user->refresh()->group_pinned)->toBeTrue();
+
+    // Handing the group back to the identity provider.
+    $this->put(route('admin.users.group', $user), ['group_id' => $target->id, 'pinned' => false]);
+    expect($user->refresh()->group_pinned)->toBeFalse()
+        ->and(AuditLog::query()->where('action', 'user.group_changed')->latest('id')->first()->new_values)->toBe(['group_pinned' => false]);
+
+    $this->get(route('admin.users.show', $user))->assertInertia(fn ($page) => $page
+        ->where('group_mapping', true)
+        ->where('user.group_pinned', false)
+        ->where('user.idp_groups', null));
 });
 
 test('an administrator sets and clears an individual budget without a cap', function () {

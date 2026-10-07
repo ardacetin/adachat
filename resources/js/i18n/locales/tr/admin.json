@@ -103,6 +103,26 @@
             "clientId": "İstemci kimliği (client ID)",
             "scopes": "Kapsamlar",
             "test": "Bağlantıyı test et"
+        },
+        "groupMapping": {
+            "title": "Grup eşleme",
+            "description": "Kullanıcıları, kimlik sağlayıcınızın girişte gönderdiği gruplara göre bir gruba yerleştirin. Sağlayıcının gruplarını her Ada grubunda listeleyin (Yönetim → Gruplar).",
+            "enabled": "Kullanıcıların grubunu kimlik sağlayıcısından al",
+            "sources": "Gruplar {{sources}} üzerinden okunuyor. Kimlik sağlayıcısı grubu tanımlı Ada grubu sayısı: {{groups}}.",
+            "noSource": "Kimlik sağlayıcısı henüz grup göndermiyor: sunucuda SAML_ATTRIBUTE_GROUPS veya OIDC_GROUPS_CLAIM ayarlayın (kimlik doğrulama rehberine bakın).",
+            "samlSource": "“{{name}}” SAML özniteliği",
+            "oidcSource": "“{{name}}” OIDC claim'i",
+            "unmatched": "Eşleşen hiçbir grupta olmayan kullanıcılar",
+            "unmatchedOption": {
+                "keep": "Mevcut grubunda kalsın",
+                "default": "Varsayılan gruba alınsın",
+                "reject": "Giriş yapamasın"
+            },
+            "unmatchedHelp": {
+                "keep": "Yeni kullanıcılar varsayılan grupta başlar; diğerleri olduğu yerde kalır.",
+                "default": "Kullanıcı, kimlik sağlayıcısındaki gruptan çıktığında eşlendiği gruptan da çıkar.",
+                "reject": "Yalnızca eşleşen bir gruptaki kişiler giriş yapabilir. Yöneticiler ve grubu elle atanmış kullanıcılar her zaman giriş yapabilir."
+            }
         }
     },
     "common": {
@@ -288,7 +308,12 @@
         "applyToCurrentPeriodHelp": "Aksi hâlde üyeler bu ayın limitini korur, yenisi gelecek ay geçerli olur. Bireysel bütçeler etkilenmez.",
         "deleteTitle": "Grup silinsin mi?",
         "deleteConfirm": "“{{name}}” grubu kaldırılacak. Yalnızca üyesi olmayan gruplar silinebilir.",
-        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde bir yönetici var."
+        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde bir yönetici var.",
+        "idpGroups": "Kimlik sağlayıcısı grupları",
+        "idpGroupsHelp": "Her satıra bir tane: kimlik sağlayıcınızın gönderdiği grup adları veya kimlikleri (Entra ID: grup nesne kimlikleri). Grup eşleme açıkken bu grupların üyeleri girişte bu gruba alınır. Kullanıcının son gelen değerleri kendi sayfasında görünür.",
+        "idpPriority": "Eşleme önceliği",
+        "idpPriorityHelp": "Bir kişi birden fazla Ada grubunun kimlik sağlayıcısı gruplarındaysa en küçük sayı kazanır.",
+        "mapped": "Eşlenmiş"
     },
     "budgetPolicies": {
         "title": "Bütçe politikaları",
@@ -382,7 +407,12 @@
         "accessChange": "Giriş ayarlarından değiştirin",
         "actionsFor": "{{name}} için işlemler",
         "disableTitle": "{{name}} devre dışı bırakılsın mı?",
-        "actionFailed": "Değişiklik kaydedilemedi."
+        "actionFailed": "Değişiklik kaydedilemedi.",
+        "groupPinned": "Elle atandı: girişler bu grubu değiştirmez.",
+        "groupMapped": "Her girişte kimlik sağlayıcısından atanır.",
+        "pinGroup": "Sonraki girişlerde bu grup korunsun",
+        "idpGroupsSeen": "Son girişte gelen gruplar",
+        "idpGroupsNone": "yok"
     },
     "auditLog": {
         "title": "Denetim kaydı",

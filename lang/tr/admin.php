@@ -10,6 +10,7 @@ return [
     'test_mail_failed' => 'Deneme e-postası gönderilemedi. MAIL_* ayarlarını kontrol edin; nedeni log kaydında.',
     'policy_in_use' => 'Bu bütçe politikası bir grup tarafından kullanılıyor, silinemez.',
     'group_not_deletable' => 'Varsayılan grup ve üyesi olan gruplar silinemez.',
+    'idp_group_taken' => '“:value” başka bir grupla eşleştirilmiş.',
     'last_super_admin' => 'Son etkin süper yönetici düşürülemez veya devre dışı bırakılamaz.',
     'credit_exceeds_spent' => 'İade, bu ay harcanan tutardan büyük olamaz.',
     'report_range_order' => 'Bitiş tarihi başlangıçtan önce olamaz.',

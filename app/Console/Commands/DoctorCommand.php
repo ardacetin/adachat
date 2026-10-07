@@ -81,6 +81,13 @@ class DoctorCommand extends Command
             $this->check('SAML accounts follow a stable ID, not the e-mail address', $saml->subjectAttribute() !== null, warnOnly: true, hint: 'Set SAML_ATTRIBUTE_SUBJECT, or disable the Ada account of everyone who leaves before their address is reused (docs/authentication.md).');
         }
 
+        if ($auth->group_mapping) {
+            $oidc = app(OidcIdentityProvider::class);
+            $sent = ($saml->isEnabled() && $saml->groupsAttribute() !== null) || ($oidc->isEnabled() && $oidc->groupsClaim() !== null);
+            $this->check('Group mapping: the identity provider sends groups', $sent, warnOnly: true, hint: 'Set SAML_ATTRIBUTE_GROUPS or OIDC_GROUPS_CLAIM (docs/authentication.md); until then group mapping changes nothing.');
+            $this->check('Group mapping: a group lists identity provider groups', Group::query()->whereNotNull('idp_groups')->exists(), warnOnly: true, hint: 'Admin > Groups: enter the identity provider groups of each group.');
+        }
+
         $certificate = $saml->setupDetails()['certificate'];
 
         if ($certificate !== null && $certificate['expires_at'] !== null) {

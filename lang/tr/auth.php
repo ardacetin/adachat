@@ -21,6 +21,7 @@ return [
         'account_disabled' => 'Hesabınız devre dışı bırakılmış. Lütfen yöneticinizle iletişime geçin.',
         'session_expired' => 'Oturumunuz sona erdi. Lütfen yeniden giriş yapın.',
         'account_conflict' => 'Hesabınız ilişkilendirilemedi. Lütfen yöneticinizle iletişime geçin.',
+        'no_mapped_group' => 'Hesabınız bu hizmeti kullanabilen bir grupta değil. Lütfen yöneticinizle iletişime geçin.',
     ],
 
 ];

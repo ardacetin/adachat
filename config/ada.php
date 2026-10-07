@@ -64,6 +64,9 @@ return [
                 // given to another person (e.g. an employee ID). Without it
                 // the e-mail address identifies the account.
                 'subject' => env('SAML_ATTRIBUTE_SUBJECT'),
+                // Optional: a multi-valued attribute with the person's groups
+                // (Google Admin: "Group membership"), for group mapping.
+                'groups' => env('SAML_ATTRIBUTE_GROUPS'),
             ],
             // Label of the sign-in button.
             'label' => env('SAML_LOGIN_LABEL', 'Google'),
@@ -82,6 +85,9 @@ return [
             // entra (single tenant, see docs) or generic (email_verified required).
             'preset' => env('OIDC_PRESET', 'generic'),
             'scopes' => env('OIDC_SCOPES', 'openid email profile'),
+            // Optional: the ID token claim with the person's groups (usually
+            // "groups"), for group mapping. Entra ID sends group object IDs.
+            'groups_claim' => env('OIDC_GROUPS_CLAIM'),
         ],
 
         // Password-less development login. Only ever active in the local and

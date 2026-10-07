@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Identity\Services\GroupMapping;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateAuthSettingsRequest extends FormRequest
 {
@@ -43,6 +45,8 @@ class UpdateAuthSettingsRequest extends FormRequest
             'allowed_domains' => ['required', 'array', 'min:1', 'max:20'],
             'allowed_domains.*' => ['string', 'max:255', 'regex:/^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/'],
             'auto_provision' => ['required', 'boolean'],
+            'group_mapping' => ['sometimes', 'boolean'],
+            'group_mapping_unmatched' => ['sometimes', Rule::in(GroupMapping::UNMATCHED)],
         ];
     }
 }

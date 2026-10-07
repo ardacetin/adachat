@@ -2,6 +2,8 @@
 
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
+use App\Domain\Institution\Settings\AuthSettings;
+use App\Models\Group;
 use App\Models\User;
 use App\Models\UserIdentity;
 use Illuminate\Testing\TestResponse;
@@ -90,6 +92,7 @@ function samlResponse(?string $inResponseTo, array $overrides = []): string
         'signAssertion' => false,
         'tamper' => null,
         'employee_id' => null,
+        'groups' => null,
     ], $overrides);
 
     $now = gmdate('Y-m-d\TH:i:s\Z');
@@ -97,6 +100,7 @@ function samlResponse(?string $inResponseTo, array $overrides = []): string
     $id = '_'.bin2hex(random_bytes(16));
     $assertionId = '_'.bin2hex(random_bytes(16));
     $employee = $o['employee_id'] === null ? '' : '<saml:Attribute Name="employee_id"><saml:AttributeValue>'.$o['employee_id'].'</saml:AttributeValue></saml:Attribute>';
+    $employee .= $o['groups'] === null ? '' : '<saml:Attribute Name="groups">'.implode('', array_map(fn (string $group) => '<saml:AttributeValue>'.$group.'</saml:AttributeValue>', $o['groups'])).'</saml:Attribute>';
 
     $xml = <<<XML
 <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{$id}" Version="2.0" IssueInstant="{$now}" Destination="{$o['destination']}"{$inResponse}><saml:Issuer>{$o['issuer']}</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status><saml:Assertion ID="{$assertionId}" Version="2.0" IssueInstant="{$now}"><saml:Issuer>{$o['issuer']}</saml:Issuer><saml:Subject><saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">{$o['email']}</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml:SubjectConfirmationData{$inResponse} NotOnOrAfter="{$o['notOnOrAfter']}" Recipient="{$o['destination']}"/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore="{$now}" NotOnOrAfter="{$o['notOnOrAfter']}"><saml:AudienceRestriction><saml:Audience>{$o['audience']}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AttributeStatement><saml:Attribute Name="first_name"><saml:AttributeValue>Ada</saml:AttributeValue></saml:Attribute><saml:Attribute Name="last_name"><saml:AttributeValue>Lovelace</saml:AttributeValue></saml:Attribute>{$employee}</saml:AttributeStatement><saml:AuthnStatement AuthnInstant="{$now}" SessionIndex="{$assertionId}"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion></samlp:Response>
@@ -258,6 +262,17 @@ test('a configured stable ID must be in the response', function () {
 
     samlSignIn([])->assertRedirect(route('login'))->assertSessionHasErrors('auth');
     expect(User::query()->count())->toBe(0);
+});
+
+test('the groups attribute maps the user to a group', function () {
+    config(['ada.auth.saml.attributes.groups' => 'groups']);
+    updateSettings(AuthSettings::class, ['group_mapping' => true]);
+    $staff = Group::factory()->create(['idp_groups' => ['staff@example.edu']]);
+
+    samlSignIn(['groups' => ['all@example.edu', 'staff@example.edu']])->assertRedirect(route('home'));
+
+    expect(User::query()->sole()->group_id)->toBe($staff->id)
+        ->and(UserIdentity::query()->sole()->last_claims['groups'])->toBe('all@example.edu, staff@example.edu');
 });
 
 test('unsolicited responses restart a normal sign-in', function () {

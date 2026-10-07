@@ -56,3 +56,31 @@ test('sign-in follows the saved domains', function () {
     $this->post(route('auth.acs', 'saml'))->assertSessionHasErrors('auth');
     $this->assertGuest();
 });
+
+test('group mapping is turned on with a rule for unmatched users', function () {
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->put(route('admin.authentication.update'), [
+            'allowed_domains' => 'example.edu',
+            'auto_provision' => true,
+            'group_mapping' => true,
+            'group_mapping_unmatched' => 'reject',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $settings = app(AuthSettings::class);
+    expect($settings->group_mapping)->toBeTrue()
+        ->and($settings->group_mapping_unmatched)->toBe('reject');
+
+    $this->put(route('admin.authentication.update'), [
+        'allowed_domains' => 'example.edu',
+        'auto_provision' => true,
+        'group_mapping' => true,
+        'group_mapping_unmatched' => 'everyone',
+    ])->assertSessionHasErrors('group_mapping_unmatched');
+
+    $this->get(route('admin.authentication.edit'))->assertInertia(fn ($page) => $page
+        ->where('settings.group_mapping', true)
+        ->where('mapped_groups', 0)
+        ->where('saml.groups_attribute', null)
+        ->where('oidc.groups_claim', null));
+});

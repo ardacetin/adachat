@@ -9,6 +9,7 @@ use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Institution\Settings\AuthSettings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAuthSettingsRequest;
+use App\Models\Group;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,7 +22,10 @@ class AuthSettingsController extends Controller
             'settings' => [
                 'allowed_domains' => $settings->allowed_domains,
                 'auto_provision' => $settings->auto_provision,
+                'group_mapping' => $settings->group_mapping,
+                'group_mapping_unmatched' => $settings->group_mapping_unmatched,
             ],
+            'mapped_groups' => Group::query()->whereNotNull('idp_groups')->count(),
             // Values to enter in the IdP, plus the (public) IdP values read from .env.
             'saml' => $saml->setupDetails(),
             'oidc' => $oidc->setupDetails(),
@@ -56,6 +60,11 @@ class AuthSettingsController extends Controller
 
         $settings->allowed_domains = $domains;
         $settings->auto_provision = $request->boolean('auto_provision');
+
+        if ($request->has('group_mapping')) {
+            $settings->group_mapping = $request->boolean('group_mapping');
+            $settings->group_mapping_unmatched = (string) $request->validated('group_mapping_unmatched', $settings->group_mapping_unmatched);
+        }
         $settings->save();
 
         [$old, $new] = AuditLogger::diff($before, $settings->toArray());

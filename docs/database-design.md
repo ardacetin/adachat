@@ -149,6 +149,7 @@ Purpose: people who can sign in.
 | avatar_url | VARCHAR(2048) | yes | |
 | role | VARCHAR(32) | | `super_admin` \| `admin` \| `user`; default `user` |
 | group_id | BIGINT UNSIGNED | | exactly one group per user |
+| group_pinned | BOOLEAN | | set by hand while [group mapping](authentication.md#1b-group-mapping) was on; sign-ins leave the group |
 | monthly_limit_override_usd | DECIMAL(20,10) | yes | individual budget override |
 | locale | VARCHAR(8) | yes | null → institution default |
 | appearance | VARCHAR(8) | | `light` \| `dark` \| `system`, default `system` |
@@ -188,7 +189,7 @@ adding OIDC/Entra/SAML later and survives e-mail changes.
 | provider | VARCHAR(32) | | `google`, later e.g. `oidc-<name>`, `saml-<name>` (URL-safe: `[a-z0-9-]+`) |
 | subject | VARCHAR(255) `utf8mb4_bin` | | stable IdP subject (`sub`) |
 | email | VARCHAR(255) | | email at last login |
-| last_claims | JSON | yes | non-sensitive claims for troubleshooting (`hd`, `email_verified`) — never tokens |
+| last_claims | JSON | yes | non-sensitive claims for troubleshooting (`hd`, `email_verified`, the `groups` sent for group mapping) — never tokens |
 | last_login_at | DATETIME | | |
 | created_at, updated_at | DATETIME | | |
 
@@ -208,6 +209,8 @@ Purpose: organisational policy unit (Standard Personnel, Academics, IT…).
 | requests_per_minute | SMALLINT UNSIGNED | | rate limit |
 | max_concurrent_streams | TINYINT UNSIGNED | | default 2 |
 | is_default | BOOLEAN | | exactly one default group (enforced in app + settings) |
+| idp_groups | JSON | yes | identity provider group values whose members this group takes ([group mapping](authentication.md#1b-group-mapping)); each value in one group only |
+| idp_priority | SMALLINT UNSIGNED | | default 100; the lowest wins when a person is in several mapped groups |
 | created_at, updated_at | DATETIME | | |
 
 - Indexes: `UNIQUE(name)`, `INDEX(budget_policy_id)`.

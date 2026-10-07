@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Group mapping from the identity provider: each group lists the SAML
+  attribute or OIDC claim values (group names, Entra ID object IDs) whose
+  members it takes, with a priority for people in several. At each sign-in
+  the user is moved to the matching group; users in none keep their group,
+  go to the default group or are refused, as set under Administration →
+  Sign-in (administrators are never refused). A group set by hand while
+  mapping is on is pinned. New settings `SAML_ATTRIBUTE_GROUPS` and
+  `OIDC_GROUPS_CLAIM`; the user's page shows the values sent at the last
+  sign-in, and `ada:doctor` warns while mapping has nothing to work with.
+
 ### Changed
 
 - The build tooling is updated to `vite-plus` 1.0 (with Vitest 5, Oxlint

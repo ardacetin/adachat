@@ -103,6 +103,26 @@
             "clientId": "Client ID",
             "scopes": "Scopes",
             "test": "Test connection"
+        },
+        "groupMapping": {
+            "title": "Group mapping",
+            "description": "Put each user in a group from the groups your identity provider sends at sign-in. List the provider's groups in each Ada group (Administration → Groups).",
+            "enabled": "Set users' groups from the identity provider",
+            "sources": "Groups are read from {{sources}}. {{groups}} Ada groups have identity provider groups.",
+            "noSource": "The identity provider sends no groups yet: set SAML_ATTRIBUTE_GROUPS or OIDC_GROUPS_CLAIM on the server (see the authentication guide).",
+            "samlSource": "the SAML attribute “{{name}}”",
+            "oidcSource": "the OIDC claim “{{name}}”",
+            "unmatched": "Users in none of the mapped groups",
+            "unmatchedOption": {
+                "keep": "Keep their current group",
+                "default": "Move them to the default group",
+                "reject": "Do not let them sign in"
+            },
+            "unmatchedHelp": {
+                "keep": "New users start in the default group; others stay where they are.",
+                "default": "Users leave the group they were mapped to once they are no longer in its identity provider group.",
+                "reject": "Only people in a mapped group can sign in. Administrators and users whose group was set by hand can always sign in."
+            }
         }
     },
     "common": {
@@ -288,7 +308,12 @@
         "applyToCurrentPeriodHelp": "Otherwise members keep this month’s limit and get the new one next month. Individual budgets are not affected.",
         "deleteTitle": "Delete group?",
         "deleteConfirm": "The group “{{name}}” will be removed. Only groups without members can be deleted.",
-        "reserved": "Only a super administrator can change this group: it includes an administrator."
+        "reserved": "Only a super administrator can change this group: it includes an administrator.",
+        "idpGroups": "Identity provider groups",
+        "idpGroupsHelp": "One per line: the group names or IDs your identity provider sends (Entra ID: group object IDs). Members of these groups are put in this group when they sign in, while group mapping is on. A user's last values are shown on their page.",
+        "idpPriority": "Mapping priority",
+        "idpPriorityHelp": "When a person is in the identity provider groups of several Ada groups, the lowest number wins.",
+        "mapped": "Mapped"
     },
     "budgetPolicies": {
         "title": "Budget policies",
@@ -382,7 +407,12 @@
         "accessChange": "Change in Sign-in settings",
         "actionsFor": "Actions for {{name}}",
         "disableTitle": "Disable {{name}}?",
-        "actionFailed": "The change could not be saved."
+        "actionFailed": "The change could not be saved.",
+        "groupPinned": "Set by hand: sign-ins keep this group.",
+        "groupMapped": "Set from the identity provider at each sign-in.",
+        "pinGroup": "Keep this group at later sign-ins",
+        "idpGroupsSeen": "Groups sent at the last sign-in",
+        "idpGroupsNone": "none"
     },
     "auditLog": {
         "title": "Audit log",

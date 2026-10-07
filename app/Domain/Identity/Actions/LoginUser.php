@@ -2,21 +2,25 @@
 
 namespace App\Domain\Identity\Actions;
 
+use App\Domain\Audit\AuditLogger;
+use App\Domain\Budget\Services\CurrentLimits;
 use App\Domain\Identity\Data\ExternalIdentity;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Exceptions\IdentityRejected;
 use App\Domain\Identity\Exceptions\RejectionReason;
 use App\Domain\Identity\Providers\SamlIdentityProvider;
 use App\Domain\Identity\Services\AllowedDomainPolicy;
+use App\Domain\Identity\Services\GroupMapping;
 use App\Models\Group;
 use App\Models\User;
 use App\Models\UserIdentity;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Protocol-independent sign-in: domain policy → identity lookup/linking →
- * just-in-time provisioning → active check. Session handling stays in the
+ * just-in-time provisioning → group mapping → active check. Session handling stays in the
  * HTTP layer. Addresses an administrator added (invited) may sign in
  * whatever their domain and whether or not accounts are created
  * automatically.
@@ -26,6 +30,9 @@ final class LoginUser
     public function __construct(
         private readonly AllowedDomainPolicy $domainPolicy,
         private readonly bool $autoProvision,
+        private readonly GroupMapping $groups,
+        private readonly AuditLogger $audit,
+        private readonly CurrentLimits $limits,
     ) {}
 
     /**
@@ -89,7 +96,19 @@ final class LoginUser
                 $user->last_login_at = now();
             }
 
+            $group = $this->groups->resolve($user, $identity);
+            $previousGroup = $user->exists ? $user->group_id : null;
+
+            if ($group !== null) {
+                $user->group_id = $group->id;
+            }
+
             $user->save();
+
+            if ($previousGroup !== null && $previousGroup !== $user->group_id) {
+                $this->audit->record('user.group_changed', $user, ['group_id' => $previousGroup], ['group_id' => $user->group_id, 'source' => 'identity_provider']);
+                $this->limits->apply(User::query()->whereKey($user->id));
+            }
 
             $record ??= new UserIdentity;
             $record->forceFill([
@@ -97,7 +116,11 @@ final class LoginUser
                 'provider' => $identity->provider,
                 'subject' => $identity->subject,
                 'email' => $identity->email,
-                'last_claims' => $identity->safeClaims,
+                // The values the provider sent, to set up group mapping with.
+                'last_claims' => $identity->groups === null ? $identity->safeClaims : [
+                    ...$identity->safeClaims,
+                    'groups' => Str::limit(implode(', ', $identity->groups), 1000),
+                ],
                 'last_login_at' => now(),
             ])->save();
 

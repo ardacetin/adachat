@@ -93,6 +93,24 @@ test('group validation', function (array $overrides, string $error) {
     'aliases missing' => [['alias_ids' => null], 'alias_ids'],
 ]);
 
+test('identity provider groups are saved one per line, each in one group only', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.groups.store'), groupPayload(['idp_groups' => " staff@example.edu\nTeachers\n\nteachers ", 'idp_priority' => 5]))
+        ->assertSessionHasNoErrors();
+
+    $group = Group::query()->where('name', 'Researchers')->sole();
+    expect($group->idp_groups)->toBe(['staff@example.edu', 'Teachers'])
+        ->and($group->idp_priority)->toBe(5);
+
+    $this->post(route('admin.groups.store'), groupPayload(['name' => 'Others', 'idp_groups' => 'TEACHERS']))
+        ->assertSessionHasErrors('idp_groups.0');
+
+    // Saving the group itself again is fine; clearing the list removes the mapping.
+    $this->put(route('admin.groups.update', $group), groupPayload(['idp_groups' => 'teachers']))->assertSessionHasNoErrors();
+    $this->put(route('admin.groups.update', $group), groupPayload(['idp_groups' => '']))->assertSessionHasNoErrors();
+    expect($group->refresh()->idp_groups)->toBeNull();
+});
+
 test('changing a group\'s policy updates this month for members without an override', function () {
     $group = Group::factory()->create(['budget_policy_id' => BudgetPolicy::factory()->create(['monthly_limit_usd' => '10'])->id]);
     $member = User::factory()->create(['group_id' => $group->id]);

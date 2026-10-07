@@ -10,6 +10,7 @@ return [
     'test_mail_failed' => 'The test e-mail could not be sent. Check the MAIL_* settings; the reason is in the log.',
     'policy_in_use' => 'This budget policy is used by a group and cannot be deleted.',
     'group_not_deletable' => 'The default group and groups with members cannot be deleted.',
+    'idp_group_taken' => '“:value” already maps to another group.',
     'last_super_admin' => 'The last active super administrator cannot be demoted or disabled.',
     'credit_exceeds_spent' => 'A credit cannot be larger than what was spent this month.',
     'report_range_order' => 'The end date must not be before the start date.',

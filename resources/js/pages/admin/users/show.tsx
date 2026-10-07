@@ -47,6 +47,8 @@ type Props = {
         status: 'active' | 'disabled';
         group_id: number;
         group: string;
+        group_pinned: boolean;
+        idp_groups: string | null;
         policy_limit_usd: string;
         override_usd: string | null;
         created_at: string | null;
@@ -65,6 +67,7 @@ type Props = {
         created_at: string;
     }[];
     groups: { id: number; name: string }[];
+    group_mapping: boolean;
     permissions: {
         update: boolean;
         changeStatus: boolean;
@@ -80,6 +83,7 @@ export default function UserShow({
     usage,
     adjustments,
     groups,
+    group_mapping: groupMapping,
     permissions: can,
 }: Props) {
     const { t } = useTranslation('admin');
@@ -97,6 +101,7 @@ export default function UserShow({
     const groupForm = useForm({
         group_id: String(user.group_id),
         apply_to_current_period: true,
+        pinned: groupMapping ? true : user.group_pinned,
     });
     const budgetForm = useForm({
         monthly_limit_usd: user.override_usd ?? '',
@@ -256,6 +261,36 @@ export default function UserShow({
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {groupMapping && (
+                                    <div
+                                        className="space-y-2 text-xs text-muted-foreground"
+                                        data-test="group-source"
+                                    >
+                                        <p>
+                                            {user.group_pinned
+                                                ? t('users.groupPinned')
+                                                : t('users.groupMapped')}
+                                        </p>
+                                        <p>
+                                            {t('users.idpGroupsSeen')}:{' '}
+                                            <span className="font-mono break-all">
+                                                {user.idp_groups ||
+                                                    t('users.idpGroupsNone')}
+                                            </span>
+                                        </p>
+                                        <CheckboxField
+                                            id="group-pinned"
+                                            label={t('users.pinGroup')}
+                                            checked={groupForm.data.pinned}
+                                            onChange={(checked) =>
+                                                groupForm.setData(
+                                                    'pinned',
+                                                    checked,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                )}
                                 <CheckboxField
                                     id="group-apply"
                                     label={t('users.applyToCurrentPeriod')}
@@ -275,8 +310,10 @@ export default function UserShow({
                                     disabled={
                                         !can.update ||
                                         groupForm.processing ||
-                                        groupForm.data.group_id ===
-                                            String(user.group_id)
+                                        (groupForm.data.group_id ===
+                                            String(user.group_id) &&
+                                            groupForm.data.pinned ===
+                                                user.group_pinned)
                                     }
                                 >
                                     {t('users.changeGroup')}

@@ -97,7 +97,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function show(Request $request, User $user, UsageReport $report): Response
+    public function show(Request $request, User $user, UsageReport $report, AuthSettings $auth): Response
     {
         Gate::authorize('view', $user);
 
@@ -130,6 +130,11 @@ class UserController extends Controller
                 'status' => $user->status->value,
                 'group_id' => $user->group_id,
                 'group' => $user->group->name,
+                'group_pinned' => $user->group_pinned,
+                // The values the identity provider sent at the last sign-in, for setting up group mapping.
+                'idp_groups' => $user->identities()->latest('last_login_at')->get()
+                    ->map(fn ($identity) => $identity->last_claims['groups'] ?? null)
+                    ->first(fn (mixed $groups): bool => is_string($groups)),
                 'policy_limit_usd' => BudgetSummary::cents($user->group->budgetPolicy->monthly_limit_usd, RoundingMode::Down),
                 'override_usd' => $user->monthly_limit_override_usd === null ? null : BudgetSummary::cents($user->monthly_limit_override_usd, RoundingMode::Down),
                 'created_at' => $user->created_at?->toIso8601String(),
@@ -142,6 +147,7 @@ class UserController extends Controller
             'usage' => $report->for($user, null, 'amount'),
             'adjustments' => $adjustments,
             'groups' => Group::query()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name']),
+            'group_mapping' => $auth->group_mapping,
             // Not "can": that name is the shared prop with the actor's abilities.
             'permissions' => [
                 'update' => $actor->can('update', $user),
@@ -161,9 +167,15 @@ class UserController extends Controller
         $validated = $request->validate([
             'group_id' => ['required', 'integer', 'exists:groups,id'],
             'apply_to_current_period' => ['boolean'],
+            'pinned' => ['sometimes', 'boolean'],
         ]);
 
-        $users->changeGroup($user, Group::query()->whereKey($validated['group_id'])->firstOrFail(), $request->boolean('apply_to_current_period', true));
+        $users->changeGroup(
+            $user,
+            Group::query()->whereKey($validated['group_id'])->firstOrFail(),
+            $request->boolean('apply_to_current_period', true),
+            $request->has('pinned') ? $request->boolean('pinned') : null,
+        );
 
         return $this->saved($user);
     }

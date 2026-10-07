@@ -16,6 +16,12 @@ class AuthSettings extends Settings
     /** Create users on their first successful sign-in. */
     public bool $auto_provision;
 
+    /** Set each user's group from the identity provider's groups at sign-in. */
+    public bool $group_mapping;
+
+    /** Users in no mapped group: keep | default | reject. */
+    public string $group_mapping_unmatched;
+
     public static function group(): string
     {
         return 'auth';

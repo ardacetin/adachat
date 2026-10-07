@@ -180,6 +180,8 @@ super administrators; `ada:user:promote` remains the break-glass path.
 | `SAML_ATTRIBUTE_SUBJECT` | `.env` (recommended) | Attribute with an identifier that is never reused (e.g. `employee_id`). Without it the e-mail address identifies the account (see *Reused addresses*). |
 | `allowed_domains` | `AuthSettings` (DB), initial value from `AUTH_ALLOWED_DOMAINS` | Admin-manageable, multiple domains supported. |
 | `auto_provision` | `AuthSettings`, initial value from `AUTH_AUTO_PROVISION` | Allows pre-registration-only deployments. |
+| `SAML_ATTRIBUTE_GROUPS` | `.env` (optional) | Multi-valued attribute with the user's groups, for [group mapping](#1b-group-mapping). |
+| `group_mapping`, `group_mapping_unmatched` | `AuthSettings` (Administration → Sign-in) | [Group mapping](#1b-group-mapping): off by default; unmatched users `keep`, `default` or `reject`. |
 
 Ada's own SP values are derived from `APP_URL` (which must be the public
 `https://` address):
@@ -303,6 +305,7 @@ Both identity providers must be the institution's own.
 | `OIDC_PRESET` | `entra` or `generic` (default). |
 | `OIDC_LABEL` | Button text, default "Microsoft" (entra) or "SSO". |
 | `OIDC_SCOPES` | Default `openid email profile`. |
+| `OIDC_GROUPS_CLAIM` | Optional: the claim with the user's groups, for [group mapping](#1b-group-mapping). |
 
 Redirect URI to register: `https://<your-ada-host>/auth/oidc/callback`
 (derived from `APP_URL`). **Administration → Sign-in** shows it with a copy
@@ -348,6 +351,60 @@ RS256 or ES256 and include `email` and `email_verified` (Keycloak: the
 `email` client scope; mark addresses verified or use a verified-email
 policy). Set `OIDC_PRESET=generic` and `OIDC_ISSUER` to the issuer shown in
 the provider's discovery document.
+
+## 1b. Group mapping
+
+Ada can put each user in a group from the groups the identity provider
+sends at sign-in, so group membership is managed where people already are
+(Entra ID, Google Workspace, Keycloak) instead of by hand in Ada.
+
+**How it works**
+
+- Every Ada group (Administration → Groups) can list **identity provider
+  groups**: the names or IDs the provider sends, one per line. A value
+  belongs to one Ada group only. Values compare case-insensitively.
+- At each sign-in, the user is put in the Ada group whose list contains one
+  of their groups. If several match, the lowest **mapping priority** wins,
+  then the oldest group.
+- A user in none of the mapped groups is handled as set under
+  Administration → Sign-in → **Group mapping**:
+  - *Keep their current group*: new users start in the default group.
+  - *Move them to the default group*.
+  - *Do not let them sign in* (`no_mapped_group`). Administrators and
+    users whose group is pinned are never refused, so a mapping mistake
+    cannot lock the administrators out.
+- A group an administrator sets by hand while mapping is on is **pinned**:
+  later sign-ins leave it. The user's page shows whether the group comes
+  from the identity provider and the values the provider sent at the last
+  sign-in; clearing "Keep this group at later sign-ins" hands the group
+  back to mapping. Groups set before mapping was turned on are not pinned.
+- Mapping changes nothing while it is off, while the provider sends no
+  groups, and when Entra ID leaves them out (see below). A group change at
+  sign-in is in the audit log (`user.group_changed`, source
+  `identity_provider`) and applies the new group's budget to the current
+  month.
+- Roles are not mapped: administrators are still made in Ada.
+- Users added by e-mail keep the group chosen when adding them until a
+  sign-in maps them elsewhere.
+
+**Telling Ada where the groups are**
+
+| Provider | Setting | Values Ada sees |
+|---|---|---|
+| Google Workspace (SAML) | Google Admin → the SAML app → **SAML attribute mapping → Group membership**: choose the groups, app attribute `groups`; `.env` `SAML_ATTRIBUTE_GROUPS=groups` | The chosen groups the user is in |
+| Microsoft Entra ID (OIDC) | App registration → **Token configuration → Add groups claim** → *Security groups* or *Groups assigned to the application*, ID token: *Group ID*; `.env` `OIDC_GROUPS_CLAIM=groups` | Group object IDs (copy them from Entra → Groups) |
+| Keycloak (OIDC) | Client scopes → the dedicated scope → **Add mapper → Group Membership**, token claim name `groups`, add to ID token; `.env` `OIDC_GROUPS_CLAIM=groups` | Group names (or paths with *Full group path*) |
+
+Entra ID sends at most 200 groups in a token. With more, it leaves the
+claim out and points to Microsoft Graph instead ("groups overage"); Ada
+does not call Graph and changes nothing for that sign-in. Choose *Groups
+assigned to the application* and assign only the groups Ada needs to stay
+under the limit.
+
+After changing `.env`, run `php artisan config:cache` (if used). Sign in
+once as a test user, then copy the values from that user's page into the
+Ada groups. `ada:doctor` warns while mapping is on but the provider is not
+set up to send groups, or no group lists any.
 
 ## 2. Bootstrapping and recovery
 

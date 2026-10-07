@@ -9,6 +9,7 @@ use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Exceptions\LastSuperAdmin;
 use App\Domain\Institution\Services\ContentTexts;
+use App\Domain\Institution\Settings\AuthSettings;
 use App\Domain\Institution\Settings\InstitutionSettings;
 use App\Mail\UserInvitation;
 use App\Models\Group;
@@ -32,20 +33,33 @@ final class UserAdministration
         private readonly CurrentLimits $limits,
         private readonly InstitutionSettings $institution,
         private readonly ContentTexts $texts,
+        private readonly AuthSettings $auth,
     ) {}
 
-    public function changeGroup(User $user, Group $group, bool $applyToCurrentPeriod): void
+    /**
+     * While group mapping is on, a group set by hand is pinned by default:
+     * later sign-ins leave it. Unpinning hands the group back to mapping.
+     *
+     * @param  bool|null  $pinned  null: pinned while group mapping is on, unchanged otherwise
+     */
+    public function changeGroup(User $user, Group $group, bool $applyToCurrentPeriod, ?bool $pinned = null): void
     {
-        $old = $user->group_id;
+        $pinned ??= $this->auth->group_mapping || $user->group_pinned;
+        $before = ['group_id' => $user->group_id, 'group_pinned' => $user->group_pinned];
 
-        if ($old === $group->id) {
+        $user->group()->associate($group);
+        $user->group_pinned = $pinned;
+
+        [$old, $new] = AuditLogger::diff($before, ['group_id' => $user->group_id, 'group_pinned' => $user->group_pinned]);
+
+        if ($new === []) {
             return;
         }
 
-        $user->group()->associate($group)->save();
-        $this->audit->record('user.group_changed', $user, ['group_id' => $old], ['group_id' => $group->id]);
+        $user->save();
+        $this->audit->record('user.group_changed', $user, $old, $new);
 
-        if ($applyToCurrentPeriod) {
+        if ($applyToCurrentPeriod && array_key_exists('group_id', $new)) {
             $this->limits->apply(User::query()->whereKey($user->id));
         }
     }

@@ -34,12 +34,49 @@ class GroupRequest extends FormRequest
     }
 
     /**
+     * Identity provider groups: one value per line.
+     */
+    protected function prepareForValidation(): void
+    {
+        $raw = $this->input('idp_groups');
+
+        // An emptied list arrives as null (ConvertEmptyStringsToNull).
+        if ($raw === null && $this->has('idp_groups')) {
+            $raw = [];
+        }
+
+        if (is_string($raw)) {
+            $raw = preg_split('/\R/', $raw) ?: [];
+        }
+
+        if (is_array($raw)) {
+            $values = [];
+
+            foreach ($raw as $value) {
+                $value = trim((string) $value);
+
+                if ($value !== '') {
+                    $values[mb_strtolower($value)] ??= $value;
+                }
+            }
+
+            $this->merge(['idp_groups' => array_values($values)]);
+        }
+    }
+
+    /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         /** @var Group|null $group */
         $group = $this->route('group');
+        $taken = Group::query()
+            ->whereNotNull('idp_groups')
+            ->when($group !== null, fn ($query) => $query->whereKeyNot($group->id))
+            ->get()
+            ->flatMap(fn (Group $other) => array_map(mb_strtolower(...), $other->idp_groups ?? []))
+            ->all();
 
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('groups', 'name')->ignore($group?->id)],
@@ -51,6 +88,15 @@ class GroupRequest extends FormRequest
             'alias_ids' => ['present', 'array'],
             'alias_ids.*' => ['integer', 'distinct', 'exists:model_aliases,id'],
             'apply_to_current_period' => ['boolean'],
+            // A value belongs to one group, so the priority only decides
+            // between groups a person is in at the identity provider.
+            'idp_groups' => ['sometimes', 'array', 'max:50'],
+            'idp_groups.*' => ['string', 'max:255', function (string $attribute, mixed $value, \Closure $fail) use ($taken): void {
+                if (in_array(mb_strtolower((string) $value), $taken, true)) {
+                    $fail(__('admin.idp_group_taken', ['value' => $value]));
+                }
+            }],
+            'idp_priority' => ['sometimes', 'integer', 'min:1', 'max:1000'],
         ];
     }
 }
