@@ -8,7 +8,8 @@ use App\Models\User;
 /**
  * Who may manage whom (docs/authentication.md §4). Administrators manage
  * users' group, status and individual budget; only super administrators
- * change roles, adjust budgets and manage other super administrators.
+ * change roles, adjust budgets and manage administrators and other super
+ * administrators.
  * Nobody changes their own role or status, and administrators do not
  * change their own group or budget.
  */
@@ -44,11 +45,11 @@ class UserPolicy
         return $actor->role->canAccessAdmin();
     }
 
-    /** Group and individual budget; an administrator's own only by a super administrator. */
+    /** Group and individual budget of a user; administrators' only by a super administrator. */
     public function update(User $actor, User $user): bool
     {
         return $actor->role->canAccessAdmin()
-            && ($user->role !== UserRole::SuperAdmin || $actor->role === UserRole::SuperAdmin)
+            && ($user->role === UserRole::User || $actor->role->canManageSystem())
             && ($actor->isNot($user) || $actor->role->canManageSystem());
     }
 

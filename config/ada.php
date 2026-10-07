@@ -174,6 +174,11 @@ return [
         // Maximum duration of one generation request (streaming), seconds.
         'timeout' => (int) env('ADA_PROVIDER_TIMEOUT', 300),
 
+        // A turn the provider pauses during its own tools (Anthropic's
+        // pause_turn during web search) is continued at most this many
+        // times, within the same time limit and output cap.
+        'max_continuations' => 2,
+
         // Token-count endpoints must answer quickly; they run before every request.
         'counter_timeout' => (int) env('ADA_COUNTER_TIMEOUT', 3),
 
@@ -183,6 +188,7 @@ return [
             'anthropic' => env('ANTHROPIC_API_KEY'),
             'gemini' => env('GEMINI_API_KEY'),
             'openai_compatible' => env('OPENAI_COMPATIBLE_API_KEY'),
+            'azure_openai' => env('AZURE_OPENAI_API_KEY'),
         ],
     ],
 
@@ -196,6 +202,8 @@ return [
             'gemini' => 0.0,
             // No count endpoint: the conservative estimate plus this margin.
             'openai_compatible' => 0.25,
+            // Azure OpenAI: OpenAI models, estimated like the above.
+            'azure_openai' => 0.25,
             'estimated' => 0.5,
         ],
 

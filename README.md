@@ -7,9 +7,12 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 1.4.2** ([release notes](docs/releases/v1.4.2.md)): fixes from a
-> full security audit. Version 1.4 adds a public landing page, welcome e-mails
-> for added users, an admin page to reword both and a default model. Version 1.3 adds
+> **Status: 1.5.0** ([release notes](docs/releases/v1.5.0.md)): web search
+> with Gemini, Anthropic searches that no longer stop when paused, Azure
+> OpenAI as a provider, a language switch for visitors and stricter roles
+> between administrators. Version 1.4.2 fixed findings of a full security
+> audit. Version 1.4 added a public landing page, welcome e-mails
+> for added users, an admin page to reword both and a default model. Version 1.3 added
 > web search through the providers' own tools, budget alerts for users, answer
 > feedback with a satisfaction report and read-only sharing of conversations.
 > Version 1.2 added
@@ -61,8 +64,9 @@ numbers.
 - Answer feedback (thumbs up / down) and a satisfaction report without content
 - Turkish and English UI, dark mode, institution branding
 - Roles (super admin, admin, user) and groups
-- OpenAI, Anthropic and Google Gemini through a provider abstraction, and
-  any OpenAI-compatible server (OpenRouter, Groq, Ollama, vLLM, LM Studio)
+- OpenAI, Anthropic, Google Gemini and Azure OpenAI through a provider
+  abstraction, and any OpenAI-compatible server (OpenRouter, Groq, Ollama,
+  vLLM, LM Studio)
 - Model registry, model aliases and per-group model permissions
 - Streaming chat with Markdown rendering and conversation history
 - Attachments: images, PDF, Word, Excel, PowerPoint, text and code files

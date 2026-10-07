@@ -94,7 +94,7 @@ jobs:
       - name: Dependency audit
         run: |
           composer audit
-          npm audit --audit-level=high
+          npm audit --audit-level=moderate
 
   e2e:
     runs-on: ubuntu-latest

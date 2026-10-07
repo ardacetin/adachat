@@ -207,6 +207,7 @@ test('web search needs a price and a provider with a search tool', function (str
 })->with([
     'no price' => ['openai', ['web_search_price_per_thousand' => ''], 'web_search_price_per_thousand'],
     'OpenAI-compatible server' => ['openai_compatible', ['web_search_price_per_thousand' => '10'], 'supports_web_search'],
+    'Azure OpenAI' => ['azure_openai', ['web_search_price_per_thousand' => '10'], 'supports_web_search'],
 ]);
 
 test('an alias allows web search with a number of searches per message', function () {
