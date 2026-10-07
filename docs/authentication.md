@@ -397,12 +397,13 @@ the provider's discovery document.
 - As built (M8): `App\Policies\UserPolicy` (`update` = group and individual
   budget, `changeStatus`, `changeRole`, `adjustBudget`) and
   `App\Domain\Identity\Services\UserAdministration`. Administrators manage
-  users and groups but not super administrators; nobody changes their own
+  users with the `user` role and their groups; administrators and super
+  administrators are managed by super administrators (1.5). Nobody changes their own
   role or status; the last *active* super administrator cannot be demoted or
   disabled. Individual budgets have no cap (every change is audited).
   The same holds through groups: an administrator cannot change a group
-  they belong to, or one with a super administrator in it (its budget
-  policy would change theirs); a super administrator does that.
+  with an administrator or super administrator in it, their own included
+  (its budget policy would change theirs); a super administrator does that.
   Disabling deletes the user's database sessions and rotates the "remember
   me" token. The audit log is readable by administrators; the user pages
   show accounts, budgets and usage, never conversation content.

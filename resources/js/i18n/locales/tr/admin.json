@@ -287,7 +287,7 @@
         "applyToCurrentPeriodHelp": "Aksi hâlde üyeler bu ayın limitini korur, yenisi gelecek ay geçerli olur. Bireysel bütçeler etkilenmez.",
         "deleteTitle": "Grup silinsin mi?",
         "deleteConfirm": "“{{name}}” grubu kaldırılacak. Yalnızca üyesi olmayan gruplar silinebilir.",
-        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde siz ya da bir süper yönetici var."
+        "reserved": "Bu grubu yalnızca bir süper yönetici değiştirebilir: içinde bir yönetici var."
     },
     "budgetPolicies": {
         "title": "Bütçe politikaları",

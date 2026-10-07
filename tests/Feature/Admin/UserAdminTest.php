@@ -207,6 +207,23 @@ test('administrators cannot touch super administrators, roles or adjustments', f
         ->and($user->refresh()->role)->toBe(UserRole::User);
 });
 
+test('administrators do not manage other administrators, directly or through their group', function () {
+    $peer = User::factory()->admin()->create();
+    $group = Group::factory()->create();
+
+    $this->actingAs($this->admin)->put(route('admin.users.status', $peer), ['status' => 'disabled'])->assertForbidden();
+    $this->actingAs($this->admin)->put(route('admin.users.budget', $peer), ['monthly_limit_usd' => '1'])->assertForbidden();
+    $this->actingAs($this->admin)->put(route('admin.users.group', $peer), ['group_id' => $group->id])->assertForbidden();
+
+    $peer->forceFill(['group_id' => $group->id])->save();
+    $this->actingAs($this->admin)->put(route('admin.groups.update', $group), ['name' => $group->name, 'budget_policy_id' => $group->budget_policy_id, 'requests_per_minute' => 1, 'max_concurrent_streams' => 1, 'alias_ids' => []])->assertForbidden();
+
+    // A super administrator does.
+    $this->actingAs($this->superAdmin)->put(route('admin.users.status', $peer), ['status' => 'disabled'])->assertSessionHasNoErrors();
+
+    expect($peer->refresh()->status)->toBe(UserStatus::Disabled);
+});
+
 test('a super administrator changes roles', function () {
     $user = member();
 

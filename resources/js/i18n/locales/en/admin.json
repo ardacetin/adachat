@@ -287,7 +287,7 @@
         "applyToCurrentPeriodHelp": "Otherwise members keep this month’s limit and get the new one next month. Individual budgets are not affected.",
         "deleteTitle": "Delete group?",
         "deleteConfirm": "The group “{{name}}” will be removed. Only groups without members can be deleted.",
-        "reserved": "Only a super administrator can change this group: it includes you or a super administrator."
+        "reserved": "Only a super administrator can change this group: it includes an administrator."
     },
     "budgetPolicies": {
         "title": "Budget policies",
