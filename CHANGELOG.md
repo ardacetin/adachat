@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- An Azure OpenAI driver (`azure_openai`): the v1 API of the institution's
+  own Azure OpenAI or Foundry resource (Responses API, resource key in
+  `api-key`, deployment names as model IDs). Prices are entered in the
+  Advanced form; input is estimated; no web search.
 - Web search with Gemini (Grounding with Google Search). Google's Search
   Suggestions are shown, unmodified, under each grounded answer in a
   sandboxed frame; shared links and copies withhold grounded answers, as

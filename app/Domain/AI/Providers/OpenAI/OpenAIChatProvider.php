@@ -28,7 +28,7 @@ use Illuminate\Http\Client\Response;
  * Web search uses the hosted web_search tool; max_tool_calls bounds the
  * searches. Every completed search action is billed.
  */
-final class OpenAIChatProvider extends HttpChatProvider
+class OpenAIChatProvider extends HttpChatProvider
 {
     protected function name(): string
     {
