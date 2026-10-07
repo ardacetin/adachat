@@ -148,7 +148,7 @@ test('searches, sources and billed search counts are reported', function (array 
     expect($text)->toEndWith("1815'te doğdu.");
 })->with('search providers');
 
-test('an Anthropic turn paused during searches ends as cut off', function () {
+test('an Anthropic turn paused before any content ends as cut off', function () {
     Http::fake(['*' => Http::response(implode("\n", [
         'event: message_start',
         'data: {"type":"message_start","message":{"id":"msg_p","usage":{"input_tokens":10,"output_tokens":1}}}',

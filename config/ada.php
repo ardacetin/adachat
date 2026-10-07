@@ -174,6 +174,11 @@ return [
         // Maximum duration of one generation request (streaming), seconds.
         'timeout' => (int) env('ADA_PROVIDER_TIMEOUT', 300),
 
+        // A turn the provider pauses during its own tools (Anthropic's
+        // pause_turn during web search) is continued at most this many
+        // times, within the same time limit and output cap.
+        'max_continuations' => 2,
+
         // Token-count endpoints must answer quickly; they run before every request.
         'counter_timeout' => (int) env('ADA_COUNTER_TIMEOUT', 3),
 

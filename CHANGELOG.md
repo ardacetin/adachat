@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Answers that Anthropic pauses during long web searches (`pause_turn`)
+  are continued instead of ending with "The answer reached its length
+  limit." (at most twice, within the time limit and the output cap). Each
+  request is charged.
 - A language switch on the landing and sign-in pages. A visitor's choice is
   kept in a cookie (`ada_locale`) and wins over the institution's default
   language; a signed-in user's choice is saved as their preference.
