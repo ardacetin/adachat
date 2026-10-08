@@ -321,12 +321,12 @@ test('the metadata describes Ada as a service provider', function () {
 test('sign-in is not offered until the IdP is configured', function () {
     config(['ada.auth.saml.idp_x509_cert' => null]);
 
-    $this->get(route('login'))->assertInertia(fn ($page) => $page->where('providers', []));
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->where('providers', []));
     $this->get(route('auth.redirect', 'saml'))->assertNotFound();
 });
 
 test('the login page offers the configured IdP', function () {
-    $this->get(route('login'))->assertInertia(fn ($page) => $page->where('providers', [['key' => 'saml', 'label' => 'Google']]));
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->where('providers', [['key' => 'saml', 'label' => 'Google']]));
 });
 
 test('the admin sign-in page shows the values to enter in Google Admin', function () {
@@ -358,5 +358,5 @@ test('the certificate can be given as a file path', function (string $key) {
 test('an unreadable certificate path leaves sign-in unconfigured', function () {
     config(['ada.auth.saml.idp_x509_cert' => '/nonexistent/google.pem']);
 
-    $this->get(route('login'))->assertInertia(fn ($page) => $page->where('providers', []));
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->where('providers', []));
 });

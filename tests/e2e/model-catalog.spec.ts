@@ -23,13 +23,13 @@ test('a model is added from the price catalog in easy mode', async ({
         `$p = new App\\Models\\Provider; $p->forceFill(['slug' => 'catalog-${run}', 'driver' => 'anthropic', 'name' => '${providerName}', 'enabled' => false])->save();`,
     );
 
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: /^Sign in as Sample Super Admin [a-z_]+$/,
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
     await page.goto('/admin/models/create');
 
     await page.getByRole('combobox', { name: 'Provider' }).click();

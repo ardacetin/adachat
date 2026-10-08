@@ -21,13 +21,13 @@ function tinker(code: string): void {
 }
 
 async function signInAs(page: Page, name: string): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: new RegExp(`^Sign in as ${name} [a-z_]+$`),
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 // The alias stays in the database (usage rows refer to it) but leaves the menu.

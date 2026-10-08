@@ -33,7 +33,7 @@ test('the redirect is delegated to the provider', function () {
 });
 
 test('the login page lists enabled providers', function () {
-    $this->get(route('login'))
+    $this->get(route('home'))
         ->assertInertia(fn ($page) => $page->where('providers', [['key' => 'saml', 'label' => 'Fake IdP']]));
 });
 

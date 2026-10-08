@@ -9,7 +9,7 @@ Ada signs users in with **SAML 2.0** against the institution's identity
 provider — a **custom SAML app in the Google Workspace admin console** —
 and/or with **OpenID Connect** (Microsoft Entra ID, Keycloak, Okta…),
 restricted to configured e-mail domains. Both can be on at the same time;
-the login page shows one button per provider. There is **no password
+the landing page shows one sign-in button per provider. There is **no password
 login**. The protocols sit behind `RedirectIdentityProvider`; LDAP can be
 added as an adapter.
 
@@ -18,8 +18,12 @@ added as an adapter.
 > OAuth adapter and `laravel/socialite` were removed.
 
 Guests who open `/` see a public landing page (institution branding, three
-feature cards, a sign-in button, a language switch) and no data; every other page sends them
-to `/login`, which lists the enabled identity providers. Its wording, like
+feature cards, a sign-in button, a language switch) and no data. Signing in
+starts there: with one identity provider the **Sign in** button goes
+straight to it, with several there is one button per provider. There is no
+separate sign-in page since 2.0: `/login`, where other pages send guests
+and where a refused sign-in returns, redirects to `/` and keeps the error
+message and the page the user wanted (after sign-in they land on it). Its wording, like
 the invitation e-mail's, can be changed per language in **Administration →
 Texts** (`ContentSettings`); empty fields keep Ada's defaults from
 `lang/<locale>/landing.php` and `lang/<locale>/mail.php`, and `:app` /
@@ -90,7 +94,7 @@ The ACS route is exempt from CSRF tokens (the IdP posts cross-site); the
 checks above authenticate the request instead.
 
 Failures raise `IdentityRejected` with a `RejectionReason` and redirect to
-the login page with a translated, non-revealing message
+the landing page (through `/login`) with a translated, non-revealing message
 (`auth.errors.<reason>`): `invalid_state` (unknown/expired/replayed request),
 `provider_error` (invalid response; the exact reason is logged),
 `domain_not_allowed`, `not_provisioned`, `account_disabled`,
@@ -152,7 +156,7 @@ Two settings decide who gets in, both in the administration panel:
   "Send an invitation e-mail" (on by default) welcomes each new account, in
   the institution's default language ("Your Ada Chat account has been
   created", with `APP_NAME` as the name), says who added them and links to
-  the sign-in page. Only an explicit "off" skips it. The e-mail carries no token or password: signing in still
+  Ada's address, where they sign in. Only an explicit "off" skips it. The e-mail carries no token or password: signing in still
   goes through the identity provider. It needs a working mailer (`MAIL_*`,
   [deployment guide](deployment.md)). An e-mail that cannot be sent leaves
   the account in place; the administrator sees a warning and the log names
@@ -219,7 +223,7 @@ IdP values in use and the certificate's SHA-256 fingerprint and expiry date;
 6. Set `AUTH_ALLOWED_DOMAINS`, run `php artisan config:clear` (or
    `optimize`) and `php artisan ada:install` to check the configuration.
 
-If the login page still says sign-in is not configured, the running
+If the landing page still says sign-in is not configured, the running
 configuration lacks one of the three IdP values or the certificate file is
 not readable: check with `php artisan config:show ada.auth.saml` and clear a
 cached configuration (`php artisan config:clear`, or `config:cache` again)
@@ -475,7 +479,7 @@ interface RedirectIdentityProvider
 {
     public function key(): string;                          // 'saml' (V1), later e.g. 'oidc-entra'
     public function label(): string;                        // sign-in button, e.g. "Google"
-    public function isEnabled(): bool;                      // configured → offered on the login page
+    public function isEnabled(): bool;                      // configured → offered on the landing page
     public function requiresHostedDomain(): bool;           // Google OAuth "hd" check (false for SAML)
     public function redirect(Request $request): RedirectResponse;
     public function resolveCallback(Request $request): ExternalIdentity;  // throws IdentityRejected
@@ -516,7 +520,7 @@ applies: domain policy → identity lookup/linking → provisioning → active c
 | Other SAML IdPs | `SamlIdentityProvider` already works with any SAML 2.0 IdP; several IdPs would need per-IdP keys and settings |
 | LDAP / AD | `CredentialIdentityProvider` using LdapRecord; password form shown only when enabled; login throttling |
 
-`AuthSettings` would then hold a list of enabled providers; the login page
+`AuthSettings` would then hold a list of enabled providers; the landing page
 renders one button per redirect provider.
 
 ## 6. Tests

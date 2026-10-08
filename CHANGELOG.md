@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-10-07
+## [2.0.0] - 2026-10-08
 
 A feature release. Release notes:
 [docs/releases/v2.0.0.md](docs/releases/v2.0.0.md).
@@ -33,6 +33,12 @@ A feature release. Release notes:
   page ([docs/personal-data.md](docs/personal-data.md)).
 
 ### Changed
+
+- Sign-in starts on the landing page: its **Sign in** button goes straight
+  to the identity provider (one button per provider when there are
+  several), and refused sign-ins show their reason there. The separate
+  sign-in page is gone; `/login` redirects to `/`, keeping the error and
+  the page the user wanted. Invitation e-mails link to Ada's address.
 
 - The build tooling is updated to `vite-plus` 1.0 (with Vitest 5, Oxlint
   1.85 and Oxfmt 0.70); the built application is unchanged in behaviour.

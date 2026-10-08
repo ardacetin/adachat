@@ -41,7 +41,7 @@ export default defineConfig({
         },
         {
             command: `php artisan serve --no-reload --host=127.0.0.1 --port=${appPort}`,
-            url: `${baseURL}/login`,
+            url: `${baseURL}/`,
             env: {
                 APP_ENV: 'local',
                 APP_URL: baseURL,

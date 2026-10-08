@@ -371,7 +371,7 @@ test('sign-in is offered only when OIDC is configured correctly', function (arra
 test('the login page offers SAML and OIDC side by side', function () {
     config(['ada.auth.saml.idp_entity_id' => 'https://idp', 'ada.auth.saml.idp_sso_url' => 'https://idp/sso', 'ada.auth.saml.idp_x509_cert' => 'MIIB', 'ada.auth.saml.label' => 'Google']);
 
-    $this->get(route('login'))->assertInertia(fn ($page) => $page->where('providers', [
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->where('providers', [
         ['key' => 'saml', 'label' => 'Google'],
         ['key' => 'oidc', 'label' => 'Microsoft'],
     ]));

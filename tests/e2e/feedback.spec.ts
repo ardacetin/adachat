@@ -7,13 +7,13 @@ import type { Page } from '@playwright/test';
  */
 
 async function signInAs(page: Page, user: string): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: new RegExp(`^Sign in as ${user} [a-z_]+$`),
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 test('a user rates an answer and administrators see the totals', async ({

@@ -9,13 +9,13 @@ const run = Date.now().toString(36);
 const email = `invite-${run}@partner.example`;
 
 test('an administrator adds a user by e-mail address', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: /^Sign in as Sample Super Admin [a-z_]+$/,
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 
     await page.goto('/admin/users');
     await expect(page.getByTestId('sign-in-access')).toContainText(
@@ -48,13 +48,13 @@ test('an administrator adds a user by e-mail address', async ({ page }) => {
 test('a user is promoted and disabled from the list', async ({ page }) => {
     const address = `quick-${run}@partner.example`;
 
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: /^Sign in as Sample Super Admin [a-z_]+$/,
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 
     await page.goto('/admin/users');
     await page.getByRole('button', { name: 'Add users' }).click();

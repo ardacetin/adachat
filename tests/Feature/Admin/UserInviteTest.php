@@ -173,7 +173,7 @@ test('new users can be sent an invitation e-mail in the institution\'s language'
             && $mail->invitedBy === 'Ayşe Yılmaz'
             && $mail->envelope()->subject === 'Ada Chat hesabınız oluşturuldu'
             && str_contains($html, 'Beykoz Üniversitesi')
-            && str_contains($html, route('login'));
+            && str_contains($html, route('home'));
     });
 
     expect(AuditLog::query()->where('action', 'user.invited')->sole()->new_values['email_sent'])->toBeTrue();

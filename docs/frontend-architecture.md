@@ -34,7 +34,7 @@ resources/js/
 │   ├── budget/                # budget-indicator, usage-summary, budget-exhausted-alert
 │   └── admin/                 # data-table, kpi-card, spend-chart, filters, masked-secret
 ├── pages/
-│   ├── auth/login.tsx
+│   ├── welcome.tsx            # landing page with the sign-in buttons
 │   ├── chat/index.tsx         # new conversation
 │   ├── chat/show.tsx          # existing conversation
 │   ├── settings/{profile,appearance,language,usage}.tsx
@@ -205,7 +205,7 @@ active locale and the institution timezone.
     falling back to pure white/black for mid tones, always ≥ 4.5:1.
 - Logos (light/dark) and favicon come from settings and are served with
   root-relative URLs (robust behind reverse proxies). The sidebar shows the
-  product name with the institution short name underneath; the sign-in page
+  product name with the institution short name underneath; the landing page
   shows the institution logo.
 - The `admin` translation namespace is loaded lazily by the admin layout
   (`useLazyNamespace`), so it never enters the chat bundle.
@@ -250,7 +250,7 @@ active locale and the institution timezone.
   not per token, to avoid screen reader spam.
 - Colour contrast enforced for branding (§7). Target WCAG 2.1 AA.
 - As built (M10): `tests/e2e/accessibility.spec.ts` runs axe-core (WCAG 2.1
-  A/AA) on the sign-in page, the chat, usage and settings pages (light and
+  A/AA) on the landing page, the chat, usage and settings pages (light and
   dark) and the main administration pages, and fails on serious or critical
   violations. Automated checks find only part of the problems; before a
   release also check by hand: keyboard-only use of the chat (send, stop,

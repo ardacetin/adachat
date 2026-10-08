@@ -22,7 +22,7 @@ function resetAcknowledgment(): void {
 test('the usage notice comes before the first chat', async ({ page }) => {
     resetAcknowledgment();
 
-    await page.goto('/login');
+    await page.goto('/');
     await page.getByRole('button', { name: /Sign in as Sample User/ }).click();
     await page.waitForURL('/acknowledgment');
 

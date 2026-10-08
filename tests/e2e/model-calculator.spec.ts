@@ -8,13 +8,13 @@ import { expect, test } from './fixtures';
 test('the model cost calculator updates as numbers are typed', async ({
     page,
 }) => {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: /^Sign in as Sample Super Admin [a-z_]+$/,
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
     await page.goto('/admin/models/create');
     // Prices are typed in the advanced mode (easy mode takes them from the
     // catalog, see model-catalog.spec.ts).

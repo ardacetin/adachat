@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 test('pages send security headers and a nonce-based script policy', function () {
-    $response = $this->get(route('login'))->assertOk();
+    $response = $this->get(route('home'))->assertOk();
 
     $response->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('X-Frame-Options', 'DENY')
@@ -29,8 +29,8 @@ test('HSTS is sent over https', function () {
 });
 
 test('every request gets a fresh nonce', function () {
-    $first = $this->get(route('login'))->headers->get('Content-Security-Policy');
-    $second = $this->get(route('login'))->headers->get('Content-Security-Policy');
+    $first = $this->get(route('home'))->headers->get('Content-Security-Policy');
+    $second = $this->get(route('home'))->headers->get('Content-Security-Policy');
 
     expect($first)->not->toBe($second);
 });

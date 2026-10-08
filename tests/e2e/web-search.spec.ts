@@ -7,11 +7,11 @@ import { expect, test } from './fixtures';
  */
 
 test('a message with web search lists its sources', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', { name: /^Sign in as Sample User [a-z_]+$/ })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 
     const toggle = page.getByTestId('web-search-toggle');
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');

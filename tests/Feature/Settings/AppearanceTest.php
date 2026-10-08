@@ -31,7 +31,7 @@ test('the saved preference renders the first paint and wins over the cookie', fu
 
 test('guest cookies are validated', function () {
     $this->withUnencryptedCookie('appearance', "dark';alert(1);//")
-        ->get(route('login'))
+        ->get(route('home'))
         ->assertDontSee('alert(1)', false)
         ->assertSee("const appearance = 'system';", false);
 });

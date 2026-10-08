@@ -12,9 +12,9 @@ import type { Page } from '@playwright/test';
 const files = path.join(import.meta.dirname, 'files');
 
 async function signIn(page: Page): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page.getByRole('button', { name: /Sign in as Sample User/ }).click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 test('an image and a text file are sent with a message', async ({ page }) => {

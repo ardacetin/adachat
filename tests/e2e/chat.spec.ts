@@ -8,13 +8,13 @@ import type { Page } from '@playwright/test';
  */
 
 async function signIn(page: Page): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: /Sign in as Sample User|Sample User olarak giriş yap/,
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 async function setLanguage(page: Page, option: RegExp): Promise<void> {

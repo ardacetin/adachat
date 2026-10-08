@@ -12,13 +12,13 @@ const run = Date.now().toString(36);
 const name = `Tez ${run}`;
 
 async function signInAs(page: Page, user: string): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: new RegExp(`^Sign in as ${user} [a-z_]+$`),
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 test('an assistant is created and used with a starter prompt', async ({
