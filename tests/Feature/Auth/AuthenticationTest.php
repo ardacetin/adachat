@@ -1,6 +1,10 @@
 <?php
 
+use App\Domain\Identity\Exceptions\IdentityRejected;
+use App\Domain\Identity\Exceptions\RejectionReason;
+use App\Domain\Identity\Services\IdentityProviderRegistry;
 use App\Models\User;
+use Tests\Support\FakeIdentityProvider;
 
 test('guests see the landing page and are sent to sign in from everywhere else', function () {
     $this->get(route('home'))
@@ -10,10 +14,25 @@ test('guests see the landing page and are sent to sign in from everywhere else',
     $this->get(route('usage'))->assertRedirect(route('login'));
 });
 
-test('the login page is rendered for guests', function () {
-    $this->get(route('login'))
+test('sign-in starts on the landing page: /login leads there with its error', function () {
+    $this->get(route('home'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('auth/login'));
+        ->assertInertia(fn ($page) => $page->component('welcome')->has('providers')->has('devLoginUsers'));
+
+    // A refused sign-in returns through /login to the landing page, with
+    // the reason still there to show.
+    $idp = new FakeIdentityProvider;
+    $idp->next = new IdentityRejected(RejectionReason::DomainNotAllowed);
+    $this->app->instance(IdentityProviderRegistry::class, new IdentityProviderRegistry([$idp]));
+
+    $this->followingRedirects()
+        ->post(route('auth.acs', 'saml'))
+        ->assertInertia(fn ($page) => $page->component('welcome')
+            ->where('errors.auth', __('auth.errors.domain_not_allowed')));
+
+    // The page a guest wanted is kept for after sign-in.
+    $this->get(route('usage'))->assertRedirect(route('login'));
+    expect(session('url.intended'))->toBe(route('usage'));
 });
 
 test('authenticated users land on the chat', function () {
@@ -28,7 +47,7 @@ test('users can log out', function () {
 
     $this->actingAs($user)
         ->post(route('logout'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 
     $this->assertGuest();
 });

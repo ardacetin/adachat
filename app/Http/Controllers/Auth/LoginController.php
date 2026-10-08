@@ -9,17 +9,29 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class LoginController extends Controller
 {
     /**
-     * Show the sign-in page.
+     * Sign-in starts on the landing page: /login (where guests are sent,
+     * and where a refused sign-in returns) leads there, keeping the error
+     * to show and the page the user wanted.
      */
-    public function show(IdentityProviderRegistry $providers): Response
+    public function show(Request $request): RedirectResponse
     {
-        return Inertia::render('auth/login', [
+        $request->session()->reflash();
+
+        return redirect()->route('home');
+    }
+
+    /**
+     * The sign-in options for the landing page.
+     *
+     * @return array{providers: list<array{key: string, label: string}>, devLoginUsers: mixed}
+     */
+    public static function options(IdentityProviderRegistry $providers): array
+    {
+        return [
             'providers' => array_map(
                 fn (RedirectIdentityProvider $provider): array => ['key' => $provider->key(), 'label' => $provider->label()],
                 $providers->enabled(),
@@ -30,7 +42,7 @@ class LoginController extends Controller
                     ->limit(20)
                     ->get(['id', 'name', 'email', 'role'])
                 : null,
-        ]);
+        ];
     }
 
     /**
@@ -43,6 +55,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('home');
     }
 }

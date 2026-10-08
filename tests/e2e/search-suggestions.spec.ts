@@ -33,11 +33,11 @@ test("a grounded answer shows Google's Search Suggestions", async ({
 }) => {
     const id = seedGroundedConversation();
 
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', { name: /^Sign in as Sample User [a-z_]+$/ })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
     await page.goto(`/c/${id}`);
 
     await expect(

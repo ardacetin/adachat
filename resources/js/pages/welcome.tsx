@@ -1,7 +1,10 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Bot, Lock, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { DevLogin } from '@/components/auth/dev-login';
+import type { DevLoginUser } from '@/components/auth/dev-login';
+import InputError from '@/components/input-error';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,20 +13,45 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { login } from '@/routes';
+import { redirect } from '@/routes/auth';
 
 type Props = {
     /** The wording, in the visitor's language, with placeholders filled in (Admin → Texts). */
     texts: Record<string, string>;
+    providers: { key: string; label: string }[];
+    /** Local development and tests only. */
+    devLoginUsers: DevLoginUser[] | null;
 };
 
 /**
  * What guests see at "/": who runs Ada, what it offers, and the way in.
- * Sign-in itself (providers, dev login) stays on /login.
+ * Signing in goes straight to the identity provider: one button, or one
+ * per provider when there are several. A refused sign-in comes back here
+ * with its reason.
  */
-export default function Welcome({ texts }: Props) {
+export default function Welcome({ texts, providers, devLoginUsers }: Props) {
     const { t } = useTranslation('auth');
-    const { name, institution } = usePage().props;
+    const { name, institution, errors } = usePage<{
+        errors: Record<string, string>;
+    }>().props;
+    const single = providers.length === 1;
+
+    // A full page navigation: the IdP redirect must not be an Inertia visit.
+    const signInButtons = (size: 'sm' | 'lg', variant?: 'outline') =>
+        providers.map((provider) => (
+            <Button key={provider.key} asChild size={size} variant={variant}>
+                <a
+                    href={redirect.url(provider.key)}
+                    data-test={size === 'lg' ? 'landing-sign-in' : undefined}
+                >
+                    {single
+                        ? t('landing.signIn')
+                        : t('login.withProvider', {
+                              provider: provider.label,
+                          })}
+                </a>
+            </Button>
+        ));
 
     const features = [
         { icon: Bot, title: texts.models_title, text: texts.models_text },
@@ -58,9 +86,7 @@ export default function Welcome({ texts }: Props) {
 
                 <div className="flex items-center gap-2">
                     <LocaleSwitcher />
-                    <Button asChild variant="outline" size="sm">
-                        <Link href={login.url()}>{t('landing.signIn')}</Link>
-                    </Button>
+                    {single && signInButtons('sm', 'outline')}
                 </div>
             </header>
 
@@ -76,18 +102,29 @@ export default function Welcome({ texts }: Props) {
                         {texts.lead}
                     </p>
                     <div className="mt-8 flex flex-col items-center gap-3">
-                        <Button asChild size="lg">
-                            <Link
-                                href={login.url()}
-                                data-test="landing-sign-in"
-                            >
-                                {t('landing.signIn')}
-                            </Link>
-                        </Button>
+                        <InputError
+                            message={errors.auth}
+                            className="max-w-md text-center"
+                        />
+                        {providers.length > 0 ? (
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {signInButtons('lg')}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                {t('login.notConfigured')}
+                            </p>
+                        )}
                         <p className="text-sm text-muted-foreground">
                             {texts.sign_in_hint}
                         </p>
                     </div>
+
+                    {devLoginUsers !== null && (
+                        <div className="mt-10">
+                            <DevLogin users={devLoginUsers} />
+                        </div>
+                    )}
                 </section>
 
                 <section

@@ -22,11 +22,11 @@ function rules(tckn: string): void {
 }
 
 async function signIn(page: Page): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', { name: /^Sign in as Sample User [a-z_]+$/ })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 test.afterAll(() => rules('off'));

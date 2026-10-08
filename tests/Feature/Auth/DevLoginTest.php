@@ -5,9 +5,9 @@ use App\Models\User;
 test('the dev login lists users on the login page', function () {
     User::factory()->create(['name' => 'Dev User']);
 
-    $this->get(route('login'))
+    $this->get(route('home'))
         ->assertInertia(fn ($page) => $page
-            ->component('auth/login')
+            ->component('welcome')
             ->where('devLoginUsers.0.name', 'Dev User'));
 });
 

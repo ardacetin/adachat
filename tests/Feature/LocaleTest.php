@@ -23,7 +23,7 @@ test('the browser language is used when the institution default is unavailable',
     updateSettings(InstitutionSettings::class, ['default_locale' => 'de']);
 
     $this->withHeader('Accept-Language', 'tr-TR,tr;q=0.9,en;q=0.5')
-        ->get(route('login'))
+        ->get(route('home'))
         ->assertInertia(fn ($page) => $page->where('locale.current', 'tr'));
 });
 
@@ -32,7 +32,7 @@ test('unsupported locales fall back', function () {
     config(['ada.locales.fallback' => 'en']);
 
     $this->withHeader('Accept-Language', 'de-DE')
-        ->get(route('login'))
+        ->get(route('home'))
         ->assertInertia(fn ($page) => $page
             ->where('locale.current', 'en')
             ->where('locale.available', ['en', 'tr']));
@@ -57,12 +57,12 @@ test('a visitor chooses the language of the landing and sign-in pages', function
         ->get(route('home'))
         ->assertInertia(fn ($page) => $page->component('welcome')->where('locale.current', 'tr'));
     $this->withCookie('ada_locale', 'tr')
-        ->get(route('login'))
+        ->get(route('home'))
         ->assertInertia(fn ($page) => $page->where('locale.current', 'tr'));
 
     // A cookie with a language Ada does not offer is ignored.
     $this->withCookie('ada_locale', 'xx')
-        ->get(route('login'))
+        ->get(route('home'))
         ->assertInertia(fn ($page) => $page->where('locale.current', 'en'));
 
     $this->post(route('locale.update'), ['locale' => 'xx'])->assertSessionHasErrors('locale');

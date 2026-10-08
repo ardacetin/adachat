@@ -29,7 +29,7 @@ test('forwarded headers from a trusted proxy give the client address and https',
     trustProxies('10.0.0.0/8, 192.168.1.1');
 
     $this->withServerVariables(viaProxy('10.1.2.3'))
-        ->get('/login')
+        ->get('/')
         ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
     $user = User::factory()->superAdmin()->create();
@@ -43,7 +43,7 @@ test('forwarded headers from anyone else are ignored', function () {
     trustProxies('10.0.0.0/8');
 
     $this->withServerVariables(viaProxy('198.51.100.9'))
-        ->get('/login')
+        ->get('/')
         ->assertHeaderMissing('Strict-Transport-Security');
 });
 
@@ -51,7 +51,7 @@ test('no proxy is trusted by default', function () {
     trustProxies(null);
 
     $this->withServerVariables(viaProxy('127.0.0.1'))
-        ->get('/login')
+        ->get('/')
         ->assertHeaderMissing('Strict-Transport-Security');
 });
 
@@ -72,7 +72,7 @@ test('a forwarded path prefix is never believed, even from a trusted proxy', fun
     trustProxies('10.0.0.0/8');
 
     $this->withServerVariables([...viaProxy('10.1.2.3'), 'HTTP_X_FORWARDED_PREFIX' => '/evil'])
-        ->get('/login')
+        ->get('/')
         ->assertOk();
 
     expect(request()->getBaseUrl())->toBe('')

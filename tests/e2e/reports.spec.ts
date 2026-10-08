@@ -6,11 +6,11 @@ import { expect, test } from './fixtures';
  */
 
 test('reports can be downloaded as CSV', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', { name: /^Sign in as Sample Admin [a-z_]+$/ })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
     await page.goto('/admin/reports?by=group');
 
     await page.getByRole('button', { name: 'Download CSV' }).click();

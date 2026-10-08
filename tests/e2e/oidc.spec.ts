@@ -22,10 +22,14 @@ test.beforeAll(() => {
 });
 
 test('a user signs in with OpenID Connect', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByRole('link', { name: /Test SSO/ }).click();
-
-    await page.waitForURL((url) => !url.pathname.startsWith('/login'));
+    await page.goto('/');
+    // The landing page's sign-in button goes straight to the provider.
+    const back = page.waitForResponse((response) =>
+        response.url().includes('/auth/oidc/callback'),
+    );
+    await page.getByTestId('landing-sign-in').click();
+    await back;
+    await page.waitForLoadState();
 
     // A new account sees the usage notice first (only once).
     if (new URL(page.url()).pathname === '/acknowledgment') {

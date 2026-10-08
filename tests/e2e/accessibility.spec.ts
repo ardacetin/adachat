@@ -11,13 +11,13 @@ import { expect, test } from './fixtures';
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 async function signInAs(page: Page, name: string): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: new RegExp(`^Sign in as ${name} [a-z_]+$`),
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 async function expectNoViolations(page: Page, name: string): Promise<void> {
@@ -44,7 +44,7 @@ test('the landing page is accessible', async ({ page }) => {
 });
 
 test('the sign-in page is accessible', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     await expectNoViolations(page, 'login');
 });
 

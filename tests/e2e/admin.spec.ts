@@ -15,13 +15,13 @@ const group = `Researchers ${run}`;
 const alias = `Deep ${run}`;
 
 async function signInAs(page: Page, name: string): Promise<void> {
-    await page.goto('/login');
+    await page.goto('/');
     await page
         .getByRole('button', {
             name: new RegExp(`^Sign in as ${name} [a-z_]+$`),
         })
         .click();
-    await page.waitForURL('/');
+    await expect(page.getByTestId('dev-login')).toBeHidden();
 }
 
 test.afterAll(() => {
@@ -40,7 +40,7 @@ test.afterAll(() => {
 async function logOut(page: Page, name: string): Promise<void> {
     await page.getByRole('button', { name: new RegExp(name) }).click();
     await page.getByTestId('logout-button').click();
-    await page.waitForURL('/login');
+    await expect(page.getByTestId('dev-login')).toBeVisible();
 }
 
 async function openUser(page: Page, name: string): Promise<void> {
