@@ -200,11 +200,11 @@ jobs:
           compose="docker compose -f compose.production.yml"
 
           curl -fsS http://localhost:8080/up > /dev/null
-          curl -fsS -D headers.txt http://localhost:8080/login -o login.html
+          curl -fsS -D headers.txt http://localhost:8080/ -o landing.html
           grep -qi '^content-security-policy:' headers.txt
           if grep -qi '^x-powered-by:' headers.txt; then echo 'X-Powered-By leaks the PHP version'; exit 1; fi
 
-          asset=$(grep -o '/build/assets/[^"]*\.js' login.html | sed -n 1p)
+          asset=$(grep -o '/build/assets/[^"]*\.js' landing.html | sed -n 1p)
           test -n "$asset"
           curl -fsS -D asset-headers.txt "http://localhost:8080$asset" -o /dev/null
           grep -qi '^cache-control:.*immutable' asset-headers.txt
