@@ -15,6 +15,8 @@ use App\Models\AiModel;
 use App\Models\Group;
 use App\Models\ModelAlias;
 use App\Models\Provider;
+use App\Support\FrontendBuild;
+use App\Support\InstallState;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -49,12 +51,30 @@ class DoctorCommand extends Command
         $this->check('Log files rotate', ! $production || $this->logsRotate(), warnOnly: true, hint: 'Set LOG_CHANNEL=json (JSON, a file per day) or stderr in Docker.');
         $this->check('Secure session cookies', (bool) config('session.secure') || ! $production, warnOnly: true, hint: 'Set SESSION_SECURE_COOKIE=true behind https.');
 
+        // What an upgrade can leave half done (docs/deployment.md §8).
+        $this->components->info('Installation');
+        $outdated = InstallState::outdatedPackages();
+        $this->check('PHP packages match composer.lock', $outdated === [], warnOnly: ! $production, hint: $outdated === null
+            ? 'composer.lock or vendor/ is missing: run composer install --no-dev --optimize-autoloader.'
+            : 'Run composer install --no-dev --optimize-autoloader ('.implode(', ', array_slice($outdated, 0, 5)).').');
+        $frontend = FrontendBuild::status();
+        $this->check('The front end is built from this version', $frontend === 'current', warnOnly: ! $production, hint: $frontend === 'missing'
+            ? 'No build of this version: run npm ci && npm run build (Docker: up -d --build).'
+            : 'public/build is older than the code: run npm ci && npm run build (Docker: up -d --build), then reload the page.');
+
         $this->components->info('Database and storage');
         $version = $this->databaseVersion();
         $this->check('Database connection', $version !== null, hint: 'Check the DB_* settings.');
 
         if ($version !== null) {
             $this->check("MySQL 8.4 or later ({$version})", version_compare(preg_replace('/[^0-9.].*$/', '', $version) ?: '0', '8.4', '>='), warnOnly: true, hint: 'MySQL 8.4 LTS is the supported (and tested) database.');
+        }
+
+        if ($version !== null) {
+            $pending = InstallState::pendingMigrations();
+            $this->check('Migrations are up to date', $pending === [], hint: $pending === null
+                ? 'The migrations table is missing: run php artisan migrate --force.'
+                : count($pending).' migration(s) have not run: php artisan migrate --force.');
         }
 
         $this->check('Storage is writable', is_writable(storage_path('framework')) && is_writable(storage_path('logs')), hint: 'The web server user must be able to write to storage/.');

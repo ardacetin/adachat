@@ -70,6 +70,10 @@ jobs:
       - name: Build assets
         run: npm run build
 
+      - name: Build stamp matches the sources
+        run: |
+          php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); exit(App\Support\FrontendBuild::status() === "current" ? 0 : 1);'
+
       - name: Bundle size budget
         run: npm run bundle:check
 
