@@ -290,16 +290,24 @@ Without Docker:
 
 ```bash
 cd /var/www/ada
-php artisan down --retry=60          # answers already streaming finish
 git fetch --tags && git checkout <new tag>
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
-php artisan migrate --force
-php artisan optimize
+php artisan ada:upgrade
 sudo systemctl reload php8.4-fpm     # opcache does not see new files otherwise
-php artisan up
-php artisan ada:doctor
 ```
+
+`ada:upgrade` first checks that the PHP packages match `composer.lock` and
+that the front end was built from this version, and stops without changing
+anything if not. Then it puts the application in maintenance mode (answers
+already streaming finish), runs the migrations, refreshes the caches, ends
+maintenance mode and runs `ada:doctor`. Since 2.0.1 `ada:doctor` reports the
+same three problems on its own: migrations that have not run, packages that
+differ from `composer.lock`, and a front end built from another version (the
+build writes a hash of its sources to `public/build/ada-source.json`). A
+front end left from the previous version is the usual cause of pages that
+behave as before the upgrade, such as a sign-in button that leads back to
+the same page.
 
 Going back: check out the previous tag and repeat; restore the backup if the
 new version's migrations changed data (the changelog says so).

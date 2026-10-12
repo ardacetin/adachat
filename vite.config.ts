@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig, lazyPlugins } from 'vite-plus';
+import { sourceStamp } from './build/source-stamp';
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
@@ -24,6 +25,7 @@ export default defineConfig({
             // and builds the assets where PHP is not installed.
             command: process.env.WAYFINDER_COMMAND,
         }),
+        sourceStamp(),
     ]),
     server: {
         watch: {

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ada:doctor` reports migrations that have not run, PHP packages that
+  differ from `composer.lock`, and a front end built from another version
+  (the build writes a hash of its sources to `public/build/ada-source.json`).
+- `ada:upgrade` finishes an upgrade without Docker: it checks the packages
+  and the front end first, then migrates in maintenance mode, refreshes the
+  caches and runs the doctor (docs/deployment.md §8).
+
 ## [2.0.0] - 2026-10-08
 
 A feature release. Release notes:

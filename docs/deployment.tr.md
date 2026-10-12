@@ -300,16 +300,23 @@ Docker olmadan:
 
 ```bash
 cd /var/www/ada
-php artisan down --retry=60          # akmakta olan yanıtlar tamamlanır
 git fetch --tags && git checkout <yeni etiket>
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
-php artisan migrate --force
-php artisan optimize
+php artisan ada:upgrade
 sudo systemctl reload php8.4-fpm     # aksi halde opcache yeni dosyaları görmez
-php artisan up
-php artisan ada:doctor
 ```
+
+`ada:upgrade` önce PHP paketlerinin `composer.lock` ile, ön yüzün de bu
+sürümden derlenmiş olduğunu kontrol eder; değilse hiçbir şeyi değiştirmeden
+durur. Ardından uygulamayı bakım moduna alır (akmakta olan yanıtlar
+tamamlanır), migration'ları çalıştırır, önbellekleri yeniler, bakım modunu
+kapatır ve `ada:doctor` çalıştırır. 2.0.1'den itibaren `ada:doctor` aynı üç
+sorunu kendisi de bildirir: çalışmamış migration'lar, `composer.lock`'tan
+farklı paketler ve başka bir sürümden derlenmiş ön yüz (derleme, kaynaklarının
+özetini `public/build/ada-source.json` dosyasına yazar). Önceki sürümden kalmış
+bir ön yüz, yükseltmeden sonra sayfaların eski sürümdeki gibi davranmasının
+(örneğin giriş düğmesinin aynı sayfaya dönmesinin) olağan nedenidir.
 
 Geri dönmek için: önceki etikete geçip adımları tekrarlayın; yeni sürümün
 migration'ları veriyi değiştirdiyse (değişiklik günlüğü belirtir) yedeği geri
