@@ -21,9 +21,14 @@ Guests who open `/` see a public landing page (institution branding, three
 feature cards, a sign-in button, a language switch) and no data. Signing in
 starts there: with one identity provider the **Sign in** button goes
 straight to it, with several there is one button per provider. There is no
-separate sign-in page since 2.0: `/login`, where other pages send guests
-and where a refused sign-in returns, redirects to `/` and keeps the error
-message and the page the user wanted (after sign-in they land on it). Its wording, like
+separate sign-in page since 2.0. `/login` is where other pages send guests
+and where a refused sign-in returns: with a single identity provider it
+goes straight to that provider (since 2.0.1), so a link or an expired
+session signs in with one click; after sign-in users land on the page
+they wanted. It leads to the landing page instead, keeping the message,
+after a refused sign-in (the provider would sign the user in at once and
+be refused again), when there are several providers to choose from, and
+while the development login is on. Its wording, like
 the invitation e-mail's, can be changed per language in **Administration →
 Texts** (`ContentSettings`); empty fields keep Ada's defaults from
 `lang/<locale>/landing.php` and `lang/<locale>/mail.php`, and `:app` /

@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       # MySQL 8.4 LTS is the only supported database; tests never use SQLite.
@@ -101,7 +101,7 @@ jobs:
           npm audit --audit-level=moderate
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       mysql:
@@ -177,7 +177,7 @@ jobs:
   docker:
     # Builds the production image and runs it with compose.production.yml
     # the way an institution would (docs/deployment.md).
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
