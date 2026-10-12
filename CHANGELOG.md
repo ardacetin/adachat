@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the front end first, then migrates in maintenance mode, refreshes the
   caches and runs the doctor (docs/deployment.md §8).
 
+### Changed
+
+- With a single identity provider (and no development login), `/login`
+  goes straight to it, so a link to Ada or an expired session signs in with
+  one click. After a refused sign-in, with several providers or with the
+  development login it still leads to the landing page.
+- CI runs on `ubuntu-24.04` instead of `ubuntu-latest`, so a new runner
+  image no longer changes the test environment unannounced.
+
 ## [2.0.0] - 2026-10-08
 
 A feature release. Release notes:

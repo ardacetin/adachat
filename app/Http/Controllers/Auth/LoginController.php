@@ -9,16 +9,30 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class LoginController extends Controller
 {
     /**
-     * Sign-in starts on the landing page: /login (where guests are sent,
-     * and where a refused sign-in returns) leads there, keeping the error
-     * to show and the page the user wanted.
+     * /login is where guests are sent and where a refused sign-in returns.
+     * With a single identity provider it goes straight to it, so a link or
+     * an expired session signs in with one click. A refused sign-in (an
+     * error to show) goes to the landing page instead: the provider would
+     * sign the user in again at once and refuse them again. So do several
+     * providers, to choose from, and the development login.
      */
-    public function show(Request $request): RedirectResponse
+    public function show(Request $request, IdentityProviderRegistry $providers): SymfonyResponse
     {
+        $enabled = $providers->enabled();
+
+        if (count($enabled) === 1 && ! $request->session()->has('errors') && ! DevLoginController::isEnabled()) {
+            $target = route('auth.redirect', $enabled[0]->key());
+
+            // An Inertia visit cannot follow a redirect to another site.
+            return $request->header('X-Inertia') !== null ? Inertia::location($target) : redirect()->to($target);
+        }
+
         $request->session()->reflash();
 
         return redirect()->route('home');
