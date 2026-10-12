@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   development login it still leads to the landing page.
 - CI runs on `ubuntu-24.04` instead of `ubuntu-latest`, so a new runner
   image no longer changes the test environment unannounced.
+- Dependencies: Laravel 13.35, Inertia 3.9 (inertia-laravel 3.5),
+  Vite+ 1.1, Playwright 1.64 and minor updates of the Radix UI, i18next and
+  lucide packages.
 
 ## [2.0.0] - 2026-10-08
 

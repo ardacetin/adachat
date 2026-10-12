@@ -4,10 +4,15 @@ use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Settings\ProfileController;
+use Illuminate\Routing\RedirectController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'throttle:app'])->group(function () {
-    Route::redirect('settings', '/settings/profile');
+    // Route::redirect() also answers the QUERY method (Laravel 13.35), which
+    // Wayfinder's generated route types do not know yet.
+    Route::get('settings', RedirectController::class)
+        ->defaults('destination', '/settings/profile')
+        ->defaults('status', 302);
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
