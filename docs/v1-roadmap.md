@@ -216,9 +216,9 @@ on the landing and sign-in pages, administrators limited to managing users
 protection (warn, mask, block)
 ([docs/releases/v2.0.0.md](releases/v2.0.0.md)).
 
-**2.0.1** ✅: `ada:doctor` checks and `ada:upgrade` for half-finished
+**2.0.2** ✅: `ada:doctor` checks and `ada:upgrade` for half-finished
 upgrades, `/login` straight to a single identity provider, dependency
-updates ([docs/releases/v2.0.1.md](releases/v2.0.1.md)).
+updates ([docs/releases/v2.0.2.md](releases/v2.0.2.md)).
 
 ## Candidates for later versions
 

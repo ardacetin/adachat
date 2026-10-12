@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.1] - 2026-10-12
+## [2.0.2] - 2026-10-12
 
 A maintenance release. Release notes:
-[docs/releases/v2.0.1.md](docs/releases/v2.0.1.md).
+[docs/releases/v2.0.2.md](docs/releases/v2.0.2.md). There is no 2.0.1: its
+tag was published too early and a tag name cannot be reused.
 
 ### Added
 
@@ -589,8 +590,8 @@ anyone's conversations. Release notes:
   a mock provider including axe accessibility checks (WCAG 2.1 AA), Larastan
   level 7, a JavaScript bundle size budget and dependency audits in CI.
 
-[Unreleased]: https://github.com/ardacetin/adachat/compare/v2.0.1...HEAD
-[2.0.1]: https://github.com/ardacetin/adachat/compare/v2.0.0...v2.0.1
+[Unreleased]: https://github.com/ardacetin/adachat/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/ardacetin/adachat/compare/v2.0.0...v2.0.2
 [2.0.0]: https://github.com/ardacetin/adachat/compare/v1.5.0...v2.0.0
 [1.5.0]: https://github.com/ardacetin/adachat/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/ardacetin/adachat/compare/v1.4.1...v1.4.2

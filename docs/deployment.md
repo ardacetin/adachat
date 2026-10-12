@@ -301,7 +301,7 @@ sudo systemctl reload php8.4-fpm     # opcache does not see new files otherwise
 that the front end was built from this version, and stops without changing
 anything if not. Then it puts the application in maintenance mode (answers
 already streaming finish), runs the migrations, refreshes the caches, ends
-maintenance mode and runs `ada:doctor`. Since 2.0.1 `ada:doctor` reports the
+maintenance mode and runs `ada:doctor`. Since 2.0.2 `ada:doctor` reports the
 same three problems on its own: migrations that have not run, packages that
 differ from `composer.lock`, and a front end built from another version (the
 build writes a hash of its sources to `public/build/ada-source.json`). A

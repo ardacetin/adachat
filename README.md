@@ -7,7 +7,7 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 2.0.1** ([release notes](docs/releases/v2.0.1.md)): `ada:doctor`
+> **Status: 2.0.2** ([release notes](docs/releases/v2.0.2.md)): `ada:doctor`
 > and `ada:upgrade` catch half-finished upgrades, and with a single identity
 > provider links sign in with one click. Version 2.0 added groups that
 > follow the identity provider (SAML, OIDC) and protection of personal data
