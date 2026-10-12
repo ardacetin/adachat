@@ -23,7 +23,7 @@ starts there: with one identity provider the **Sign in** button goes
 straight to it, with several there is one button per provider. There is no
 separate sign-in page since 2.0. `/login` is where other pages send guests
 and where a refused sign-in returns: with a single identity provider it
-goes straight to that provider (since 2.0.1), so a link or an expired
+goes straight to that provider (since 2.0.2), so a link or an expired
 session signs in with one click; after sign-in users land on the page
 they wanted. It leads to the landing page instead, keeping the message,
 after a refused sign-in (the provider would sign the user in at once and

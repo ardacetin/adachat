@@ -311,7 +311,7 @@ sudo systemctl reload php8.4-fpm     # aksi halde opcache yeni dosyaları görme
 sürümden derlenmiş olduğunu kontrol eder; değilse hiçbir şeyi değiştirmeden
 durur. Ardından uygulamayı bakım moduna alır (akmakta olan yanıtlar
 tamamlanır), migration'ları çalıştırır, önbellekleri yeniler, bakım modunu
-kapatır ve `ada:doctor` çalıştırır. 2.0.1'den itibaren `ada:doctor` aynı üç
+kapatır ve `ada:doctor` çalıştırır. 2.0.2'den itibaren `ada:doctor` aynı üç
 sorunu kendisi de bildirir: çalışmamış migration'lar, `composer.lock`'tan
 farklı paketler ve başka bir sürümden derlenmiş ön yüz (derleme, kaynaklarının
 özetini `public/build/ada-source.json` dosyasına yazar). Önceki sürümden kalmış

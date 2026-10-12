@@ -7,7 +7,7 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 2.0.1** ([sürüm notları](docs/releases/v2.0.1.md#türkçe-özet)):
+> **Durum: 2.0.2** ([sürüm notları](docs/releases/v2.0.2.md#türkçe-özet)):
 > `ada:doctor` ve `ada:upgrade` yarım kalan güncellemeleri yakalar; tek kimlik
 > sağlayıcısında bağlantılar tek tıkla giriş yapar. 2.0 sürümü kimlik
 > sağlayıcısını (SAML, OIDC) izleyen grupları ve kişisel verilerin bir yapay
