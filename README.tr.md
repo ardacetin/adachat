@@ -7,9 +7,12 @@ bir kurumsal AI gateway ve sohbet platformudur.
 
 [English](README.md)
 
-> **Durum: 2.0.0** ([sürüm notları](docs/releases/v2.0.0.md#türkçe-özet)):
-> kimlik sağlayıcısını (SAML, OIDC) izleyen gruplar ve kişisel verilerin bir
-> yapay zekâ sağlayıcısına gitmeden önce korunması (uyar, maskele, engelle).
+> **Durum: 2.0.1** ([sürüm notları](docs/releases/v2.0.1.md#türkçe-özet)):
+> `ada:doctor` ve `ada:upgrade` yarım kalan güncellemeleri yakalar; tek kimlik
+> sağlayıcısında bağlantılar tek tıkla giriş yapar. 2.0 sürümü kimlik
+> sağlayıcısını (SAML, OIDC) izleyen grupları ve kişisel verilerin bir yapay
+> zekâ sağlayıcısına gitmeden önce korunmasını (uyar, maskele, engelle)
+> getirmişti.
 > 1.5 sürümü Gemini ile web araması, duraklatıldığında yarıda kalmayan
 > Anthropic aramaları, sağlayıcı olarak Azure OpenAI, ziyaretçiler için dil
 > seçimi ve yöneticiler arasında daha sıkı yetkiler getirmişti. 1.4.2 sürümü tam güvenlik
