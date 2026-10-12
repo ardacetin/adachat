@@ -7,7 +7,9 @@ administrative controls.
 
 [Türkçe](README.tr.md)
 
-> **Status: 2.0.0** ([release notes](docs/releases/v2.0.0.md)): groups that
+> **Status: 2.0.1** ([release notes](docs/releases/v2.0.1.md)): `ada:doctor`
+> and `ada:upgrade` catch half-finished upgrades, and with a single identity
+> provider links sign in with one click. Version 2.0 added groups that
 > follow the identity provider (SAML, OIDC) and protection of personal data
 > (warn, mask or block) before it reaches an AI provider. Version 1.5 added
 > web search with Gemini, Anthropic searches that no longer stop when
